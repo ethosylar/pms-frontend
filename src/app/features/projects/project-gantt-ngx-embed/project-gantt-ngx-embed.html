@@ -14,10 +14,17 @@
 		<div *ngIf="error" class="alert alert-danger mt-3 mb-0">{{ error }}</div>
 		
 		<div class="gantt-wrap mt-3" *ngIf="!loading && !error">
+			<div *ngIf="!items.length" class="text-muted small py-2">
+				No tasks or milestones available for the selected project.
+			</div>
+
 			<ngx-gantt
+			*ngIf="items.length"
 			[items]="items"
 			[viewType]="viewType"
-			[async]="true"
+			[start]="safeStart"
+			[end]="safeEnd"
+			[async]="false"
 			[draggable]="false"
 			[linkable]="false"
 			[selectable]="false"
