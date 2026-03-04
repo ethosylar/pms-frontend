@@ -17,6 +17,8 @@
 			<ngx-gantt
 			[items]="items"
 			[viewType]="viewType"
+			[start]="safeStart"
+			[end]="safeEnd"
 			[async]="true"
 			[draggable]="false"
 			[linkable]="false"

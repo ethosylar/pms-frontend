@@ -62,9 +62,12 @@ export class ProjectGanttNgxEmbedComponent implements OnInit {
 		)
 		.subscribe({
 			next: ({ gantt, milestones }) => {
-				const tasks: ProjectTaskGanttDto[] = Array.isArray(gantt?.tasks)
-				? gantt.tasks
-				: (gantt?.tasks ?? gantt?.tasks ?? []);
+				const rawTasks: unknown = gantt?.tasks;
+				const tasks: ProjectTaskGanttDto[] = Array.isArray(rawTasks)
+					? (rawTasks as ProjectTaskGanttDto[])
+					: (Array.isArray((rawTasks as { data?: unknown[] } | null)?.data)
+						? ((rawTasks as { data: ProjectTaskGanttDto[] }).data ?? [])
+						: []);
 				
 				const ms: ProjectMilestoneDto[] =
 				(milestones as ApiCollection<ProjectMilestoneDto>)?.data ?? [];
@@ -80,13 +83,13 @@ export class ProjectGanttNgxEmbedComponent implements OnInit {
 				this.items = [...milestoneItems, ...taskItems];
 				
 				const minItemStart = this.minEpoch(this.items.map(i => i.start));
-				const maxItemEnd   = this.maxEpoch(this.items.map(i => i.end));
+				const maxItemEnd = this.maxEpoch(this.items.map(i => i.end));
 				
-				const ps = this.toEpochSec(this.projectStartDate) ?? minItemStart ?? this.todaySec();
-				const pe = this.toEpochSec(this.projectEndDate) ?? maxItemEnd ?? (ps + 7 * this.DAY);
+				const ps = this.toEpochMs(this.projectStartDate) ?? minItemStart ?? this.nowMs();
+				const pe = this.toEpochMs(this.projectEndDate) ?? maxItemEnd ?? (ps + 7 * this.DAY * 1000);
 				
 				this.rangeStart = ps;
-				this.rangeEnd   = Math.max(pe, ps + this.DAY);
+				this.rangeEnd = pe <= ps ? (ps + this.DAY * 1000) : pe;
 				
 				this.cdr.detectChanges();
 			},
@@ -99,43 +102,43 @@ export class ProjectGanttNgxEmbedComponent implements OnInit {
 	}
 	
 	private toEpochAny(v: number | Date | undefined): number | null {
-		if (typeof v === 'number' && Number.isFinite(v)) return v;
-		if (v instanceof Date && !Number.isNaN(v.getTime())) return Math.floor(v.getTime() / 1000);
+		if (typeof v === 'number' && Number.isFinite(v)) return v < 1e12 ? v * 1000 : v;
+		if (v instanceof Date && !Number.isNaN(v.getTime())) return v.getTime();
 		return null;
 	}
 	
 	private minEpoch(values: Array<number | Date | undefined>): number | null {
 		const nums = values
-		.map(v => this.toEpochAny(v))
-		.filter((n): n is number => n != null && Number.isFinite(n));
+			.map(v => this.toEpochAny(v))
+			.filter((n): n is number => n != null && Number.isFinite(n));
 		return nums.length ? Math.min(...nums) : null;
 	}
 	
 	private maxEpoch(values: Array<number | Date | undefined>): number | null {
 		const nums = values
-		.map(v => this.toEpochAny(v))
-		.filter((n): n is number => n != null && Number.isFinite(n));
+			.map(v => this.toEpochAny(v))
+			.filter((n): n is number => n != null && Number.isFinite(n));
 		return nums.length ? Math.max(...nums) : null;
 	}
 	
-	private todaySec(): number {
-		return Math.floor(Date.now() / 1000);
+	private nowMs(): number {
+		return Date.now();
 	}
 	
-	private toEpochSec(v: string | null | undefined): number | null {
+	private toEpochMs(v: string | null | undefined): number | null {
 		if (!v) return null;
 		const d = new Date(`${v}T00:00:00`);
 		if (Number.isNaN(d.getTime())) return null;
-		return Math.floor(d.getTime() / 1000);
+		return d.getTime();
 	}
 	
 	private toTaskItem(t: ProjectTaskGanttDto): GanttVmItem | null {
-		const start = this.toEpochSec(t.start_date);
-		const end = this.toEpochSec(t.end_date ?? t.start_date);
+		const start = this.toEpochMs(t.start_date);
+		const end = this.toEpochMs(t.end_date ?? t.start_date);
 		if (start == null || end == null) return null;
 		
 		// ensure at least 1-day width for visibility
-		const fixedEnd = Math.max(end, start + this.DAY);
+		const fixedEnd = end <= start ? (start + this.DAY * 1000) : end;
 		
 		return {
 			id: String(t.id),
@@ -150,14 +153,14 @@ export class ProjectGanttNgxEmbedComponent implements OnInit {
 	}
 	
 	private toMilestoneItem(m: ProjectMilestoneDto): GanttVmItem | null {
-		const d = this.toEpochSec(m.milestone_date);
+		const d = this.toEpochMs(m.milestone_date);
 		if (d == null) return null;
 		
 		return {
 			id: `MS_${m.id}`,
 			title: `◇ ${m.name}`,
 			start: d,
-			end: d + this.DAY,  // <-- keep this
+			end: d + this.DAY * 1000,
 			progress: 0,
 			color: '#0d6efd',
 			kind: 'milestone',
@@ -179,8 +182,11 @@ export class ProjectGanttNgxEmbedComponent implements OnInit {
 		return '#0dcaf0';
 	}
 	
-	get safeStart(): number { return this.rangeStart ?? this.todaySec(); }
-	get safeEnd(): number { return this.rangeEnd ?? (this.todaySec() + 7 * this.DAY); }
+	get safeStart(): number { return this.rangeStart ?? this.nowMs(); }
+	get safeEnd(): number {
+		const start = this.safeStart;
+		return this.rangeEnd ?? (start + 7 * this.DAY * 1000);
+	}
 	
 	getMilestoneName(item: unknown): string | null {
 		const m = (item as any)?._milestone;
@@ -188,8 +194,8 @@ export class ProjectGanttNgxEmbedComponent implements OnInit {
 	}
 	
 	toMs(v: unknown): number | null {
-		if (typeof v === 'number' && Number.isFinite(v)) return v * 1000; // epoch sec -> ms
 		if (v instanceof Date && !Number.isNaN(v.getTime())) return v.getTime();
+		if (typeof v === 'number' && Number.isFinite(v)) return v < 1e12 ? v * 1000 : v;
 		return null;
 	}
 }
