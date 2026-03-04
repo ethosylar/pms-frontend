@@ -1,23 +1,22 @@
-:host {
-  display: block;
-}
+:host { display: block; }
 
 .gantt-wrap {
-	max-height: 420px;
-	overflow: auto;  /* scroll inside card */
-	border-radius: 12px;
-	overscroll-behavior: contain;
+  height: 420px;          // ✅ give it a real height
+  overflow: auto;
 }
 
-/* keeps the chart from forcing page width */
-.gantt-only {
-	display: block;
-	min-width: 900px;     /* optional; helps avoid squishing */
+.bar-inner {
+  height: 22px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
 }
 
-ngx-gantt {
-  display: block;
-  /* height: 420px;      /* important */
-  height: 100%;
-  min-height: 320px;
+.bar-text {
+  color: #fff;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

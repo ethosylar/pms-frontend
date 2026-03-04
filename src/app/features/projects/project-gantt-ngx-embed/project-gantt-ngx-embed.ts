@@ -186,4 +186,10 @@ export class ProjectGanttNgxEmbedComponent implements OnInit {
 		const m = (item as any)?._milestone;
 		return (typeof m === 'string' && m.trim()) ? m : null;
 	}
+	
+	toMs(v: unknown): number | null {
+		if (typeof v === 'number' && Number.isFinite(v)) return v * 1000; // epoch sec -> ms
+		if (v instanceof Date && !Number.isNaN(v.getTime())) return v.getTime();
+		return null;
+	}
 }

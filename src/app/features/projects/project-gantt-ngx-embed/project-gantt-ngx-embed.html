@@ -6,24 +6,25 @@
 				<div class="text-muted small">Weekly timeline (read-only)</div>
 			</div>
 		</div>
+		
 		<div *ngIf="loading" class="text-muted small mt-3">
-			<span class="spinner-border spinner-border-sm me-2"></span>
-			Loading…
+			<span class="spinner-border spinner-border-sm me-2"></span>Loading…
 		</div>
+		
 		<div *ngIf="error" class="alert alert-danger mt-3 mb-0">{{ error }}</div>
-		<div class="small text-muted">
-			items={{ items.length }} start={{ rangeStart }} end={{ rangeEnd }}
-			Im Outside
-		</div>
-		<div class="gantt-wrap mt-3" *ngIf="!loading && !error && rangeStart != null && rangeEnd != null">
+		
+		<div class="gantt-wrap mt-3" *ngIf="!loading && !error">
 			<ngx-gantt
 			[items]="items"
 			[viewType]="viewType"
-			[start]="rangeStart"
-			[end]="rangeEnd"
+			[async]="true"
+			[draggable]="false"
+			[linkable]="false"
+			[selectable]="false"
 			[showToolbar]="false">
+				
 				<ngx-gantt-table>
-					<ngx-gantt-column name="Task" width="300px">
+					<ngx-gantt-column name="Task" width="320px">
 						<ng-template #cell let-item="item">
 							<div class="fw-semibold" [style.color]="itemColor(item)">{{ item.title }}</div>
 							<div class="small text-muted" *ngIf="getMilestoneName(item) as msName">
@@ -31,7 +32,31 @@
 							</div>
 						</ng-template>
 					</ngx-gantt-column>
+					<ngx-gantt-column name="Start" width="140px">
+						<ng-template #cell let-item="item">
+							<ng-container *ngIf="toMs(item.start) as ms; else dash">
+								{{ ms | date:'yyyy-MM-dd' }}
+							</ng-container>
+							<ng-template #dash>—</ng-template>
+						</ng-template>
+					</ngx-gantt-column>
+					<ngx-gantt-column name="End" width="140px">
+						<ng-template #cell let-item="item">
+							<ng-container *ngIf="toMs(item.end) as ms; else dash">
+								{{ ms | date:'yyyy-MM-dd' }}
+							</ng-container>
+							<ng-template #dash>—</ng-template>
+						</ng-template>
+					</ngx-gantt-column>
 				</ngx-gantt-table>
+				
+				<!-- ✅ Custom bar template so the BAR itself gets your color -->
+				<ng-template #bar let-item="item">
+					<div class="bar-inner" [style.background]="itemColor(item)">
+						<span class="bar-text">{{ item.title }}</span>
+					</div>
+				</ng-template>
+				
 			</ngx-gantt>
 		</div>
 	</div>
