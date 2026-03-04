@@ -12,19 +12,25 @@
 		</div>
 		
 		<div *ngIf="error" class="alert alert-danger mt-3 mb-0">{{ error }}</div>
-		
-		<div class="gantt-wrap mt-3" *ngIf="!loading && !error">
-			<div *ngIf="!items.length" class="text-muted small py-2">
-				No tasks or milestones available for the selected project.
-			</div>
+		<div *ngIf="items.length === 0" class="text-center text-muted py-5">
+			No tasks or milestones with valid dates found.
+		</div>
 
+		<!-- <div class="gantt-wrap mt-3" *ngIf="!loading && !error"> -->
+		<div class="gantt-wrap mt-3" *ngIf="!loading && !error">
+			<div *ngIf="items.length === 0" class="text-center text-muted py-5">
+				No tasks or milestones with valid dates found.
+			</div>
+			<div *ngIf="items.length > 0" class="text-center text-muted py-5">
+				Theres {{ items.length }} task/s or milestones with valid dates found.
+			</div>
 			<ngx-gantt
 			*ngIf="items.length"
 			[items]="items"
 			[viewType]="viewType"
 			[start]="safeStart"
 			[end]="safeEnd"
-			[async]="false"
+			[async]="true"
 			[draggable]="false"
 			[linkable]="false"
 			[selectable]="false"
