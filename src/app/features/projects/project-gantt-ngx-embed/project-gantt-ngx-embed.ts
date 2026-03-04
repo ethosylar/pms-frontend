@@ -43,6 +43,13 @@ export class ProjectGanttNgxEmbedComponent implements OnInit {
 	constructor(private api: ApiService, private cdr: ChangeDetectorRef) {}
 	
 	ngOnInit(): void {
+		console.log('Gantt Embed Inputs:', {
+			projectId: this.projectId,
+			projectStart: this.projectStartDate,
+			projectEnd: this.projectEndDate,
+			typeofStart: typeof this.projectStartDate,
+			typeofEnd: typeof this.projectEndDate
+		});
 		this.load();
 	}
 	
@@ -64,10 +71,10 @@ export class ProjectGanttNgxEmbedComponent implements OnInit {
 			next: ({ gantt, milestones }) => {
 				const rawTasks: unknown = gantt?.tasks;
 				const tasks: ProjectTaskGanttDto[] = Array.isArray(rawTasks)
-					? (rawTasks as ProjectTaskGanttDto[])
-					: (Array.isArray((rawTasks as { data?: unknown[] } | null)?.data)
-						? ((rawTasks as { data: ProjectTaskGanttDto[] }).data ?? [])
-						: []);
+				? (rawTasks as ProjectTaskGanttDto[])
+				: (Array.isArray((rawTasks as { data?: unknown[] } | null)?.data)
+					? ((rawTasks as { data: ProjectTaskGanttDto[] }).data ?? [])
+				: []);
 				
 				const ms: ProjectMilestoneDto[] =
 				(milestones as ApiCollection<ProjectMilestoneDto>)?.data ?? [];
@@ -82,14 +89,40 @@ export class ProjectGanttNgxEmbedComponent implements OnInit {
 				
 				this.items = [...milestoneItems, ...taskItems];
 				
-				const minItemStart = this.minEpoch(this.items.map(i => i.start));
-				const maxItemEnd = this.maxEpoch(this.items.map(i => i.end));
+				// const minItemStart = this.minEpoch(this.items.map(i => i.start));
+				// const maxItemEnd = this.maxEpoch(this.items.map(i => i.end));
 				
-				const ps = this.toEpochMs(this.projectStartDate) ?? minItemStart ?? this.nowMs();
-				const pe = this.toEpochMs(this.projectEndDate) ?? maxItemEnd ?? (ps + 7 * this.DAY * 1000);
+				// const ps = this.toEpochMs(this.projectStartDate) ?? minItemStart ?? this.nowMs();
+				// const pe = this.toEpochMs(this.projectEndDate) ?? maxItemEnd ?? (ps + 7 * this.DAY * 1000);
 				
-				this.rangeStart = ps;
-				this.rangeEnd = pe <= ps ? (ps + this.DAY * 1000) : pe;
+				// this.rangeStart = ps;
+				// this.rangeEnd = pe <= ps ? (ps + this.DAY * 1000) : pe;
+				
+				const minItem = this.minEpoch(this.items.map(i => i.start));
+				const maxItem = this.maxEpoch(this.items.map(i => i.end));
+				
+				// Prefer project dates, but fall back intelligently
+				let rangeStart = this.toEpochMs(this.projectStartDate);
+				let rangeEnd   = this.toEpochMs(this.projectEndDate);
+				
+				if (rangeStart == null || rangeEnd == null || rangeEnd <= rangeStart) {
+					// Project dates missing or invalid → use items + some padding
+					rangeStart = minItem ?? this.nowMs();
+					rangeEnd   = maxItem ?? (rangeStart + 14 * this.DAY * 1000); // at least 2 weeks
+					
+					// Add some padding so items aren't glued to edges
+					const duration = rangeEnd - rangeStart;
+					rangeStart -= duration * 0.1;  // 10% left padding
+					rangeEnd   += duration * 0.1;  // 10% right padding
+				}
+				
+				this.rangeStart = rangeStart;
+				this.rangeEnd   = rangeEnd;
+				
+				console.log('Final visible range:', {
+					start: new Date(rangeStart).toISOString(),
+					end:   new Date(rangeEnd).toISOString()
+				});
 				
 				this.cdr.detectChanges();
 			},
@@ -102,22 +135,22 @@ export class ProjectGanttNgxEmbedComponent implements OnInit {
 	}
 	
 	private toEpochAny(v: number | Date | undefined): number | null {
-		if (typeof v === 'number' && Number.isFinite(v)) return v < 1e12 ? v * 1000 : v;
 		if (v instanceof Date && !Number.isNaN(v.getTime())) return v.getTime();
+		if (typeof v === 'number' && Number.isFinite(v)) return v;    // ← assume ms
 		return null;
 	}
 	
 	private minEpoch(values: Array<number | Date | undefined>): number | null {
 		const nums = values
-			.map(v => this.toEpochAny(v))
-			.filter((n): n is number => n != null && Number.isFinite(n));
+		.map(v => this.toEpochAny(v))
+		.filter((n): n is number => n != null && Number.isFinite(n));
 		return nums.length ? Math.min(...nums) : null;
 	}
 	
 	private maxEpoch(values: Array<number | Date | undefined>): number | null {
 		const nums = values
-			.map(v => this.toEpochAny(v))
-			.filter((n): n is number => n != null && Number.isFinite(n));
+		.map(v => this.toEpochAny(v))
+		.filter((n): n is number => n != null && Number.isFinite(n));
 		return nums.length ? Math.max(...nums) : null;
 	}
 	
@@ -129,24 +162,25 @@ export class ProjectGanttNgxEmbedComponent implements OnInit {
 		if (!v) return null;
 		const d = new Date(`${v}T00:00:00`);
 		if (Number.isNaN(d.getTime())) return null;
-		return d.getTime();
+		return d.getTime();           // ← already ms
 	}
 	
 	private toTaskItem(t: ProjectTaskGanttDto): GanttVmItem | null {
 		const start = this.toEpochMs(t.start_date);
-		const end = this.toEpochMs(t.end_date ?? t.start_date);
-		if (start == null || end == null) return null;
+		let   end   = this.toEpochMs(t.end_date);
 		
-		// ensure at least 1-day width for visibility
-		const fixedEnd = end <= start ? (start + this.DAY * 1000) : end;
+		if (start == null) return null;
+		if (end == null || end <= start) {
+			end = start + 86400 * 1000; // 1 day
+		}
 		
 		return {
 			id: String(t.id),
-			title: t.name,
+			title: t.name || "Unnamed",
 			start,
-			end: fixedEnd,
-			progress: Math.max(0, Math.min(100, Number(t.progress ?? 0))),
-			color: (t.task_color ?? null) || this.colorByStatus(t.status_code),
+			end,
+			progress: Number(t.progress ?? 0),
+			color: this.colorByStatus(t.status_code) || '#0d6efd',
 			kind: 'task',
 			_milestone: t.milestone?.name ?? null,
 		};
@@ -197,5 +231,11 @@ export class ProjectGanttNgxEmbedComponent implements OnInit {
 		if (v instanceof Date && !Number.isNaN(v.getTime())) return v.getTime();
 		if (typeof v === 'number' && Number.isFinite(v)) return v < 1e12 ? v * 1000 : v;
 		return null;
+	}
+	
+	private dateToIso(value: number | Date | undefined): string {
+		if (value == null) return '—';
+		const d = value instanceof Date ? value : new Date(value);
+		return Number.isNaN(d.getTime()) ? 'Invalid' : d.toISOString().split('T')[0];
 	}
 }
