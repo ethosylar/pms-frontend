@@ -1,0 +1,23 @@
+:host {
+  display: block;
+}
+
+.gantt-wrap {
+	max-height: 420px;
+	overflow: auto;  /* scroll inside card */
+	border-radius: 12px;
+	overscroll-behavior: contain;
+}
+
+/* keeps the chart from forcing page width */
+.gantt-only {
+	display: block;
+	min-width: 900px;     /* optional; helps avoid squishing */
+}
+
+ngx-gantt {
+  display: block;
+  /* height: 420px;      /* important */
+  height: 100%;
+  min-height: 320px;
+}

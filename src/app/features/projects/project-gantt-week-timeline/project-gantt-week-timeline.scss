@@ -1,0 +1,198 @@
+.gantt-root { width: 100%; }
+
+.gantt-shell {
+	display: flex;
+	gap: 0;
+	border: 1px solid rgba(0,0,0,.08);
+	border-radius: 12px;
+	overflow: hidden;
+	background: #fff;
+	max-height: 420px;       /* ✅ scroll inside card */
+}
+
+/* LEFT */
+.gantt-left {
+	width: 620px;
+	min-width: 620px;
+	border-right: 1px solid rgba(0,0,0,.08);
+}
+
+.left-head, .left-row {
+	display: grid;
+	grid-template-columns: 240px 110px 110px 70px 80px 110px;
+	align-items: center;
+}
+
+.left-head {
+	position: sticky;
+	top: 0;
+	z-index: 5;
+	background: #f8f9fc;
+	border-bottom: 1px solid rgba(0,0,0,.08);
+	height: 72px;
+}
+
+.lh, .lc {
+	padding: 8px 10px;
+	font-size: 13px;
+}
+
+.left-body {
+	overflow-y: auto;
+	max-height: 420px;
+}
+
+.left-row {
+	height: 44px;
+	border-bottom: 1px solid rgba(0,0,0,.06);
+}
+
+.milestone-left {
+	background: #fcfcfd;
+}
+
+/* RIGHT */
+.gantt-right {
+	flex: 1;
+	overflow-x: auto;        /* ✅ horizontal scroll only here */
+	overflow-y: hidden;      /* vertical scroll handled by left-body */
+	position: relative;
+}
+
+.timeline-head {
+	position: sticky;
+	top: 0;
+	z-index: 4;
+	background: #f8f9fc;
+	border-bottom: 1px solid rgba(0,0,0,.08);
+	height: 72px;
+}
+
+.months, .weeks {
+	display: flex;
+}
+
+.months .m {
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 700;
+	border-right: 1px solid rgba(0,0,0,.08);
+}
+
+.weeks .w {
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	font-weight: 600;
+	border-right: 1px solid rgba(0,0,0,.06);
+}
+
+.timeline-body {
+	position: relative;
+}
+
+/* each lane has its own grid background */
+.lane {
+	position: relative;
+	height: 44px;
+	border-bottom: 1px solid rgba(0,0,0,.06);
+	
+	/* week grid lines + light daily lines */
+	background-image:
+    repeating-linear-gradient(
+	to right,
+	rgba(0,0,0,.06) 0,
+	rgba(0,0,0,.06) 1px,
+	transparent 1px,
+	transparent 120px
+    ),
+    repeating-linear-gradient(
+	to right,
+	rgba(0,0,0,.03) 0,
+	rgba(0,0,0,.03) 1px,
+	transparent 1px,
+	transparent calc(120px / 7)
+    );
+	background-size: auto;
+}
+
+/* bar */
+.bar {
+	position: absolute;
+	top: 10px;
+	height: 22px;
+	border-radius: 3px;
+	box-shadow: 0 1px 0 rgba(0,0,0,.12);
+	overflow: hidden;
+}
+
+.bar-progress {
+	height: 100%;
+	background: rgba(255,255,255,.25);
+}
+
+.bar-text {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	font-weight: 600;
+	color: #0b0f1a;
+	mix-blend-mode: multiply;
+	padding: 0 6px;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
+
+/* vertical lines */
+.vline {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 2px;
+	z-index: 3;
+}
+.vline.start { background: #0d6efd; }
+.vline.today { background: #111827; opacity: .7; }
+
+.vlabel {
+	position: sticky;
+	top: 76px;
+	margin-left: 6px;
+	font-size: 12px;
+	font-weight: 700;
+	color: #111827;
+}
+
+/* milestones lane */
+.lane.milestones { background: #fcfcfd; }
+
+.ms {
+	position: absolute;
+	top: 6px;
+	transform: translateX(-50%);
+	font-size: 14px;
+	font-weight: 900;
+	color: #0d6efd;
+	white-space: nowrap;
+}
+
+.ms-label {
+	font-size: 12px;
+	font-weight: 700;
+	margin-left: 6px;
+}
+
+.ms-date {
+	font-size: 11px;
+	color: #6b7280;
+	margin-left: 18px;
+	margin-top: 2px;
+}

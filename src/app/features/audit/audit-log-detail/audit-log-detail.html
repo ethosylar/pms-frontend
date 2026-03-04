@@ -1,0 +1,66 @@
+<div class="position-relative audit-detail-wrap">
+	
+	<div *ngIf="loading" class="loading-overlay">
+		<div class="text-center">
+			<div class="spinner-border" role="status"></div>
+			<div class="mt-2 fw-semibold">Loading…</div>
+		</div>
+	</div>
+	
+	<div class="d-flex align-items-center justify-content-between mb-3">
+		<div>
+			<h1 class="h4 mb-0">Audit Log Detail</h1>
+			<div class="text-muted small" *ngIf="row">#{{ row.id }}</div>
+		</div>
+		
+		<a class="btn btn-outline-secondary" routerLink="/audit-logs">
+			<i class="bi bi-arrow-left"></i><span class="ms-2">Back</span>
+		</a>
+	</div>
+	
+	<div *ngIf="!loading && error" class="alert alert-danger">{{ error }}</div>
+	
+	<ng-container *ngIf="!loading && !error && row">
+		
+		<div class="card shadow-sm border-0 mb-3">
+			<div class="card-body">
+				<div class="row g-3">
+					<div class="col-12 col-md-4">
+						<div class="text-muted small">Performed At</div>
+						<div class="fw-semibold">{{ row.performed_at | date:'medium' }}</div>
+					</div>
+					<div class="col-12 col-md-4">
+						<div class="text-muted small">User</div>
+						<div class="fw-semibold">{{ actorLabel() }}</div>
+					</div>
+					<div class="col-12 col-md-4">
+						<div class="text-muted small">Action</div>
+						<div class="fw-semibold">{{ row.action }}</div>
+					</div>
+					
+					<div class="col-12 col-md-4">
+						<div class="text-muted small">Entity Type</div>
+						<div class="fw-semibold">{{ row.entity_type }}</div>
+					</div>
+					<div class="col-12 col-md-4">
+						<div class="text-muted small">Entity ID</div>
+						<div class="fw-semibold">{{ row.entity_id ?? '-' }}</div>
+					</div>
+					<div class="col-12 col-md-4">
+						<div class="text-muted small">Source</div>
+						<div class="fw-semibold">{{ row.source ?? '-' }}</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="card shadow-sm border-0">
+			<div class="card-header bg-white fw-semibold">Payload</div>
+			<div class="card-body">
+				<pre class="json-box mb-0">{{ row | json }}</pre>
+			</div>
+		</div>
+		
+	</ng-container>
+	
+</div>

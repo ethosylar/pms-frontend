@@ -1,0 +1,191 @@
+<div class="position-relative">
+	
+	<div *ngIf="loading" class="loading-overlay">
+		<div class="text-center">
+			<div class="spinner-border" role="status"></div>
+			<div class="mt-2 fw-semibold">Loading…</div>
+		</div>
+	</div>
+	
+	<div class="d-flex align-items-center justify-content-between mb-3">
+		<div>
+			<h1 class="h4 mb-0">Project Detail</h1>
+			<div class="text-muted small" *ngIf="row">{{ row.code }} • {{ row.name }}</div>
+		</div>
+		
+		<div class="d-flex gap-2">
+			<button class="btn btn-outline-secondary" (click)="back()">
+				<i class="bi bi-arrow-left"></i><span class="ms-2">Back</span>
+			</button>
+			<button class="btn btn-outline-primary" (click)="edit()">
+				<i class="bi bi-pencil"></i><span class="ms-2">Edit</span>
+			</button>
+			<button class="btn btn-outline-secondary" [routerLink]="['/projects', row?.id, 'gantt']">
+				<i class="bi bi-diagram-3"></i><span class="ms-2">Tasks (Gantt)</span>
+			</button>
+			
+		</div>
+	</div>
+	
+	<div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+	
+	<div class="card shadow-sm border-0" *ngIf="row">
+		<div class="card-body">
+			<div class="row g-3">
+				<div class="col-12 col-md-4">
+					<div class="text-muted small">Department</div>
+					<div class="fw-semibold">{{ row.department?.code }} - {{ row.department?.name || '—' }}</div>
+				</div>
+				<div class="col-12 col-md-4">
+					<div class="text-muted small">Status</div>
+					<div class="fw-semibold">{{ row.status?.code || '—' }}</div>
+				</div>
+				<div class="col-12 col-md-4">
+					<div class="text-muted small">Priority</div>
+					<div class="fw-semibold">{{ row.priority?.code || '—' }}</div>
+				</div>
+				
+				<div class="col-12 col-md-6">
+					<div class="text-muted small">Owner</div>
+					<div class="fw-semibold">{{ row.owner?.name || '—' }}</div>
+				</div>
+				
+				<div class="col-12 col-md-6">
+					<div class="text-muted small">Sponsor</div>
+					<div class="fw-semibold">{{ row.sponsor || '—' }}</div>
+				</div>
+				
+				<div class="col-12">
+					<div class="text-muted small">Progress</div>
+					<div class="progress" style="height: 12px;">
+						<div class="progress-bar" [style.width.%]="(row.progress ?? 0)"></div>
+					</div>
+					<div class="small text-muted mt-1">{{ row.progress ?? 0 }}%</div>
+				</div>
+				
+				<div class="col-12 col-md-3">
+					<div class="text-muted small">Start</div>
+					<div class="fw-semibold">{{ row.start_date ? (row.start_date | date:'yyyy-MM-dd') : '—' }}</div>
+				</div>
+				<div class="col-12 col-md-3">
+					<div class="text-muted small">Target Start</div>
+					<div class="fw-semibold">{{ row.target_start_date ? (row.target_start_date | date:'yyyy-MM-dd') : '—' }}</div>
+				</div>
+				<div class="col-12 col-md-3">
+					<div class="text-muted small">Target End</div>
+					<div class="fw-semibold">{{ row.target_end_date ? (row.target_end_date | date:'yyyy-MM-dd') : '—' }}</div>
+				</div>
+				<div class="col-12 col-md-3">
+					<div class="text-muted small">Actual End</div>
+					<div class="fw-semibold">{{ row.actual_end_date ? (row.actual_end_date | date:'yyyy-MM-dd') : '—' }}</div>
+				</div>
+				
+			</div>
+		</div>
+	</div>
+	<!-- Inline Gantt / Tasks -->
+	<div class="card shadow-sm border-0 mt-3" *ngIf="row">
+		<div class="card-body">
+			<div *ngIf="ganttError" class="alert alert-danger mb-2">{{ ganttError }}</div>
+			
+			<div *ngIf="ganttLoading" class="text-muted small py-2">
+				<span class="spinner-border spinner-border-sm me-2"></span>Loading tasks…
+			</div>
+			<app-project-gantt-ngx-embed
+			*ngIf="row"
+			[projectId]="projectId"
+			[projectStartDate]="row.start_date ?? null"
+			[projectEndDate]="row.target_end_date ?? null">
+			</app-project-gantt-ngx-embed>
+			</div>
+		</div>
+		
+		<!-- ✅ Milestones module -->
+		<div class="card shadow-sm border-0 mt-3" *ngIf="row">
+			<div class="card-header bg-white d-flex align-items-center justify-content-between">
+				<div>
+					<div class="fw-semibold">Milestones</div>
+					<div class="text-muted small">Track project key dates</div>
+				</div>
+				
+				<div class="d-flex gap-2">
+					<button class="btn btn-outline-secondary btn-sm" (click)="manageMilestones()">
+						<i class="bi bi-list"></i><span class="ms-2">Manage</span>
+					</button>
+					<button class="btn btn-primary btn-sm" (click)="addMilestone()">
+						<i class="bi bi-plus-lg"></i><span class="ms-2">New</span>
+					</button>
+				</div>
+			</div>
+			
+			<div class="card-body position-relative">
+				
+				<div *ngIf="milestonesLoading" class="text-muted small">
+					<span class="spinner-border spinner-border-sm me-2"></span>
+					Loading milestones…
+				</div>
+				
+				<div *ngIf="milestonesError" class="alert alert-danger mb-2">
+					{{ milestonesError }}
+				</div>
+				
+				<div class="table-responsive" *ngIf="!milestonesLoading">
+					<table class="table table-hover align-middle mb-0">
+						<thead class="table-light">
+							<tr>
+								<th style="width: 55%">Name</th>
+								<th style="width: 20%">Date</th>
+								<th style="width: 15%">Status</th>
+								<th style="width: 10%" class="text-end">Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr *ngFor="let m of milestones">
+								<td class="fw-semibold">{{ m.name }}</td>
+								<td>{{ m.milestone_date ? (m.milestone_date | date:'yyyy-MM-dd') : '—' }}</td>
+								<td>
+									<span class="badge" [ngClass]="badgeClass(m.status)">{{ m.status }}</span>
+								</td>
+								<td class="text-end">
+									<button class="btn btn-sm btn-outline-primary me-2" (click)="editMilestone(m)">
+										<i class="bi bi-pencil"></i>
+									</button>
+									<button class="btn btn-sm btn-outline-danger" (click)="deleteMilestone(m)">
+										<i class="bi bi-trash"></i>
+									</button>
+								</td>
+							</tr>
+							
+							<tr *ngIf="!milestones && !milestonesLoading">
+								<td colspan="4" class="text-center text-muted py-3">
+									No milestones yet.
+									<button class="btn btn-link p-0 ms-2" (click)="addMilestone()">Add one</button>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				
+				<!-- Simple pagination (only if backend has more pages) -->
+				<div class="d-flex align-items-center justify-content-between mt-3" *ngIf="milestoneMeta.total > milestoneMeta.per_page">
+					<div class="text-muted small">Total: {{ milestoneMeta.total }}</div>
+					
+					<div class="d-flex gap-2">
+						<button class="btn btn-outline-secondary btn-sm"
+						[disabled]="milestoneMeta.current_page <= 1"
+						(click)="loadMilestones(milestoneMeta.current_page - 1)">
+							Prev
+						</button>
+						<button class="btn btn-outline-secondary btn-sm"
+						[disabled]="milestoneMeta.current_page >= milestoneMeta.last_page"
+						(click)="loadMilestones(milestoneMeta.current_page + 1)">
+							Next
+						</button>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+		
+		
+	</div>

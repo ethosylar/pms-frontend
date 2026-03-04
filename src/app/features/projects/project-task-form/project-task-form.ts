@@ -1,0 +1,195 @@
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
+import { catchError, finalize, map, switchMap } from 'rxjs/operators';
+
+import {
+	ApiService,
+	ApiCollection,
+	TaskStatusDto,
+	UserDto,
+	ProjectTaskGanttDto,
+	ProjectTaskUpsertPayload,
+	ProjectMilestoneDto,
+} from '../../../core/services/api.service';
+import { ToastService } from '../../../shared/ui/toast/toast';
+
+@Component({
+	standalone: true,
+	selector: 'app-project-task-form',
+	imports: [CommonModule, RouterModule, ReactiveFormsModule],
+	templateUrl: './project-task-form.html',
+	styleUrls: ['./project-task-form.scss'],
+})
+export class ProjectTaskFormComponent implements OnInit {
+	loading = true;
+	saving = false;
+	error: string | null = null;
+	
+	projectId!: number;
+	taskId: number | null = null;
+	isCreate = true;
+	
+	statuses: TaskStatusDto[] = [];
+	users: Array<{ id: number; name: string }> = [];
+	taskOptions: Array<{ id: number; name: string }> = [];
+	
+	milestones: ProjectMilestoneDto[] = [];
+	milestone: Array<{ id: number; name: string }> = [];
+	
+	form: FormGroup;
+	
+	constructor(
+		private fb: FormBuilder,
+		private api: ApiService,
+		private route: ActivatedRoute,
+		private router: Router,
+		private toast: ToastService,
+		private cdr: ChangeDetectorRef
+		) {
+		this.form = this.fb.group({
+			name: ['', [Validators.required]],
+			task_status_id: [null], // add Validators.required if backend requires
+			assigned_to_user_id: [null],
+			
+			start_date: [null],
+			end_date: [null],
+			
+			progress: [0],
+			sort_order: [0],
+			
+			parent_task_id: [null],
+			depends_on_task_id: [null],
+			milestone_id: [null],
+		});
+	}
+	
+	ngOnInit(): void {
+		this.projectId = Number(this.route.snapshot.paramMap.get('id'));
+		
+		const taskIdParam = this.route.snapshot.paramMap.get('taskId');
+		this.isCreate = !taskIdParam || taskIdParam === 'new';
+		this.taskId = this.isCreate ? null : Number(taskIdParam);
+		
+		this.loading = true;
+		
+		forkJoin({
+			statuses: this.api.getTaskStatuses({ per_page: 200, is_active: 1 }).pipe(catchError(() => of({ data: [] } as any))),
+			users: this.api.getUsers({ per_page: 200 }).pipe(catchError(() => of({ data: [] } as any))),
+			gantt: this.api.getProjectGantt(this.projectId).pipe(catchError(() => of({ project_id: this.projectId, tasks: [] } as any))),
+			milestones: this.api.getProjectMilestones(this.projectId, { per_page: 200 }).pipe(catchError(() => of({ data: [] } as ApiCollection<ProjectMilestoneDto>))),
+		})
+		.pipe(
+			switchMap((lk) => {
+				this.statuses = (lk.statuses as ApiCollection<TaskStatusDto>)?.data ?? [];
+				const u = (lk.users as ApiCollection<UserDto>)?.data ?? [];
+				this.users = u.map(x => ({ id: x.id, name: x.name }));
+				
+				const tasks = (lk.gantt as { tasks: ProjectTaskGanttDto[] })?.tasks ?? [];
+				this.taskOptions = tasks.map(t => ({ id: t.id, name: t.name }));
+				
+				const milestoneList =
+				(lk.milestones as ApiCollection<ProjectMilestoneDto>)?.data ?? [];
+				
+				this.milestones = milestoneList; // keep full objects if you want
+				
+				this.milestone = milestoneList.map((m: ProjectMilestoneDto) => ({
+					id: m.id,
+					name: m.name
+				}));
+				
+				
+				if (this.isCreate) return of(null);
+				
+				const found = tasks.find(t => t.id === this.taskId);
+				return of(found ?? null);
+			}),
+			finalize(() => {
+				this.loading = false;
+				this.cdr.detectChanges();
+			})
+		)
+		.subscribe({
+			next: (t: ProjectTaskGanttDto | null) => {
+				if (!t) return;
+				
+				this.form.patchValue({
+					name: t.name,
+					task_status_id: t.task_status_id ?? null,
+					assigned_to_user_id: t.assigned_to_user_id ?? null,
+					start_date: t.start_date ?? null,
+					end_date: t.end_date ?? null,
+					progress: t.progress ?? 0,
+					sort_order: t.sort_order ?? 0,
+					parent_task_id: t.parent_task_id ?? null,
+					depends_on_task_id: t.depends_on_task_id ?? null,
+					milestone_id: t.milestone_id ?? null,
+				});
+				
+				this.cdr.detectChanges();
+			},
+			error: (err) => {
+				console.error(err);
+				this.error = 'Failed to load task.';
+			}
+		});
+	}
+	
+	save(): void {
+		this.error = null;
+		
+		if (this.form.invalid) {
+			this.form.markAllAsTouched();
+			return;
+		}
+		
+		const v = this.form.value;
+		
+		const payload: ProjectTaskUpsertPayload = {
+			name: String(v.name).trim(),
+			
+			task_status_id: v.task_status_id ?? null,
+			assigned_to_user_id: v.assigned_to_user_id ?? null,
+			
+			start_date: v.start_date || null,
+			end_date: v.end_date || null,
+			
+			progress: Number.isFinite(Number(v.progress)) ? Number(v.progress) : 0,
+			sort_order: Number.isFinite(Number(v.sort_order)) ? Number(v.sort_order) : 0,
+			
+			parent_task_id: v.parent_task_id ?? null,
+			depends_on_task_id: v.depends_on_task_id ?? null,
+			
+			milestone_id: v.milestone_id ?? null,
+		};
+		
+		this.saving = true;
+		
+		const id$ = this.isCreate
+		? this.api.createProjectTask(this.projectId, payload).pipe(map(r => r.id))
+		: this.api.updateProjectTask(this.taskId!, payload).pipe(map(() => this.taskId!));
+		
+		id$
+		.pipe(finalize(() => {
+			this.saving = false;
+			this.cdr.detectChanges();
+		}))
+		.subscribe({
+			next: () => {
+				this.toast.success(this.isCreate ? 'Task created.' : 'Task updated.');
+				this.router.navigate(['/projects', this.projectId, 'gantt']);
+			},
+			error: (err) => {
+				console.error(err);
+				this.error = this.isCreate ? 'Failed to create task.' : 'Failed to update task.';
+				this.cdr.detectChanges();
+			}
+		});
+	}
+	
+	cancel(): void {
+		this.router.navigate(['/projects', this.projectId, 'gantt']);
+	}
+}

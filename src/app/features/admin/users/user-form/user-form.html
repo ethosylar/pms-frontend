@@ -1,0 +1,106 @@
+<div class="position-relative admin-user-form-wrap">
+	
+	<div *ngIf="loading" class="loading-overlay">
+		<div class="text-center">
+			<div class="spinner-border" role="status"></div>
+			<div class="mt-2 fw-semibold">Loading…</div>
+		</div>
+	</div>
+	
+	<div class="d-flex align-items-center justify-content-between mb-3">
+		<div>
+			<h1 class="h4 mb-0">{{ isCreate ? 'Add User' : 'Edit User' }}</h1>
+			<div class="text-muted small">Admin only</div>
+		</div>
+		
+		<button class="btn btn-outline-secondary" (click)="cancel()">
+			<i class="bi bi-arrow-left"></i><span class="ms-2">Back</span>
+		</button>
+	</div>
+	
+	<div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+	<div *ngIf="message" class="alert alert-success">{{ message }}</div>
+	
+	<div class="card shadow-sm border-0">
+		<div class="card-body">
+			<form [formGroup]="form" (ngSubmit)="save()">
+				
+				<div class="row g-3">
+					<div class="col-12 col-md-6">
+						<label class="form-label">Name</label>
+						<input class="form-control" formControlName="name"
+						[class.is-invalid]="form.get('name')?.touched && form.get('name')?.invalid">
+						<div class="invalid-feedback">Name is required.</div>
+					</div>
+					
+					<div class="col-12 col-md-6">
+						<label class="form-label">Username</label>
+						<input class="form-control" formControlName="username"
+						[class.is-invalid]="form.get('username')?.touched && form.get('username')?.invalid">
+						<div class="invalid-feedback">Username is required.</div>
+					</div>
+					
+					<div class="col-12 col-md-6">
+						<label class="form-label">Email</label>
+						<input class="form-control" formControlName="email"
+						[class.is-invalid]="form.get('email')?.touched && form.get('email')?.invalid">
+						<div class="invalid-feedback">Valid email is required.</div>
+					</div>
+					
+					<div class="col-12 col-md-6">
+						<label class="form-label">Department</label>
+						<select class="form-select" formControlName="department_id">
+							<option [ngValue]="null">-- Select Department --</option>
+							<option *ngFor="let d of departments" [ngValue]="d.id">
+								{{ d.code }} - {{ d.name }}
+							</option>
+						</select>
+					</div>
+					
+					
+					<div class="col-12 col-md-6">
+						<label class="form-label">
+							Password
+							<span class="text-muted small" *ngIf="!isCreate">(leave blank to keep current)</span>
+						</label>
+						<input type="password" class="form-control" formControlName="password"
+						[class.is-invalid]="form.get('password')?.touched && form.get('password')?.invalid">
+						<div class="invalid-feedback">
+							{{ isCreate ? 'Password is required (min 6 chars).' : 'Min 6 chars if provided.' }}
+						</div>
+					</div>
+					
+					<div class="col-12">
+						<label class="form-label">Roles</label>
+						<div class="row g-2">
+							<div class="col-12 col-md-4" *ngFor="let r of roles">
+								<div class="form-check border rounded p-2">
+									<input class="form-check-input"
+									type="checkbox"
+									[checked]="isRoleChecked(r.id)"
+									(change)="toggleRole(r.id, $any($event.target).checked)">
+									<label class="form-check-label">
+										<span class="fw-semibold">{{ r.code }}</span>
+										<span class="text-muted ms-2">{{ r.name }}</span>
+									</label>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+				</div>
+				
+				<div class="d-flex gap-2 justify-content-end mt-4">
+					<button type="button" class="btn btn-outline-secondary" (click)="cancel()" [disabled]="saving">
+						Cancel
+					</button>
+					<button type="submit" class="btn btn-primary" [disabled]="saving">
+						<span *ngIf="!saving">{{ isCreate ? 'Create User' : 'Save Changes' }}</span>
+						<span *ngIf="saving">Saving…</span>
+					</button>
+				</div>
+				
+			</form>
+		</div>
+	</div>
+</div>

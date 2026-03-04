@@ -1,0 +1,101 @@
+<div class="position-relative">
+	
+	<div *ngIf="loading" class="loading-overlay">
+		<div class="text-center">
+			<div class="spinner-border" role="status"></div>
+			<div class="mt-2 fw-semibold">Loading…</div>
+		</div>
+	</div>
+	
+	<div class="d-flex align-items-center justify-content-between mb-3">
+		<div>
+			<h1 class="h4 mb-0">Project Tasks</h1>
+			<div class="text-muted small" *ngIf="project">
+				{{ project.code }} • {{ project.name }} <span class="mx-2">•</span>
+				<span class="text-muted">Range: {{ rangeLabel || '—' }}</span>
+			</div>
+		</div>
+		
+		<div class="d-flex gap-2">
+			<button class="btn btn-outline-secondary" (click)="back()">
+				<i class="bi bi-arrow-left"></i><span class="ms-2">Back</span>
+			</button>
+			<button class="btn btn-primary" (click)="add()">
+				<i class="bi bi-plus-lg"></i><span class="ms-2">New Task</span>
+			</button>
+		</div>
+	</div>
+	
+	<div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+	
+	<div class="card shadow-sm border-0">
+		<div class="card-body p-0">
+			
+			<div class="table-responsive">
+				<table class="table table-hover align-middle mb-0">
+					<thead class="table-light">
+						<tr>
+							<th style="width: 30%">Task</th>
+							<th style="width: 10%">Status</th>
+							<th style="width: 10%">Assignee</th>
+							<th style="width: 10%">Progress</th>
+							<th style="width: 30%">Gantt</th>
+							<th style="width: 10%" class="text-end">Actions</th>
+						</tr>
+					</thead>
+					
+					<tbody>
+						<tr *ngFor="let t of tasks">
+							<td>
+								<div class="fw-semibold">{{ t.name }}</div>
+								<div class="text-muted small">
+									{{ t.startLabel }} → {{ t.endLabel }}
+									<span *ngIf="t.parent_task_id" class="ms-2">• Parent: #{{ t.parent_task_id }}</span>
+									<span *ngIf="t.depends_on_task_id" class="ms-2">• Depends: #{{ t.depends_on_task_id }}</span>
+								</div>
+							</td>
+							
+							<td>
+								<span class="badge" [ngClass]="statusBadge(t)">
+									{{ t.status_name?.toUpperCase() || '—' }}
+								</span>
+							</td>
+							
+							<td>{{ t.assigned_to_name || '—' }}</td>
+							
+							<td>{{ (t.progress ?? 0) }}%</td>
+							
+							<td>
+								<div class="gantt-track">
+									<div
+									class="gantt-bar"
+									[style.left.%]="t.leftPct"
+									[style.width.%]="t.widthPct"
+									[attr.title]="t.startLabel + ' → ' + t.endLabel">
+									</div>
+								</div>
+							</td>
+							
+							<td class="text-end">
+								<button class="btn btn-sm btn-outline-primary me-2" (click)="edit(t)">
+									<i class="bi bi-pencil"></i>
+								</button>
+								<button class="btn btn-sm btn-outline-danger" (click)="delete(t)">
+									<i class="bi bi-trash"></i>
+								</button>
+							</td>
+						</tr>
+						
+						<tr *ngIf="!tasks.length && !loading">
+							<td colspan="6" class="text-center text-muted py-4">
+								No tasks yet.
+							</td>
+						</tr>
+					</tbody>
+					
+				</table>
+			</div>
+			
+		</div>
+	</div>
+</div>

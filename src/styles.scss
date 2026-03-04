@@ -1,0 +1,31 @@
+@use '@angular/material' as mat;
+@use '@worktile/gantt/styles/index.scss';
+@import 'bootstrap/scss/bootstrap';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+@import "../node_modules/@worktile/gantt/styles/index.scss";
+
+html {
+	height: 100%;
+	scrollbar-gutter: stable;
+	overflow-y: scroll;
+	@include mat.theme((
+    color: (
+	primary: mat.$azure-palette,
+	tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+	));
+}
+
+body {
+	color-scheme: light;
+	
+	// background-color: var(--mat-sys-surface);
+	background-color: #f8f9fc;
+	color: var(--mat-sys-on-surface);
+	font: var(--mat-sys-body-medium);
+	
+	margin: 0;
+	height: 100%;
+}

@@ -1,0 +1,37 @@
+<div class="toast-stack">
+  <div class="toast-card"
+       *ngFor="let t of (toast.toasts$ | async); trackBy: trackById"
+       [class.success]="t.type === 'success'"
+       [class.danger]="t.type === 'danger'"
+       [class.info]="t.type === 'info'"
+       [class.warning]="t.type === 'warning'"
+       (mouseenter)="onEnter(t)"
+       (mouseleave)="onLeave(t)"
+       [attr.data-init]="ensureTimer(t)">
+
+    <div class="toast-head">
+      <div class="toast-title">
+        <i class="bi bi-check-circle" *ngIf="t.type === 'success'"></i>
+        <i class="bi bi-x-circle" *ngIf="t.type === 'danger'"></i>
+        <i class="bi bi-info-circle" *ngIf="t.type === 'info'"></i>
+        <i class="bi bi-exclamation-triangle" *ngIf="t.type === 'warning'"></i>
+        <span class="ms-2">{{ t.title ?? 'Notice' }}</span>
+      </div>
+
+      <button class="btn btn-sm btn-close-white" type="button" (click)="toast.dismiss(t.id)">
+		<i class="bi bi-x-circle"></i>
+	  </button>
+    </div>
+
+    <div class="toast-body">
+      {{ t.message }}
+    </div>
+
+    <!-- ✅ Progress bar -->
+    <div class="toast-progress">
+      <div class="toast-progress-bar"
+           [style.width.%]="(t.remainingMs / t.timeoutMs) * 100">
+      </div>
+    </div>
+  </div>
+</div>

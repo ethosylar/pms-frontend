@@ -1,0 +1,124 @@
+<div class="d-flex" id="wrapper" [class.sidebar-collapsed]="sidebarCollapsed">
+	<!-- Sidebar -->
+	<aside class="border-end bg-dark text-white sidebar">
+		<div class="sidebar-header px-3 py-3" (click)="toggleSidebar()" aria-label="Toggle sidebar">
+			<div class="brand">
+				<div class="fw-bold">PMS</div>
+				<div class="small text-white-50">Project Management</div>
+			</div>
+		</div>
+		
+		<div class="list-group list-group-flush">
+			<a class="list-group-item list-group-item-action sidebar-link"
+			routerLink="/dashboard" routerLinkActive="active">
+				<i class="bi bi-speedometer2"></i>
+				<span class="link-text ms-2">Dashboard</span>
+			</a>
+			
+			<a class="list-group-item list-group-item-action sidebar-link"
+			routerLink="/projects" routerLinkActive="active">
+				<i class="bi bi-kanban"></i>
+				<span class="link-text ms-2">Projects</span>
+			</a>
+			
+			<a class="list-group-item list-group-item-action sidebar-link"
+			routerLink="/external-risk-issues" routerLinkActive="active">
+				<i class="bi bi-exclamation-triangle"></i>
+				<span class="link-text ms-2">Risk Issues</span>
+			</a>
+			
+			<a *ngIf="(canAudit$ | async)"
+			class="list-group-item list-group-item-action sidebar-link"
+			routerLink="/audit-logs" routerLinkActive="active">
+				<i class="bi bi-clipboard-data"></i>
+				<span class="link-text ms-2">Audit Logs</span>
+			</a>
+			
+		</div>
+		
+		<ng-container *ngIf="(canAdmin$ | async)">
+			<div class="px-3 pt-3 pb-1 text-uppercase small text-white-50">Admin</div>
+			
+			<a class="list-group-item list-group-item-action sidebar-link"
+			routerLink="/admin/users" routerLinkActive="active">
+				<i class="bi bi-people"></i>
+				<span class="link-text ms-2">Users</span>
+			</a>
+			
+			<a class="list-group-item list-group-item-action sidebar-link"
+			routerLink="/admin/departments" routerLinkActive="active">
+				<i class="bi bi-building"></i>
+				<span class="link-text ms-2">Departments</span>
+			</a>
+			
+			<a class="list-group-item list-group-item-action sidebar-link"
+			routerLink="/admin/external-sources" routerLinkActive="active">
+				<i class="bi bi-link-45deg"></i>
+				<span class="link-text ms-2">External Sources</span>
+			</a>
+			
+			<a class="list-group-item list-group-item-action sidebar-link"
+			routerLink="/admin/priorities" routerLinkActive="active">
+				<i class="bi bi-sort-numeric-down"></i>
+				<span class="link-text ms-2">Priorities</span>
+			</a>
+			
+			<a class="list-group-item list-group-item-action sidebar-link"
+			routerLink="/admin/project-statuses" routerLinkActive="active">
+				<i class="bi bi-flag"></i>
+				<span class="link-text ms-2">Project Status</span>
+			</a>
+			
+			<a class="list-group-item list-group-item-action sidebar-link"
+			routerLink="/admin/roles" routerLinkActive="active">
+				<i class="bi bi-shield-lock"></i>
+				<span class="link-text ms-2">Roles</span>
+			</a>
+			
+			<a class="list-group-item list-group-item-action sidebar-link"
+			routerLink="/admin/risk-issue-statuses" routerLinkActive="active">
+				<i class="bi bi-flag"></i>
+				<span class="link-text ms-2">Risk Statuses</span>
+			</a>			
+			
+			<a class="list-group-item list-group-item-action sidebar-link"
+			routerLink="/admin/risk-issue-types" routerLinkActive="active">
+				<i class="bi bi-shield-exclamation"></i>
+				<span class="link-text ms-2">Risk Issue Types</span>
+			</a>
+			
+			<a class="list-group-item list-group-item-action sidebar-link"
+			routerLink="/admin/severities" routerLinkActive="active">
+				<i class="bi bi-thermometer-half"></i>
+				<span class="link-text ms-2">Severities</span>
+			</a>
+			
+			<a class="list-group-item list-group-item-action sidebar-link"
+			routerLink="/admin/task-statuses" routerLinkActive="active">
+				<i class="bi bi-list-check"></i>
+				<span class="link-text ms-2">Task Statuses</span>
+			</a>
+			
+			
+		</ng-container>
+	</aside>
+	
+	<!-- Page content wrapper -->
+	<div id="page-content-wrapper" class="flex-grow-1">
+		<!-- Top navbar -->
+		<nav class="navbar navbar-expand navbar-light bg-white border-bottom px-3">
+			<div class="navbar-brand fw-bold">Dashboard</div>
+			
+			<div class="ms-auto d-flex align-items-center gap-3">
+				<span class="text-muted small">{{ (user$ | async)?.name ?? 'User' }}</span>
+				<button class="btn btn-outline-danger btn-sm" (click)="logout()">Logout</button>
+			</div>
+		</nav>
+		
+		<!-- Page content -->
+		<main class="container-fluid py-4">
+			<router-outlet></router-outlet>
+		</main>
+		<app-toast-container></app-toast-container>
+	</div>
+</div>

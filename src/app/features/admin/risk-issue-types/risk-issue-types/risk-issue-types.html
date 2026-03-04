@@ -1,0 +1,112 @@
+<div class="position-relative admin-risk-issue-types-wrap">
+	
+	<div *ngIf="loading" class="loading-overlay">
+		<div class="text-center">
+			<div class="spinner-border" role="status"></div>
+			<div class="mt-2 fw-semibold">Loading…</div>
+		</div>
+	</div>
+	
+	<div class="d-flex align-items-center justify-content-between mb-3">
+		<div>
+			<h1 class="h4 mb-0">Risk Issue Type Management</h1>
+			<div class="text-muted small">Admin only</div>
+		</div>
+		
+		<a class="btn btn-primary" routerLink="/admin/risk-issue-types/new">
+			<i class="bi bi-plus-lg"></i>
+			<span class="ms-2">Add Type</span>
+		</a>
+	</div>
+	
+	<div *ngIf="!loading && error" class="alert alert-danger">{{ error }}</div>
+	
+	<div class="card shadow-sm border-0">
+		<div class="card-body">
+			
+			<div class="row g-2 align-items-center mb-3">
+				<div class="col-12 col-md-6">
+					<div class="input-group">
+						<span class="input-group-text"><i class="bi bi-search"></i></span>
+						<input class="form-control"
+						placeholder="Search code/name…"
+						[(ngModel)]="search"
+						(keydown.enter)="onSearchEnter()">
+						<button class="btn btn-outline-secondary" (click)="onSearchEnter()">Search</button>
+					</div>
+				</div>
+				
+				<div class="col-12 col-md-3">
+					<select class="form-select" [(ngModel)]="isActiveFilter" (change)="page=1; fetch()">
+						<option value="">All</option>
+						<option value="1">Active</option>
+						<option value="0">Inactive</option>
+					</select>
+				</div>
+				
+				<div class="col-12 col-md-3">
+					<select class="form-select" [(ngModel)]="perPage" (change)="page=1; fetch()">
+						<option [ngValue]="10">10 / page</option>
+						<option [ngValue]="20">20 / page</option>
+						<option [ngValue]="50">50 / page</option>
+					</select>
+				</div>
+			</div>
+			
+			<div class="table-responsive">
+				<table class="table table-sm align-middle mb-0">
+					<thead class="table-light">
+						<tr>
+							<th style="width: 80px;">ID</th>
+							<th style="width: 170px;">Code</th>
+							<th>Name</th>
+							<th style="width: 140px;">Status</th>
+							<th style="width: 150px;">Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr *ngFor="let r of rows">
+							<td>{{ r.id }}</td>
+							<td class="fw-semibold">{{ r.code }}</td>
+							<td>{{ r.name }}</td>
+							<td><span class="badge" [ngClass]="badgeClass(r)">{{ badgeText(r) }}</span></td>
+							<td>
+								<a class="btn btn-sm btn-outline-primary me-2" [routerLink]="['/admin/risk-issue-types', r.id]">
+									<i class="bi bi-pencil-square"></i>
+								</a>
+								<button class="btn btn-sm btn-outline-danger" (click)="confirmDelete(r)">
+									<i class="bi bi-trash"></i>
+								</button>
+							</td>
+						</tr>
+						
+						<tr *ngIf="!loading && rows.length === 0">
+							<td colspan="5" class="text-center text-muted py-4">No records</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			
+			<div class="d-flex align-items-center justify-content-between mt-3">
+				<div class="text-muted small">Total: {{ total }}</div>
+				
+				<div class="btn-group">
+					<button class="btn btn-outline-secondary btn-sm"
+					(click)="changePage(page - 1)"
+					[disabled]="page <= 1">
+						Prev
+					</button>
+					<button class="btn btn-outline-secondary btn-sm" disabled>
+						Page {{ page }} / {{ lastPage }}
+					</button>
+					<button class="btn btn-outline-secondary btn-sm"
+					(click)="changePage(page + 1)"
+					[disabled]="page >= lastPage">
+						Next
+					</button>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+</div>

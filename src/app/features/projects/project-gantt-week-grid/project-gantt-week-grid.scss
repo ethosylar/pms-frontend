@@ -1,0 +1,94 @@
+.week-gantt-wrap {
+	background: #fff;
+}
+
+.week-gantt-scroll {
+	max-height: 360px;        /* ✅ scroll inside card, not the whole page */
+	overflow-y: auto;
+	overflow-x: auto;
+	border: 1px solid rgba(0,0,0,.08);
+	border-radius: 10px;
+}
+
+.week-gantt-table {
+	min-width: 1200px;
+	border-collapse: separate;
+	border-spacing: 0;
+}
+
+.month-head {
+	text-align: center;
+	font-weight: 700;
+	background: #f8f9fc;
+	border-bottom: 1px solid rgba(0,0,0,.12);
+}
+
+.week-head {
+	text-align: center;
+	font-weight: 600;
+	font-size: 12px;
+	background: #f8f9fc;
+	border-bottom: 1px solid rgba(0,0,0,.12);
+	white-space: nowrap;
+}
+
+.week-cell {
+	width: 110px;
+	min-width: 110px;
+	height: 38px;
+	position: relative;
+	background: #fff;
+	border-left: 1px solid rgba(0,0,0,.06);
+	border-bottom: 1px solid rgba(0,0,0,.06);
+}
+
+.week-start-marker {
+	box-shadow: inset 3px 0 0 #0d6efd; /* ✅ vertical marker line */
+}
+
+.week-bar {
+	height: 18px;
+	border-radius: 6px;
+	position: relative;
+	margin: 8px 6px;
+	opacity: .95;
+}
+
+.week-bar-progress {
+	height: 100%;
+	border-radius: 6px;
+	background: rgba(255,255,255,0.25);
+}
+
+.milestone-row .week-cell {
+	height: 34px;
+}
+
+.milestone-dot {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 900;
+	font-size: 14px;
+	margin: 0 6px;
+}
+
+.ms-pending { color: #ffc107; }
+.ms-done { color: #198754; }
+.ms-cancelled { color: #dc3545; }
+
+/* Sticky left columns */
+.sticky-col {
+	position: sticky;
+	left: 0;
+	background: #fff;
+	z-index: 3;
+	border-right: 1px solid rgba(0,0,0,.08);
+}
+
+.col-task { left: 0; min-width: 260px; }
+.col-start { left: 260px; min-width: 120px; }
+.col-end { left: 380px; min-width: 120px; }
+.col-duration { left: 500px; min-width: 90px; text-align: center; }
+.col-progress { left: 590px; min-width: 90px; text-align: center; }
+.col-status { left: 680px; min-width: 120px; }

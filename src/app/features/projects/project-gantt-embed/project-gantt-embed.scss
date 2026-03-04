@@ -1,0 +1,71 @@
+.gantt-shell {
+	position: relative;
+}
+
+/* IMPORTANT: Let frappe’s own container scroll, not your whole page */
+.gantt-host :global(.gantt-container) {
+	max-height: 420px;          /* keep scroll inside card */
+	overflow: auto;
+	overscroll-behavior: contain; /* prevents body scroll chaining */
+}
+
+/* Ensure header text is visible even if theme/css conflicts */
+.gantt-host :global(.upper-text),
+.gantt-host :global(.lower-text) {
+	fill: #111827 !important;
+	font-weight: 600;
+}
+
+/* Read-only UX: block drag handles + progress resize */
+.gantt-host {
+	user-select: none;
+}
+.gantt-host :global(.handle),
+.gantt-host :global(.progress-wrapper),
+.gantt-host :global(.bar-progress),
+.gantt-host :global(.bar) {
+	pointer-events: none !important;
+}
+/* Keep hover/click for tooltip */
+.gantt-host :global(.bar-wrapper),
+.gantt-host :global(.bar-group) {
+	pointer-events: auto !important;
+}
+
+/* Loading overlay */
+.gantt-overlay {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: flex-start;
+	justify-content: flex-start;
+	padding: 12px;
+	background: rgba(255, 255, 255, 0.75);
+	z-index: 20;
+	pointer-events: none;
+}
+
+/* Marker lines (we draw into SVG; these are class names on SVG elements) */
+.gantt-host :global(.pms-marker-line) {
+	stroke: #0d6efd;
+	stroke-width: 2;
+	stroke-dasharray: 6 4;
+	opacity: 0.9;
+}
+
+.gantt-host :global(.pms-today-line) {
+	stroke: #dc3545;
+	stroke-width: 2;
+	stroke-dasharray: 4 4;
+	opacity: 0.9;
+}
+
+/* Milestone bars (as “tasks” with custom_class) */
+.gantt-host :global(.pms-milestone .bar) {
+	fill: #0d6efd !important;
+	transform: rotate(45deg);
+	transform-origin: center;
+}
+.gantt-host :global(.pms-milestone .bar-progress) {
+	fill: #0d6efd !important;
+}

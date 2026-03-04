@@ -1,0 +1,50 @@
+<div class="card shadow-sm border-0">
+	<div class="card-body">
+		<div class="d-flex align-items-center justify-content-between">
+			<div>
+				<div class="fw-semibold">Tasks (Gantt)</div>
+				<div class="text-muted small">Weekly timeline (read-only)</div>
+			</div>
+			
+			<button class="btn btn-outline-primary btn-sm" (click)="openFullView()">
+				<i class="bi bi-diagram-3"></i><span class="ms-2">Open Full View</span>
+			</button>
+		</div>
+		
+		<div class="gantt-shell mt-3">
+			<div class="gantt-overlay" *ngIf="loading">
+				<div class="text-muted small">
+					<span class="spinner-border spinner-border-sm me-2"></span> Loading Gantt…
+				</div>
+			</div>
+			
+			<div *ngIf="error" class="alert alert-danger m-2">{{ error }}</div>
+			
+			<div #ganttHost class="gantt-host"></div>
+		</div>
+		
+		<!-- Optional: “play around” with options -->
+		<div class="mt-3">
+			<button class="btn btn-sm btn-outline-secondary" (click)="showOptions = !showOptions">
+				<i class="bi bi-sliders"></i><span class="ms-2">Options</span>
+			</button>
+			
+			<div class="mt-2" *ngIf="showOptions">
+				<div class="text-muted small mb-2">
+					Paste options JSON (unknown keys are ignored). Week view is forced unless you disable lock.
+				</div>
+				
+				<div class="form-check mb-2">
+					<input class="form-check-input" type="checkbox" [(ngModel)]="lockWeek" id="lockWeek">
+					<label class="form-check-label" for="lockWeek">Lock Week View</label>
+				</div>
+				
+				<textarea class="form-control font-monospace" rows="8" [(ngModel)]="optionsJson"></textarea>
+				<div class="d-flex gap-2 mt-2">
+					<button class="btn btn-sm btn-primary" (click)="applyOptions()">Apply</button>
+					<button class="btn btn-sm btn-outline-secondary" (click)="resetOptions()">Reset</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

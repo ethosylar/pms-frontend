@@ -1,0 +1,85 @@
+<div class="week-gantt-wrap">
+	<div class="table-responsive week-gantt-scroll">
+		<table class="table table-sm align-middle week-gantt-table">
+			<thead>
+				<tr>
+					<th rowspan="2" class="sticky-col col-task">Task</th>
+					<th rowspan="2" class="sticky-col col-start">Start</th>
+					<th rowspan="2" class="sticky-col col-end">End</th>
+					<th rowspan="2" class="sticky-col col-duration">Duration</th>
+					<th rowspan="2" class="sticky-col col-progress">Progress</th>
+					<th rowspan="2" class="sticky-col col-status">Status</th>
+					
+					<th *ngFor="let mg of monthGroups" [attr.colspan]="mg.span" class="month-head">
+						{{ mg.label }}
+					</th>
+				</tr>
+				
+				<tr>
+					<th *ngFor="let w of weeks; let wi = index"
+					class="week-head"
+					[class.week-start-marker]="weekIsProjectStart(wi)">
+						{{ w.label }}
+					</th>
+				</tr>
+			</thead>
+			
+			<tbody>
+				<tr *ngFor="let t of rows">
+					<td class="sticky-col col-task fw-semibold">
+						<button class="btn btn-link p-0 text-decoration-none" (click)="openTask(t)">
+							{{ t.name }}
+						</button>
+					</td>
+					<td class="sticky-col col-start">{{ t.startLabel }}</td>
+					<td class="sticky-col col-end">{{ t.endLabel }}</td>
+					<td class="sticky-col col-duration">{{ t.durationCalc }}</td>
+					<td class="sticky-col col-progress">{{ t.progress }}%</td>
+					<td class="sticky-col col-status">
+						<span class="badge bg-primary" *ngIf="(t.status_code || '').toUpperCase() === 'IN_PROGRESS'">IN PROGRESS</span>
+						<span class="badge bg-success" *ngIf="(t.status_code || '').toUpperCase() === 'DONE' || (t.status_code || '').toUpperCase() === 'COMPLETED'">DONE</span>
+						<span class="badge bg-warning text-dark" *ngIf="(t.status_code || '').toUpperCase() === 'PENDING'">PENDING</span>
+						<span class="badge bg-secondary" *ngIf="!t.status_code">—</span>
+					</td>
+					
+					<td *ngFor="let w of weeks; let wi=index"
+					class="week-cell"
+					[class.week-start-marker]="weekIsProjectStart(wi)">
+						
+						<div *ngIf="taskCoversWeek(t, w)"
+						class="week-bar"
+						[style.background]="t.color">
+							<div class="week-bar-progress"
+							[style.width.%]="(t.progress)"></div>
+						</div>
+					</td>
+				</tr>
+				
+				<!-- Milestones row -->
+				<tr class="milestone-row" *ngIf="milestones">
+					<td class="sticky-col col-task fw-semibold">Milestones</td>
+					<td class="sticky-col col-start" colspan="5"></td>
+					
+					<td *ngFor="let w of weeks; let wi=index"
+					class="week-cell"
+					[class.week-start-marker]="weekIsProjectStart(wi)">
+						
+						<ng-container *ngFor="let m of milestones">
+							<div *ngIf="milestoneInWeek(m, w)"
+							class="milestone-dot"
+							[ngClass]="milestoneClass(m)"
+							[title]="m.name + ' • ' + (m.milestone_date || '')">
+								◇
+							</div>
+						</ng-container>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	<!-- Legend -->
+	<div class="mt-2 small text-muted d-flex gap-3 flex-wrap">
+		<div *ngIf="projectStartDate">◇ Project Start Date: <b>{{ projectStartDate }}</b></div>
+	</div>
+</div>

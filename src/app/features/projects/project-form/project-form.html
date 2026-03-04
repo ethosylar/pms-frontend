@@ -1,0 +1,123 @@
+<div class="position-relative">
+	
+	<div *ngIf="loading" class="loading-overlay">
+		<div class="text-center">
+			<div class="spinner-border" role="status"></div>
+			<div class="mt-2 fw-semibold">Loading…</div>
+		</div>
+	</div>
+	
+	<div class="d-flex align-items-center justify-content-between mb-3">
+		<div>
+			<h1 class="h4 mb-0">{{ isCreate ? 'New Project' : 'Edit Project' }}</h1>
+			<div class="text-muted small">Project setup</div>
+		</div>
+		
+		<button class="btn btn-outline-secondary" (click)="cancel()">
+			<i class="bi bi-arrow-left"></i><span class="ms-2">Back</span>
+		</button>
+	</div>
+	
+	<div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+	
+	<div class="card shadow-sm border-0">
+		<div class="card-body">
+			<form [formGroup]="form" (ngSubmit)="save()">
+				<div class="row g-3">
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label">Code</label>
+						<input class="form-control" formControlName="code"
+						[class.is-invalid]="form.get('code')?.touched && form.get('code')?.invalid">
+						<div class="invalid-feedback">Code is required.</div>
+					</div>
+					
+					<div class="col-12 col-md-9">
+						<label class="form-label">Name</label>
+						<input class="form-control" formControlName="name"
+						[class.is-invalid]="form.get('name')?.touched && form.get('name')?.invalid">
+						<div class="invalid-feedback">Name is required.</div>
+					</div>
+					
+					<div class="col-12 col-md-6">
+						<label class="form-label">Department</label>
+						<select class="form-select" formControlName="department_id">
+							<option [ngValue]="null">—</option>
+							<option *ngFor="let d of departments" [ngValue]="d.id">{{ d.code }} - {{ d.name }}</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-6">
+						<label class="form-label">Owner</label>
+						<select class="form-select" formControlName="owner_user_id">
+							<option [ngValue]="null">—</option>
+							<option *ngFor="let u of owners" [ngValue]="u.id">{{ u.name }}</option>
+						</select>
+						<div class="text-muted small mt-1" *ngIf="owners.length === 0">
+							Owner list unavailable (might be restricted).
+						</div>
+					</div>
+					
+					<div class="col-12 col-md-4">
+						<label class="form-label">Status</label>
+						<select class="form-select" formControlName="project_status_id">
+							<option [ngValue]="null">—</option>
+							<option *ngFor="let s of statuses" [ngValue]="s.id">{{ s.code }} - {{ s.name }}</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-4">
+						<label class="form-label">Priority</label>
+						<select class="form-select" formControlName="priority_id">
+							<option [ngValue]="null">—</option>
+							<option *ngFor="let p of priorities" [ngValue]="p.id">{{ p.code }} - {{ p.name }}</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-4">
+						<label class="form-label">Progress (%)</label>
+						<input type="number" class="form-control" formControlName="progress" min="0" max="100">
+					</div>
+					
+					<div class="col-12 col-md-6">
+						<label class="form-label">Sponsor</label>
+						<input class="form-control" formControlName="sponsor" placeholder="Optional">
+					</div>
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label">Target Start</label>
+						<input type="date" class="form-control" formControlName="target_start_date">
+					</div>
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label">Target End</label>
+						<input type="date" class="form-control" formControlName="target_end_date">
+					</div>
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label">Start Date</label>
+						<input type="date" class="form-control" formControlName="start_date">
+					</div>
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label">Actual End</label>
+						<input type="date" class="form-control" formControlName="actual_end_date">
+					</div>
+					
+				</div>
+				
+				<div class="d-flex gap-2 justify-content-end mt-4">
+					<button type="button" class="btn btn-outline-secondary" (click)="cancel()" [disabled]="saving">
+						Cancel
+					</button>
+					<button type="submit" class="btn btn-primary" [disabled]="saving">
+						<span *ngIf="!saving">{{ isCreate ? 'Create' : 'Save Changes' }}</span>
+						<span *ngIf="saving">Saving…</span>
+					</button>
+				</div>
+				
+			</form>
+		</div>
+	</div>
+	
+</div>

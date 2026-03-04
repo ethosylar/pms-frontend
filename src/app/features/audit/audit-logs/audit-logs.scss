@@ -1,0 +1,14 @@
+.audit-logs-wrap {
+  min-height: 60vh;
+}
+
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(248, 249, 252, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 12px;
+}

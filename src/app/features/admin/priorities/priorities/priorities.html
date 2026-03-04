@@ -1,0 +1,116 @@
+<div class="position-relative admin-priorities-wrap">
+	
+	<div *ngIf="loading" class="loading-overlay">
+		<div class="text-center">
+			<div class="spinner-border" role="status"></div>
+			<div class="mt-2 fw-semibold">Loading priorities…</div>
+		</div>
+	</div>
+	
+	<div class="d-flex align-items-center justify-content-between mb-3">
+		<div>
+			<h1 class="h4 mb-0">Priority Management</h1>
+			<div class="text-muted small">Admin only</div>
+		</div>
+		
+		<a class="btn btn-primary" routerLink="/admin/priorities/new">
+			<i class="bi bi-plus-lg"></i>
+			<span class="ms-2">Add Priority</span>
+		</a>
+	</div>
+	
+	<div *ngIf="!loading && error" class="alert alert-danger">{{ error }}</div>
+	
+	<div class="card shadow-sm border-0">
+		<div class="card-body">
+			
+			<div class="row g-2 align-items-center mb-3">
+				<div class="col-12 col-md-6">
+					<div class="input-group">
+						<span class="input-group-text"><i class="bi bi-search"></i></span>
+						<input class="form-control"
+						placeholder="Search code/name…"
+						[(ngModel)]="search"
+						(keydown.enter)="onSearchEnter()">
+						<button class="btn btn-outline-secondary" (click)="onSearchEnter()">Search</button>
+					</div>
+				</div>
+				
+				<div class="col-12 col-md-3">
+					<select class="form-select" [(ngModel)]="isActiveFilter" (change)="page=1; fetch()">
+						<option value="">All</option>
+						<option value="1">Active</option>
+						<option value="0">Inactive</option>
+					</select>
+				</div>
+				
+				<div class="col-12 col-md-3">
+					<select class="form-select" [(ngModel)]="perPage" (change)="page=1; fetch()">
+						<option [ngValue]="10">10 / page</option>
+						<option [ngValue]="20">20 / page</option>
+						<option [ngValue]="50">50 / page</option>
+					</select>
+				</div>
+			</div>
+			
+			<div class="table-responsive">
+				<table class="table table-sm align-middle mb-0">
+					<thead class="table-light">
+						<tr>
+							<th style="width: 80px;">ID</th>
+							<th style="width: 160px;">Code</th>
+							<th>Name</th>
+							<th style="width: 130px;">Sort Order</th>
+							<th style="width: 140px;">Status</th>
+							<th style="width: 150px;">Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr *ngFor="let p of rows">
+							<td>{{ p.id }}</td>
+							<td class="fw-semibold">{{ p.code }}</td>
+							<td>{{ p.name }}</td>
+							<td>{{ p.sort_order }}</td>
+							<td>
+								<span class="badge" [ngClass]="badgeClass(p)">{{ badgeText(p) }}</span>
+							</td>
+							<td>
+								<a class="btn btn-sm btn-outline-primary me-2" [routerLink]="['/admin/priorities', p.id]">
+									<i class="bi bi-pencil-square"></i>
+								</a>
+								<button class="btn btn-sm btn-outline-danger" (click)="confirmDelete(p)">
+									<i class="bi bi-trash"></i>
+								</button>
+							</td>
+						</tr>
+						
+						<tr *ngIf="!loading && rows.length === 0">
+							<td colspan="6" class="text-center text-muted py-4">No priorities found</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			
+			<div class="d-flex align-items-center justify-content-between mt-3">
+				<div class="text-muted small">Total: {{ total }}</div>
+				
+				<div class="btn-group">
+					<button class="btn btn-outline-secondary btn-sm"
+					(click)="changePage(page - 1)"
+					[disabled]="page <= 1">
+						Prev
+					</button>
+					<button class="btn btn-outline-secondary btn-sm" disabled>
+						Page {{ page }} / {{ lastPage }}
+					</button>
+					<button class="btn btn-outline-secondary btn-sm"
+					(click)="changePage(page + 1)"
+					[disabled]="page >= lastPage">
+						Next
+					</button>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+</div>

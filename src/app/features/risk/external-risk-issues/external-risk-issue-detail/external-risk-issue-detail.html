@@ -1,0 +1,99 @@
+<div class="position-relative">
+	<div *ngIf="loading" class="loading-overlay">
+		<div class="text-center">
+			<div class="spinner-border" role="status"></div>
+			<div class="mt-2 fw-semibold">Loading…</div>
+		</div>
+	</div>
+	
+	<div class="d-flex align-items-center justify-content-between mb-3">
+		<div>
+			<h1 class="h4 mb-0">External Risk Issue Detail</h1>
+			<div class="text-muted small">ID: {{ id }}</div>
+		</div>
+		
+		<div class="d-flex gap-2">
+			<button class="btn btn-outline-secondary" (click)="back()">
+				<i class="bi bi-arrow-left"></i><span class="ms-2">Back</span>
+			</button>
+			
+			<button *ngIf="canWrite" class="btn btn-outline-primary" (click)="edit()">
+				<i class="bi bi-pencil-square"></i><span class="ms-2">Edit</span>
+			</button>
+		</div>
+	</div>
+	
+	<div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+	
+	<div *ngIf="row" class="card shadow-sm border-0">
+		<div class="card-body">
+			
+			<div class="row g-3">
+				<div class="col-12 col-md-4">
+					<div class="text-muted small">External ID</div>
+					<div class="fw-semibold">{{ row.external_id }}</div>
+				</div>
+				
+				<div class="col-12 col-md-8">
+					<div class="text-muted small">Title</div>
+					<div class="fw-semibold">{{ row.title }}</div>
+				</div>
+				
+				<div class="col-12 col-md-3">
+					<div class="text-muted small">Type</div>
+					<div>{{ row.type?.code }} - {{ row.type?.name }}</div>
+				</div>
+				
+				<div class="col-12 col-md-3">
+					<div class="text-muted small">Severity</div>
+					<div>{{ row.severity?.code }} - {{ row.severity?.name }}</div>
+				</div>
+				
+				<div class="col-12 col-md-3">
+					<div class="text-muted small">Status</div>
+					<div>{{ row.status?.code }} - {{ row.status?.name }}</div>
+				</div>
+				
+				<div class="col-12 col-md-3">
+					<div class="text-muted small">Owner</div>
+					<div>{{ row.owner ?? '-' }}</div>
+				</div>
+				
+				<div class="col-12 col-md-6">
+					<div class="text-muted small">External Source</div>
+					<div>{{ row.externalSource?.code }} - {{ row.externalSource?.name }}</div>
+				</div>
+				
+				<div class="col-12 col-md-6">
+					<div class="text-muted small">Project</div>
+					<div>{{ row.project?.code }} - {{ row.project?.name }}</div>
+				</div>
+				
+				<div class="col-12 col-md-4">
+					<div class="text-muted small">Source Created</div>
+					<div>{{ row.source_created_at ?? '-' }}</div>
+				</div>
+				
+				<div class="col-12 col-md-4">
+					<div class="text-muted small">Source Updated</div>
+					<div>{{ row.source_updated_at ?? '-' }}</div>
+				</div>
+				
+				<div class="col-12 col-md-4">
+					<div class="text-muted small">Last Synced</div>
+					<div>{{ row.last_synced_at ?? '-' }}</div>
+				</div>
+				
+				<div class="col-12 mt-2">
+					<button class="btn btn-outline-secondary btn-sm" (click)="togglePayload()">
+						<i class="bi" [class.bi-chevron-down]="!showPayload" [class.bi-chevron-up]="showPayload"></i>
+						<span class="ms-2">{{ showPayload ? 'Hide' : 'Show' }} Raw Payload</span>
+					</button>
+					
+					<pre *ngIf="showPayload" class="payload-box mt-2">{{ payloadText }}</pre>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+</div>

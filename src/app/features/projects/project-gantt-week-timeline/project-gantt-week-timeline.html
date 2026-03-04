@@ -1,0 +1,108 @@
+<div class="gantt-root">
+	<div class="gantt-top d-flex align-items-center justify-content-between">
+		<div>
+			<div class="fw-semibold">Tasks (Gantt)</div>
+			<div class="text-muted small">Weekly view • Range: {{ rangeLabel }}</div>
+		</div>
+		
+		<button class="btn btn-outline-primary btn-sm" (click)="openFullView()">
+			<i class="bi bi-diagram-3"></i><span class="ms-2">Open Full View</span>
+		</button>
+	</div>
+	
+	<div *ngIf="loadingEmpty" class="text-muted small mt-2">No tasks/milestones to display.</div>
+	
+	<div class="gantt-shell mt-3" *ngIf="!loadingEmpty">
+		
+		<!-- LEFT: task list -->
+		<div class="gantt-left">
+			<div class="left-head">
+				<div class="lh task">Task</div>
+				<div class="lh s">Start</div>
+				<div class="lh e">End</div>
+				<div class="lh d">Duration</div>
+				<div class="lh p">Progress</div>
+				<div class="lh st">Status</div>
+			</div>
+			
+			<div class="left-body">
+				<div class="left-row" *ngFor="let t of rows">
+					<div class="lc task">{{ t.name }}</div>
+					<div class="lc s">{{ t.startLabel }}</div>
+					<div class="lc e">{{ t.endLabel }}</div>
+					<div class="lc d">{{ t.durationDays }}</div>
+					<div class="lc p">{{ t.progress }}%</div>
+					<div class="lc st">
+						<span class="badge bg-primary" *ngIf="(t.status_code || '').toUpperCase()==='IN_PROGRESS'">IN PROGRESS</span>
+						<span class="badge bg-success" *ngIf="(t.status_code || '').toUpperCase()==='DONE' || (t.status_code || '').toUpperCase()==='COMPLETED'">DONE</span>
+						<span class="badge bg-warning text-dark" *ngIf="(t.status_code || '').toUpperCase()==='PENDING'">PENDING</span>
+						<span class="badge bg-secondary" *ngIf="!t.status_code">—</span>
+					</div>
+				</div>
+				
+				<!-- milestone labels lane (left) -->
+				<div class="left-row milestone-left" *ngIf="milestones">
+					<div class="lc task fw-semibold">Milestones</div>
+					<div class="lc s"></div><div class="lc e"></div><div class="lc d"></div><div class="lc p"></div><div class="lc st"></div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- RIGHT: weekly timeline (scrollable horizontally) -->
+		<div class="gantt-right" #timelineScroll>
+			
+			<!-- header -->
+			<div class="timeline-head" [style.width.px]="timelineWidthPx()">
+				<div class="months">
+					<div class="m" *ngFor="let m of months" [style.width.px]="m.span * colWidth">{{ m.label }}</div>
+				</div>
+				<div class="weeks">
+					<div class="w" *ngFor="let w of weeks" [style.width.px]="colWidth">{{ w.weekLabel }}</div>
+				</div>
+			</div>
+			
+			<!-- body -->
+			<div class="timeline-body" [style.width.px]="timelineWidthPx()">
+				
+				<!-- project start vertical line -->
+				<div class="vline start" *ngIf="projectStartLineLeftPx() !== null"
+				[style.left.px]="projectStartLineLeftPx()!">
+					<div class="vlabel">◇ Project Start</div>
+				</div>
+				
+				<!-- today vertical line -->
+				<div class="vline today" *ngIf="todayLineLeftPx() !== null"
+				[style.left.px]="todayLineLeftPx()!">
+					<div class="vlabel">Today</div>
+				</div>
+				
+				<!-- task lanes -->
+				<div class="lane" *ngFor="let t of rows" [style.height.px]="rowHeight">
+					<!-- grid background is CSS -->
+					<div class="bar"
+					[style.left.px]="t.leftPx"
+					[style.width.px]="t.widthPx"
+					[style.background]="t.color">
+						<div class="bar-progress" [style.width.%]="(t.progress)"></div>
+						<div class="bar-text">{{ t.name }}</div>
+					</div>
+				</div>
+				
+				<!-- milestones lane -->
+				<div class="lane milestones" *ngIf="milestones" [style.height.px]="rowHeight">
+					<ng-container *ngFor="let m of milestones">
+						<div class="ms"
+						*ngIf="milestoneLeftPx(m) !== null"
+						[style.left.px]="milestoneLeftPx(m)!"
+						[title]="m.name + ' • ' + (m.milestone_date || '')">
+							◇ <span class="ms-label">{{ m.name }}</span>
+							<div class="ms-date">{{ m.milestone_date }}</div>
+						</div>
+					</ng-container>
+				</div>
+				
+			</div>
+		</div>
+		
+	</div>
+</div>

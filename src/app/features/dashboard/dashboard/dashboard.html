@@ -1,0 +1,123 @@
+<div class="dashboard-wrap position-relative">
+	<!-- ✅ overlay loader -->
+	<div *ngIf="loading" class="loading-overlay">
+		<div class="text-center">
+			<div class="spinner-border" role="status"></div>
+			<div class="mt-2 fw-semibold">Loading dashboard…</div>
+			<div class="text-muted small">Fetching latest overview & charts</div>
+		</div>
+	</div>
+	
+	<!-- existing header -->
+	<div class="d-flex align-items-center justify-content-between mb-4">
+		<h1 class="h4 mb-0">Overview</h1>
+		<div class="text-muted small">Last updated: {{ now | date:'medium' }}</div>
+	</div>
+	
+	<div *ngIf="!loading && error" class="alert alert-danger">{{ error }}</div>
+	
+	<ng-container *ngIf="!loading && !error && data">
+		
+		<!-- KPI Row -->
+		<div class="row g-3 mb-4">
+			<div class="col-12 col-md-6 col-xl-3">
+				<a class="text-decoration-none" [routerLink]="['/projects']">
+					<div class="card shadow-sm border-0 kpi kpi-primary">
+						<div class="card-body">
+							<div class="text-muted small">Total Projects</div>
+							<div class="fs-3 fw-bold">{{ data.counts.total }}</div>
+						</div>
+					</div>
+				</a>
+			</div>
+			
+			<div class="col-12 col-md-6 col-xl-3">
+				<a class="text-decoration-none"
+				[routerLink]="['/projects']"
+				[queryParams]="{ status: 'IN_PROGRESS' }">
+					<div class="card shadow-sm border-0 kpi kpi-info">
+						<div class="card-body">
+							<div class="text-muted small">In Progress</div>
+							<div class="fs-3 fw-bold">{{ data.counts.in_progress }}</div>
+						</div>
+					</div>
+				</a>
+			</div>
+			
+			<div class="col-12 col-md-6 col-xl-3">
+				<a class="text-decoration-none"
+				[routerLink]="['/projects']"
+				[queryParams]="{ status: 'AT_RISK' }">
+					<div class="card shadow-sm border-0 kpi kpi-danger">
+						<div class="card-body">
+							<div class="text-muted small">At Risk</div>
+							<div class="fs-3 fw-bold">{{ data.counts.at_risk }}</div>
+						</div>
+					</div>
+				</a>
+			</div>
+			
+			<div class="col-12 col-md-6 col-xl-3">
+				<a class="text-decoration-none"
+				[routerLink]="['/projects']"
+				[queryParams]="{ status: 'DELAYED' }">
+					<div class="card shadow-sm border-0 kpi kpi-warning">
+						<div class="card-body">
+							<div class="text-muted small">Delayed</div>
+							<div class="fs-3 fw-bold">{{ data.counts.delayed_count }}</div>
+						</div>
+					</div>
+				</a>
+			</div>
+		</div>
+		
+		<div class="row g-3 mb-4">
+			<div class="col-12 col-lg-4">
+				<div class="card shadow-sm border-0">
+					<div class="card-header bg-white fw-semibold">Projects by Status</div>
+					<div class="card-body">
+						<canvas
+						baseChart
+						[data]="projectsByStatusData"
+						[options]="projectsByStatusOptions"
+						[type]="'doughnut'">
+						</canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		
+		<!-- Delayed Projects Table -->
+		<div class="card shadow-sm border-0 mb-4">
+			<div class="card-header bg-white fw-semibold">Delayed Projects</div>
+			<div class="table-responsive">
+				<table class="table table-sm mb-0">
+					<thead class="table-light">
+						<tr>
+							<th>Code</th>
+							<th>Name</th>
+							<th>Target End</th>
+							<th>Progress</th>
+							<th>Status</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr *ngFor="let p of data.delayed_projects">
+							<td>{{ p.code }}</td>
+							<td>{{ p.name }}</td>
+							<td>{{ p.target_end_date }}</td>
+							<td>{{ p.progress }}%</td>
+							<td>{{ p.status_code }}</td>
+						</tr>
+						
+						<tr *ngIf="data.delayed_projects.length === 0">
+							<td colspan="5" class="text-center text-muted py-3">No delayed projects</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		
+	</ng-container>
+</div>

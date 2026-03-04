@@ -1,0 +1,131 @@
+<div class="position-relative">
+	
+	<div *ngIf="loading" class="loading-overlay">
+		<div class="text-center">
+			<div class="spinner-border" role="status"></div>
+			<div class="mt-2 fw-semibold">Loading…</div>
+		</div>
+	</div>
+	
+	<div class="d-flex align-items-center justify-content-between mb-3">
+		<div>
+			<h1 class="h4 mb-0">{{ isCreate ? 'Add External Risk Issue' : 'Edit External Risk Issue' }}</h1>
+			<div class="text-muted small">PMO / PM / Admin</div>
+		</div>
+		
+		<button class="btn btn-outline-secondary" (click)="cancel()">
+			<i class="bi bi-arrow-left"></i><span class="ms-2">Back</span>
+		</button>
+	</div>
+	
+	<div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+	
+	<div class="card shadow-sm border-0">
+		<div class="card-body">
+			
+			<form [formGroup]="form" (ngSubmit)="save()">
+				
+				<div class="row g-3">
+					<div class="col-12 col-md-4">
+						<label class="form-label">External Source</label>
+						<select class="form-select" formControlName="external_source_id">
+							<option [ngValue]="null">None</option>
+							<option *ngFor="let s of sources" [ngValue]="s.id">{{ s.code }} - {{ s.name }}</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-4">
+						<label class="form-label">External ID</label>
+						<input class="form-control" formControlName="external_id"
+						[class.is-invalid]="form.get('external_id')?.touched && form.get('external_id')?.invalid">
+						<div class="invalid-feedback">External ID is required.</div>
+					</div>
+					
+					<div class="col-12 col-md-4">
+						<label class="form-label">Project</label>
+						<select class="form-select" formControlName="project_id">
+							<option [ngValue]="null">None</option>
+							<option *ngFor="let p of projects" [ngValue]="p.id">{{ p.code }} - {{ p.name }}</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-4">
+						<label class="form-label">Type</label>
+						<select class="form-select" formControlName="type_id"
+						[class.is-invalid]="form.get('type_id')?.touched && form.get('type_id')?.invalid">
+							<option [ngValue]="null">Select type…</option>
+							<option *ngFor="let t of types" [ngValue]="t.id">{{ t.code }} - {{ t.name }}</option>
+						</select>
+						<div class="invalid-feedback">Type is required.</div>
+					</div>
+					
+					<div class="col-12 col-md-4">
+						<label class="form-label">Severity</label>
+						<select class="form-select" formControlName="severity_id"
+						[class.is-invalid]="form.get('severity_id')?.touched && form.get('severity_id')?.invalid">
+							<option [ngValue]="null">Select severity…</option>
+							<option *ngFor="let s of severities" [ngValue]="s.id">{{ s.code }} - {{ s.name }}</option>
+						</select>
+						<div class="invalid-feedback">Severity is required.</div>
+					</div>
+					
+					<div class="col-12 col-md-4">
+						<label class="form-label">Status</label>
+						<select class="form-select" formControlName="risk_issue_status_id"
+						[class.is-invalid]="form.get('risk_issue_status_id')?.touched && form.get('risk_issue_status_id')?.invalid">
+							<option [ngValue]="null">Select status…</option>
+							<option *ngFor="let s of statuses" [ngValue]="s.id">{{ s.code }} - {{ s.name }}</option>
+						</select>
+						<div class="invalid-feedback">Status is required.</div>
+					</div>
+					
+					<div class="col-12">
+						<label class="form-label">Title</label>
+						<input class="form-control" formControlName="title"
+						[class.is-invalid]="form.get('title')?.touched && form.get('title')?.invalid">
+						<div class="invalid-feedback">Title is required.</div>
+					</div>
+					
+					<div class="col-12 col-md-4">
+						<label class="form-label">Owner</label>
+						<input class="form-control" formControlName="owner">
+					</div>
+					
+					<div class="col-12 col-md-4">
+						<label class="form-label">Source Created At</label>
+						<input type="datetime-local" class="form-control" formControlName="source_created_at">
+					</div>
+					
+					<div class="col-12 col-md-4">
+						<label class="form-label">Source Updated At</label>
+						<input type="datetime-local" class="form-control" formControlName="source_updated_at">
+					</div>
+					
+					<div class="col-12 col-md-4">
+						<label class="form-label">Last Synced At</label>
+						<input type="datetime-local" class="form-control" formControlName="last_synced_at">
+					</div>
+					
+					<div class="col-12">
+						<label class="form-label">Raw Payload (JSON)</label>
+						<textarea rows="8" class="form-control font-monospace" formControlName="raw_payload"
+						placeholder="{&#10;  &quot;any&quot;: &quot;json&quot;&#10;}"></textarea>
+						<div class="form-text">Leave blank to clear / set null. Must be valid JSON if provided.</div>
+					</div>
+				</div>
+				
+				<div class="d-flex gap-2 justify-content-end mt-4">
+					<button type="button" class="btn btn-outline-secondary" (click)="cancel()" [disabled]="saving">
+						Cancel
+					</button>
+					<button type="submit" class="btn btn-primary" [disabled]="saving">
+						<span *ngIf="!saving">{{ isCreate ? 'Create Issue' : 'Save Changes' }}</span>
+						<span *ngIf="saving">Saving…</span>
+					</button>
+				</div>
+				
+			</form>
+			
+		</div>
+	</div>
+</div>

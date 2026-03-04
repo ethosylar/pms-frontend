@@ -1,0 +1,9 @@
+.loading-overlay {
+	position: absolute;
+	inset: 0;
+	background: rgba(255, 255, 255, 0.65);
+	display: grid;
+	place-items: center;
+	z-index: 10;
+	border-radius: 12px;
+}

@@ -1,0 +1,38 @@
+<div class="card shadow-sm border-0">
+	<div class="card-body">
+		<div class="d-flex align-items-center justify-content-between">
+			<div>
+				<div class="fw-semibold">Tasks (Gantt)</div>
+				<div class="text-muted small">Weekly timeline (read-only)</div>
+			</div>
+		</div>
+		<div *ngIf="loading" class="text-muted small mt-3">
+			<span class="spinner-border spinner-border-sm me-2"></span>
+			Loading…
+		</div>
+		<div *ngIf="error" class="alert alert-danger mt-3 mb-0">{{ error }}</div>
+		<div class="small text-muted">
+			items={{ items.length }} start={{ rangeStart }} end={{ rangeEnd }}
+			Im Outside
+		</div>
+		<div class="gantt-wrap mt-3" *ngIf="!loading && !error && rangeStart != null && rangeEnd != null">
+			<ngx-gantt
+			[items]="items"
+			[viewType]="viewType"
+			[start]="rangeStart"
+			[end]="rangeEnd"
+			[showToolbar]="false">
+				<ngx-gantt-table>
+					<ngx-gantt-column name="Task" width="300px">
+						<ng-template #cell let-item="item">
+							<div class="fw-semibold" [style.color]="itemColor(item)">{{ item.title }}</div>
+							<div class="small text-muted" *ngIf="getMilestoneName(item) as msName">
+								◇ {{ msName }}
+							</div>
+						</ng-template>
+					</ngx-gantt-column>
+				</ngx-gantt-table>
+			</ngx-gantt>
+		</div>
+	</div>
+</div>
