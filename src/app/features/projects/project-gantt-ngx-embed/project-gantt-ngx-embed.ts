@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { finalize } from 'rxjs/operators';
 import { forkJoin } from 'rxjs';
 
@@ -24,7 +24,7 @@ type GanttVmItem = GanttItem & {
 	templateUrl: './project-gantt-ngx-embed.html',
 	styleUrls: ['./project-gantt-ngx-embed.scss'],
 })
-export class ProjectGanttNgxEmbedComponent implements OnInit {
+export class ProjectGanttNgxEmbedComponent implements OnInit, OnChanges {
 	@Input({ required: true }) projectId!: number;
 	@Input() projectStartDate: string | null = null;
 	@Input() projectEndDate: string | null = null;
@@ -142,15 +142,15 @@ export class ProjectGanttNgxEmbedComponent implements OnInit {
 	
 	private minEpoch(values: Array<number | Date | undefined>): number | null {
 		const nums = values
-		.map(v => this.toEpochAny(v))
-		.filter((n): n is number => n != null && Number.isFinite(n));
+			.map(v => this.toEpochAny(v))
+			.filter((n): n is number => n != null && Number.isFinite(n));
 		return nums.length ? Math.min(...nums) : null;
 	}
 	
 	private maxEpoch(values: Array<number | Date | undefined>): number | null {
 		const nums = values
-		.map(v => this.toEpochAny(v))
-		.filter((n): n is number => n != null && Number.isFinite(n));
+			.map(v => this.toEpochAny(v))
+			.filter((n): n is number => n != null && Number.isFinite(n));
 		return nums.length ? Math.max(...nums) : null;
 	}
 	

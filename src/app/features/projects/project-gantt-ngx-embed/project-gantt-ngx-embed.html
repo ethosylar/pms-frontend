@@ -25,6 +25,7 @@
 				Theres {{ items.length }} task/s or milestones with valid dates found.
 			</div>
 			<ngx-gantt
+			*ngIf="items.length"
 			[items]="items"
 			[viewType]="viewType"
 			[start]="safeStart"
