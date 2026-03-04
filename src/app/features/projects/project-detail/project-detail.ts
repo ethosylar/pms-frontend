@@ -82,8 +82,8 @@ export class ProjectDetailComponent implements OnInit {
 		.pipe(
 			finalize(() => {
 				this.loading = false;
-				this.ganttLoading = false;
-				this.cdr.detectChanges();
+				// this.ganttLoading = false;
+				// this.cdr.detectChanges();
 				this.loadMilestones(1);
 			})
 		)
@@ -96,8 +96,8 @@ export class ProjectDetailComponent implements OnInit {
 				this.tasks = tasks;
 				this.ganttTasks = tasks;
 				//this.tasks = this.buildVm(rawTasks);
-				
-				this.cdr.detectChanges();
+				this.ganttLoading = false;
+				// this.cdr.detectChanges();
 			},
 			error: (err) => {
 				console.error(err);
