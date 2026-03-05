@@ -85,6 +85,7 @@ export class ProjectDetailComponent implements OnInit {
 				// this.ganttLoading = false;
 				// this.cdr.detectChanges();
 				this.loadMilestones(1);
+				this.cdr.markForCheck();
 			})
 		)
 		.subscribe({
@@ -97,6 +98,7 @@ export class ProjectDetailComponent implements OnInit {
 				this.ganttTasks = tasks;
 				//this.tasks = this.buildVm(rawTasks);
 				this.ganttLoading = false;
+				this.cdr.markForCheck();
 				// this.cdr.detectChanges();
 			},
 			error: (err) => {
