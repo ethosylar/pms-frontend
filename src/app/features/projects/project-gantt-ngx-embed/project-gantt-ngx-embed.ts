@@ -1,241 +1,343 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
-import { finalize } from 'rxjs/operators';
-import { forkJoin } from 'rxjs';
-
-import { NgxGanttModule, GanttItem, GanttViewType } from '@worktile/gantt';
 import {
-	ApiService,
-	ProjectTaskGanttDto,
-	ProjectMilestoneDto,
-	ApiCollection
+  Component,
+  Input,
+  OnChanges,
+  SimpleChanges,
+  ChangeDetectorRef,
+  ViewChild,
+  ElementRef
+} from '@angular/core';
+import { Router } from '@angular/router';
+import html2canvas from 'html2canvas';
+import {
+  GanttItem,
+  GanttViewType,
+  NgxGanttComponent,
+  NgxGanttTableComponent,
+  NgxGanttTableColumnComponent
+} from '@worktile/gantt';
+import { forkJoin } from 'rxjs';
+import { finalize } from 'rxjs/operators';
+
+import {
+  ApiCollection,
+  ApiService,
+  ProjectMilestoneDto,
+  ProjectTaskGanttDto
 } from '../../../core/services/api.service';
 
-type GanttVmItem = GanttItem & {
-	color?: string;
-	kind?: 'task' | 'milestone';
-	_milestone?: string | null;
+type GanttProjectItem = GanttItem & {
+  kind: 'task' | 'milestone';
+  statusCode?: string | null;
+  assignedToName?: string | null;
+  milestoneName?: string | null;
+  delayed?: boolean;
+  raw?: ProjectTaskGanttDto | ProjectMilestoneDto;
 };
 
 @Component({
-	standalone: true,
-	selector: 'app-project-gantt-ngx-embed',
-	imports: [CommonModule, NgxGanttModule],
-	templateUrl: './project-gantt-ngx-embed.html',
-	styleUrls: ['./project-gantt-ngx-embed.scss'],
+  standalone: true,
+  selector: 'app-project-gantt-ngx-embed',
+  imports: [
+    CommonModule,
+    NgxGanttComponent,
+    NgxGanttTableComponent,
+    NgxGanttTableColumnComponent
+  ],
+  templateUrl: './project-gantt-ngx-embed.html',
+  styleUrls: ['./project-gantt-ngx-embed.scss'],
 })
-export class ProjectGanttNgxEmbedComponent implements OnInit, OnChanges {
-	@Input({ required: true }) projectId!: number;
-	@Input() projectStartDate: string | null = null;
-	@Input() projectEndDate: string | null = null;
-	
-	loading = true;
-	error: string | null = null;
-	
-	viewType = GanttViewType.week;          // ✅ lock week
-	items: GanttVmItem[] = [];
-	
-	// ✅ force viewport range so header always appears
-	rangeStart: number | null = null;
-	rangeEnd: number | null = null;
-	private readonly DAY = 86400;
-	
-	constructor(private api: ApiService, private cdr: ChangeDetectorRef) {}
-	
-	ngOnInit(): void {
-		console.log('Gantt Embed Inputs:', {
-			projectId: this.projectId,
-			projectStart: this.projectStartDate,
-			projectEnd: this.projectEndDate,
-			typeofStart: typeof this.projectStartDate,
-			typeofEnd: typeof this.projectEndDate
-		});
-		this.load();
-	}
-	
-	private load(): void {
-		this.loading = true;
-		this.error = null;
-		
-		forkJoin({
-			gantt: this.api.getProjectGantt(this.projectId),
-			milestones: this.api.getProjectMilestones(this.projectId, { per_page: 200 }),
-		})
-		.pipe(
-			finalize(() => {
-				this.loading = false;
-				this.cdr.detectChanges();
-			})
-		)
-		.subscribe({
-			next: ({ gantt, milestones }) => {
-				const rawTasks: unknown = gantt?.tasks;
-				const tasks: ProjectTaskGanttDto[] = Array.isArray(rawTasks)
-				? (rawTasks as ProjectTaskGanttDto[])
-				: (Array.isArray((rawTasks as { data?: unknown[] } | null)?.data)
-					? ((rawTasks as { data: ProjectTaskGanttDto[] }).data ?? [])
-				: []);
-				
-				const ms: ProjectMilestoneDto[] =
-				(milestones as ApiCollection<ProjectMilestoneDto>)?.data ?? [];
-				
-				const taskItems = tasks
-				.map((t) => this.toTaskItem(t))
-				.filter((x): x is GanttVmItem => !!x);
-				
-				const milestoneItems = ms
-				.map((m) => this.toMilestoneItem(m))
-				.filter((x): x is GanttVmItem => !!x);
-				
-				this.items = [...milestoneItems, ...taskItems];
-				
-				// const minItemStart = this.minEpoch(this.items.map(i => i.start));
-				// const maxItemEnd = this.maxEpoch(this.items.map(i => i.end));
-				
-				// const ps = this.toEpochMs(this.projectStartDate) ?? minItemStart ?? this.nowMs();
-				// const pe = this.toEpochMs(this.projectEndDate) ?? maxItemEnd ?? (ps + 7 * this.DAY * 1000);
-				
-				// this.rangeStart = ps;
-				// this.rangeEnd = pe <= ps ? (ps + this.DAY * 1000) : pe;
-				
-				const minItem = this.minEpoch(this.items.map(i => i.start));
-				const maxItem = this.maxEpoch(this.items.map(i => i.end));
-				
-				// Prefer project dates, but fall back intelligently
-				let rangeStart = this.toEpochMs(this.projectStartDate);
-				let rangeEnd   = this.toEpochMs(this.projectEndDate);
-				
-				if (rangeStart == null || rangeEnd == null || rangeEnd <= rangeStart) {
-					// Project dates missing or invalid → use items + some padding
-					rangeStart = minItem ?? this.nowMs();
-					rangeEnd   = maxItem ?? (rangeStart + 14 * this.DAY * 1000); // at least 2 weeks
-					
-					// Add some padding so items aren't glued to edges
-					const duration = rangeEnd - rangeStart;
-					rangeStart -= duration * 0.1;  // 10% left padding
-					rangeEnd   += duration * 0.1;  // 10% right padding
-				}
-				
-				this.rangeStart = rangeStart;
-				this.rangeEnd   = rangeEnd;
-				
-				console.log('Final visible range:', {
-					start: new Date(rangeStart).toISOString(),
-					end:   new Date(rangeEnd).toISOString()
-				});
-				
-				this.cdr.detectChanges();
-			},
-			error: (err) => {
-				console.error(err);
-				this.error = 'Failed to load gantt data.';
-				this.cdr.detectChanges();
-			},
-		});
-	}
-	
-	private toEpochAny(v: number | Date | undefined): number | null {
-		if (v instanceof Date && !Number.isNaN(v.getTime())) return v.getTime();
-		if (typeof v === 'number' && Number.isFinite(v)) return v;    // ← assume ms
-		return null;
-	}
-	
-	private minEpoch(values: Array<number | Date | undefined>): number | null {
-		const nums = values
-			.map(v => this.toEpochAny(v))
-			.filter((n): n is number => n != null && Number.isFinite(n));
-		return nums.length ? Math.min(...nums) : null;
-	}
-	
-	private maxEpoch(values: Array<number | Date | undefined>): number | null {
-		const nums = values
-			.map(v => this.toEpochAny(v))
-			.filter((n): n is number => n != null && Number.isFinite(n));
-		return nums.length ? Math.max(...nums) : null;
-	}
-	
-	private nowMs(): number {
-		return Date.now();
-	}
-	
-	private toEpochMs(v: string | null | undefined): number | null {
-		if (!v) return null;
-		const d = new Date(`${v}T00:00:00`);
-		if (Number.isNaN(d.getTime())) return null;
-		return d.getTime();           // ← already ms
-	}
-	
-	private toTaskItem(t: ProjectTaskGanttDto): GanttVmItem | null {
-		const start = this.toEpochMs(t.start_date);
-		let   end   = this.toEpochMs(t.end_date);
-		
-		if (start == null) return null;
-		if (end == null || end <= start) {
-			end = start + 86400 * 1000; // 1 day
-		}
-		
-		return {
-			id: String(t.id),
-			title: t.name || "Unnamed",
-			start,
-			end,
-			progress: Number(t.progress ?? 0),
-			color: this.colorByStatus(t.status_code) || '#0d6efd',
-			kind: 'task',
-			_milestone: t.milestone?.name ?? null,
-		};
-	}
-	
-	private toMilestoneItem(m: ProjectMilestoneDto): GanttVmItem | null {
-		const d = this.toEpochMs(m.milestone_date);
-		if (d == null) return null;
-		
-		return {
-			id: `MS_${m.id}`,
-			title: `◇ ${m.name}`,
-			start: d,
-			end: d + this.DAY * 1000,
-			progress: 0,
-			color: '#0d6efd',
-			kind: 'milestone',
-		};
-	}
-	
-	itemColor(item: unknown): string {
-		const c = (item as any)?.color;
-		return (typeof c === 'string' && c.trim() !== '') ? c : '#111827';
-	}
-	
-	private colorByStatus(code?: string | null): string {
-		const c = String(code ?? '').toUpperCase();
-		if (c === 'DONE' || c === 'COMPLETED') return '#198754';
-		if (c === 'CANCELLED') return '#6c757d';
-		if (c === 'AT_RISK') return '#dc3545';
-		if (c === 'DELAYED') return '#ffc107';
-		if (c === 'IN_PROGRESS') return '#0d6efd';
-		return '#0dcaf0';
-	}
-	
-	get safeStart(): number { return this.rangeStart ?? this.nowMs(); }
-	get safeEnd(): number {
-		const start = this.safeStart;
-		return this.rangeEnd ?? (start + 7 * this.DAY * 1000);
-	}
-	
-	getMilestoneName(item: unknown): string | null {
-		const m = (item as any)?._milestone;
-		return (typeof m === 'string' && m.trim()) ? m : null;
-	}
-	
-	toMs(v: unknown): number | null {
-		if (v instanceof Date && !Number.isNaN(v.getTime())) return v.getTime();
-		if (typeof v === 'number' && Number.isFinite(v)) return v < 1e12 ? v * 1000 : v;
-		return null;
-	}
-	
-	private dateToIso(value: number | Date | undefined): string {
-		if (value == null) return '—';
-		const d = value instanceof Date ? value : new Date(value);
-		return Number.isNaN(d.getTime()) ? 'Invalid' : d.toISOString().split('T')[0];
-	}
+export class ProjectGanttNgxEmbedComponent implements OnChanges {
+  @Input({ required: true }) projectId!: number;
+  @Input() projectStartDate: string | null = null;
+  @Input() projectEndDate: string | null = null;
+
+  @ViewChild(NgxGanttComponent) gantt?: NgxGanttComponent;
+  @ViewChild('ganttExportArea') ganttExportArea?: ElementRef<HTMLElement>;
+
+  loading = false;
+  exporting = false;
+  error: string | null = null;
+
+  viewType = GanttViewType.week;
+
+  items: GanttProjectItem[] = [];
+  visibleStart?: number;
+  visibleEnd?: number;
+
+  selectedItem: GanttProjectItem | null = null;
+  showDetailModal = false;
+
+  readonly toolbarOptions = {
+    viewTypes: [
+      GanttViewType.day,
+      GanttViewType.week,
+      GanttViewType.month,
+      GanttViewType.quarter,
+    ]
+  };
+
+  readonly linkOptions = {
+    showArrow: true
+  };
+
+  constructor(
+    private api: ApiService,
+    private cdr: ChangeDetectorRef,
+    private router: Router
+  ) {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if ((changes['projectId'] || changes['projectStartDate'] || changes['projectEndDate']) && this.projectId) {
+      this.load();
+    }
+  }
+
+  private load(): void {
+    this.loading = true;
+    this.error = null;
+
+    forkJoin({
+      gantt: this.api.getProjectGantt(this.projectId),
+      milestones: this.api.getProjectMilestones(this.projectId, { per_page: 200 }),
+    })
+      .pipe(finalize(() => {
+        this.loading = false;
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: ({ gantt, milestones }) => {
+          const rawTasks: ProjectTaskGanttDto[] = Array.isArray(gantt?.tasks)
+            ? gantt.tasks
+            : Array.isArray((gantt as any)?.tasks?.data)
+              ? (gantt as any).tasks.data
+              : [];
+
+          const rawMilestones: ProjectMilestoneDto[] =
+            (milestones as ApiCollection<ProjectMilestoneDto>)?.data ?? [];
+
+          const milestoneItems = rawMilestones
+            .map((m) => this.toMilestoneItem(m))
+            .filter((x): x is GanttProjectItem => x !== null);
+
+          const taskItems = this.buildTaskItems(rawTasks);
+
+          this.items = [...milestoneItems, ...taskItems];
+          this.computeVisibleRange(this.items);
+
+          this.cdr.detectChanges();
+
+          setTimeout(() => {
+            this.gantt?.rerenderView?.();
+          }, 0);
+        },
+        error: (err) => {
+          console.error(err);
+          this.error = 'Failed to load gantt data.';
+          this.items = [];
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  private buildTaskItems(tasks: ProjectTaskGanttDto[]): GanttProjectItem[] {
+    const mapped = new Map<string, GanttProjectItem>();
+
+    for (const task of tasks) {
+      const item = this.toTaskItem(task);
+      if (item) {
+        mapped.set(item.id, item);
+      }
+    }
+
+    // predecessor -> current
+    for (const task of tasks) {
+      if (task.depends_on_task_id == null) continue;
+
+      const predecessor = mapped.get(String(task.depends_on_task_id));
+      const current = mapped.get(String(task.id));
+
+      if (predecessor && current) {
+        predecessor.links = [...(predecessor.links ?? []), current.id];
+      }
+    }
+
+    return Array.from(mapped.values());
+  }
+
+  private toTaskItem(task: ProjectTaskGanttDto): GanttProjectItem | null {
+    const start = this.parseDateToUnix(task.start_date);
+    let end = this.parseDateToUnix(task.end_date);
+
+    if (start == null) return null;
+    if (end == null || end <= start) {
+      end = start + 86400;
+    }
+
+    const delayed = this.isDelayed(task);
+
+    return {
+      id: String(task.id),
+      title: task.name || 'Unnamed task',
+      start,
+      end,
+      progress: Number(task.progress ?? 0),
+      color: delayed ? '#dc3545' : this.pickTaskColor(task),
+      kind: 'task',
+      statusCode: task.status_code ?? null,
+      assignedToName: task.assigned_to_name ?? null,
+      milestoneName: task.milestone?.name ?? null,
+      delayed,
+      raw: task,
+    };
+  }
+
+  private toMilestoneItem(milestone: ProjectMilestoneDto): GanttProjectItem | null {
+    const start = this.parseDateToUnix(milestone.milestone_date);
+    if (start == null) return null;
+
+    return {
+      id: `MS_${milestone.id}`,
+      title: milestone.name,
+      start,
+      end: start + 86400,
+      type: 'custom' as any,
+      color: this.pickMilestoneColor(milestone.status),
+      kind: 'milestone',
+      statusCode: milestone.status ?? null,
+      raw: milestone,
+    };
+  }
+
+  private computeVisibleRange(items: GanttProjectItem[]): void {
+    const projectStart = this.parseDateToUnix(this.projectStartDate);
+    const projectEnd = this.parseDateToUnix(this.projectEndDate);
+
+    if (projectStart != null && projectEnd != null && projectEnd > projectStart) {
+      this.visibleStart = projectStart - 7 * 86400;
+      this.visibleEnd = projectEnd + 7 * 86400;
+      return;
+    }
+
+    const starts = items.map(i => i.start).filter((v): v is number => typeof v === 'number');
+    const ends = items.map(i => i.end).filter((v): v is number => typeof v === 'number');
+
+    if (!starts.length || !ends.length) {
+      this.visibleStart = undefined;
+      this.visibleEnd = undefined;
+      return;
+    }
+
+    this.visibleStart = Math.min(...starts) - 7 * 86400;
+    this.visibleEnd = Math.max(...ends) + 7 * 86400;
+  }
+
+  private parseDateToUnix(value?: string | null): number | null {
+    if (!value) return null;
+    const d = new Date(`${value}T00:00:00`);
+    if (Number.isNaN(d.getTime())) return null;
+    return Math.floor(d.getTime() / 1000);
+  }
+
+  private isDelayed(task: ProjectTaskGanttDto): boolean {
+    const status = String(task.status_code ?? '').toUpperCase();
+    if (status === 'DONE' || status === 'COMPLETED' || status === 'CANCELLED') {
+      return false;
+    }
+
+    const today = Math.floor(Date.now() / 1000);
+    const end = this.parseDateToUnix(task.end_date);
+    return end != null && end < today;
+  }
+
+  private pickTaskColor(task: ProjectTaskGanttDto): string {
+    if (task.task_color?.trim()) return task.task_color.trim();
+
+    const code = String(task.status_code ?? '').toUpperCase();
+    if (code === 'DONE' || code === 'COMPLETED') return '#198754';
+    if (code === 'CANCELLED') return '#6c757d';
+    if (code === 'AT_RISK') return '#dc3545';
+    if (code === 'DELAYED') return '#ffc107';
+    if (code === 'IN_PROGRESS') return '#0d6efd';
+    return '#0dcaf0';
+  }
+
+  private pickMilestoneColor(status?: string | null): string {
+    const code = String(status ?? '').toUpperCase();
+    if (code === 'DONE' || code === 'COMPLETED') return '#198754';
+    if (code === 'CANCELLED') return '#6c757d';
+    return '#7c3aed';
+  }
+
+  isMilestone(item: GanttProjectItem): boolean {
+    return item.kind === 'milestone';
+  }
+
+  displayDate(value: number | Date | undefined): string {
+    if (!value) return '—';
+    const ms = value instanceof Date ? value.getTime() : value * 1000;
+    const d = new Date(ms);
+    return Number.isNaN(d.getTime()) ? '—' : d.toISOString().slice(0, 10);
+  }
+
+  progressLabel(item: GanttProjectItem): string {
+    return item.kind === 'milestone' ? '—' : `${Number(item.progress ?? 0)}%`;
+  }
+
+  goToTaskList(): void {
+    this.router.navigate(['/projects', this.projectId, 'gantt']);
+  }
+
+  goToNewTask(): void {
+    this.router.navigate(['/projects', this.projectId, 'tasks', 'new']);
+  }
+
+  onBarClick(event: any): void {
+    const clicked = event?.item ?? event?.source ?? event ?? null;
+    if (!clicked) return;
+
+    const found = this.items.find(i => i.id === String(clicked.id));
+    if (!found) return;
+
+    this.selectedItem = found;
+    this.showDetailModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeModal(): void {
+    this.showDetailModal = false;
+    this.selectedItem = null;
+  }
+
+  editSelectedTask(): void {
+    if (!this.selectedItem || this.selectedItem.kind !== 'task') return;
+    this.router.navigate(['/projects', this.projectId, 'tasks', this.selectedItem.id]);
+  }
+
+  async exportToPng(): Promise<void> {
+    if (!this.ganttExportArea?.nativeElement) return;
+
+    try {
+      this.exporting = true;
+      this.cdr.detectChanges();
+
+      const canvas = await html2canvas(this.ganttExportArea.nativeElement, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true
+      });
+
+      const dataUrl = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = `project-${this.projectId}-gantt.png`;
+      a.click();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      this.exporting = false;
+      this.cdr.detectChanges();
+    }
+  }
 }

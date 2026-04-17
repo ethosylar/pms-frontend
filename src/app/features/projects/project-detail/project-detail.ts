@@ -23,8 +23,8 @@ type TaskVm = ProjectTaskGanttDto & {
 };
 
 type GanttResp = {
-  project_id: number;
-  tasks: any; // supports array OR {data:[]}
+	project_id: number;
+	tasks: any; // supports array OR {data:[]}
 };
 
 @Component({
@@ -69,37 +69,55 @@ export class ProjectDetailComponent implements OnInit {
 		this.ganttLoading = true;
 		this.error = null;
 		
-		forkJoin({
-			project: this.api.getProject(this.projectId),
-			gantt: this.api.getProjectGantt(this.projectId).pipe(
-				catchError((err) => {
-					console.error(err);
-					this.ganttError = 'Failed to load tasks.';
-					return of({ project_id: this.projectId, tasks: [] as ProjectTaskGanttDto[] });
-				})
-			),
-		})
+		// forkJoin({
+		// project: this.api.getProject(this.projectId),
+		// gantt: this.api.getProjectGantt(this.projectId).pipe(
+		// catchError((err) => {
+		// console.error(err);
+		// this.ganttError = 'Failed to load tasks.';
+		// return of({ project_id: this.projectId, tasks: [] as ProjectTaskGanttDto[] });
+		// })
+		// ),
+		// })
+		// .pipe(
+		// finalize(() => {
+		// this.loading = false;
+		// this.loadMilestones(1);
+		// this.cdr.markForCheck();
+		// })
+		// )
+		// .subscribe({
+		// next: ({ project, gantt }: { project: ApiResource<ProjectDto>; gantt: any }) => {
+		// this.row = project.data;
+		
+		// const rawTasks: ProjectTaskGanttDto[] = gantt?.tasks ?? [];
+		// const tasks = Array.isArray(gantt.tasks) ? gantt.tasks : (gantt.tasks?.data ?? []);
+		// this.tasks = tasks;
+		// this.ganttTasks = tasks;
+		// this.ganttLoading = false;
+		// this.cdr.markForCheck();
+		// },
+		// error: (err) => {
+		// console.error(err);
+		// this.error = 'Failed to load project.';
+		// },
+		// });
+		this.projectId = Number(this.route.snapshot.paramMap.get('id'));
+		
+		this.loading = true;
+		this.error = null;
+		
+		this.api.getProject(this.projectId)
 		.pipe(
 			finalize(() => {
 				this.loading = false;
-				// this.ganttLoading = false;
-				// this.cdr.detectChanges();
 				this.loadMilestones(1);
 				this.cdr.markForCheck();
 			})
 		)
 		.subscribe({
-			next: ({ project, gantt }: { project: ApiResource<ProjectDto>; gantt: any }) => {
+			next: (project: ApiResource<ProjectDto>) => {
 				this.row = project.data;
-				
-				const rawTasks: ProjectTaskGanttDto[] = gantt?.tasks ?? [];
-				const tasks = Array.isArray(gantt.tasks) ? gantt.tasks : (gantt.tasks?.data ?? []);
-				this.tasks = tasks;
-				this.ganttTasks = tasks;
-				//this.tasks = this.buildVm(rawTasks);
-				this.ganttLoading = false;
-				this.cdr.markForCheck();
-				// this.cdr.detectChanges();
 			},
 			error: (err) => {
 				console.error(err);

@@ -86,16 +86,11 @@
 	<!-- Inline Gantt / Tasks -->
 	<div class="card shadow-sm border-0 mt-3" *ngIf="row">
 		<div class="card-body">
-			<div *ngIf="ganttError" class="alert alert-danger mb-2">{{ ganttError }}</div>
-			
-			<div *ngIf="ganttLoading" class="text-muted small py-2">
-				<span class="spinner-border spinner-border-sm me-2"></span>Loading tasks…
-			</div>
 			<app-project-gantt-ngx-embed
 			*ngIf="row"
 			[projectId]="projectId"
-			[projectStartDate]="row.start_date ?? null"
-			[projectEndDate]="row.target_end_date ?? null">
+			[projectStartDate]="row.start_date ?? row.target_start_date ?? null"
+			[projectEndDate]="row.target_end_date ?? row.actual_end_date ?? null">
 			</app-project-gantt-ngx-embed>
 		</div>
 	</div>

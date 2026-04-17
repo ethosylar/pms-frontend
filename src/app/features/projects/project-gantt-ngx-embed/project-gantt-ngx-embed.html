@@ -1,75 +1,127 @@
 <div class="card shadow-sm border-0">
 	<div class="card-body">
-		<div class="d-flex align-items-center justify-content-between">
+		<div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
 			<div>
 				<div class="fw-semibold">Tasks (Gantt)</div>
-				<div class="text-muted small">Weekly timeline (read-only)</div>
+				<div class="text-muted small">Project timeline with dependencies and milestones</div>
+			</div>
+			
+			<div class="d-flex gap-2">
+				<button class="btn btn-outline-secondary btn-sm" (click)="goToTaskList()">
+					<i class="bi bi-list-ul"></i>
+					<span class="ms-2">View List</span>
+				</button>
+				
+				<button class="btn btn-primary btn-sm" (click)="goToNewTask()">
+					<i class="bi bi-plus-lg"></i>
+					<span class="ms-2">New Task</span>
+				</button>
 			</div>
 		</div>
 		
 		<div *ngIf="loading" class="text-muted small mt-3">
-			<span class="spinner-border spinner-border-sm me-2"></span>Loading…
+			<span class="spinner-border spinner-border-sm me-2"></span>
+			Loading gantt…
 		</div>
 		
-		<div *ngIf="error" class="alert alert-danger mt-3 mb-0">{{ error }}</div>
-		<div *ngIf="items.length === 0" class="text-center text-muted py-5">
-			No tasks or milestones with valid dates found.
+		<div *ngIf="error" class="alert alert-danger mt-3 mb-0">
+			{{ error }}
 		</div>
-
-		<!-- <div class="gantt-wrap mt-3" *ngIf="!loading && !error"> -->
-		<div class="gantt-wrap mt-3" *ngIf="!loading && !error">
-			<div *ngIf="items.length === 0" class="text-center text-muted py-5">
-				No tasks or milestones with valid dates found.
-			</div>
-			<div *ngIf="items.length > 0" class="text-center text-muted py-5">
-				Theres {{ items.length }} task/s or milestones with valid dates found.
-			</div>
+		
+		<div *ngIf="!loading && !error && items.length === 0" class="text-muted small mt-3 py-4 text-center">
+			No gantt data found for this project.
+		</div>
+		
+		<div class="gantt-wrap mt-3" *ngIf="!loading && !error && items.length > 0 && visibleStart != null && visibleEnd != null">
 			<ngx-gantt
-			*ngIf="items.length"
+			class="gantt-host"
 			[items]="items"
 			[viewType]="viewType"
-			[start]="safeStart"
-			[end]="safeEnd"
-			[async]="true"
+			[start]="visibleStart"
+			[end]="visibleEnd"
+			[showToolbar]="true"
+			[toolbarOptions]="toolbarOptions"
+			[quickTimeFocus]="true"
+			[showTodayLine]="true"
 			[draggable]="false"
 			[linkable]="false"
-			[selectable]="false"
-			[showToolbar]="false">
+			[selectable]="true"
+			[linkOptions]="linkOptions"
+			(barClick)="onBarClick($event)"
+			
+			>
 				
 				<ngx-gantt-table>
-					<ngx-gantt-column name="Task" width="320px">
+					<ngx-gantt-column name="Task / Milestone" width="260px">
 						<ng-template #cell let-item="item">
-							<div class="fw-semibold" [style.color]="itemColor(item)">{{ item.title }}</div>
-							<div class="small text-muted" *ngIf="getMilestoneName(item) as msName">
-								◇ {{ msName }}
+							<div class="fw-semibold">
+								<span *ngIf="!isMilestone(item)">●</span>
+								<span *ngIf="isMilestone(item)">◆</span>
+								{{ item.title }}
+							</div>
+							<div class="small text-muted" *ngIf="item.assignedToName">
+								{{ item.assignedToName }}
+							</div>
+							<div class="small text-muted" *ngIf="item.milestoneName && !isMilestone(item)">
+								Milestone: {{ item.milestoneName }}
 							</div>
 						</ng-template>
 					</ngx-gantt-column>
-					<ngx-gantt-column name="Start" width="140px">
+					
+					<ngx-gantt-column name="Start" width="130px">
 						<ng-template #cell let-item="item">
-							<ng-container *ngIf="toMs(item.start) as ms; else dash">
-								{{ ms | date:'yyyy-MM-dd' }}
-							</ng-container>
-							<ng-template #dash>—</ng-template>
+							{{ displayDate(item.start) }}
 						</ng-template>
 					</ngx-gantt-column>
-					<ngx-gantt-column name="End" width="140px">
+					
+					<ngx-gantt-column name="End" width="130px">
 						<ng-template #cell let-item="item">
-							<ng-container *ngIf="toMs(item.end) as ms; else dash">
-								{{ ms | date:'yyyy-MM-dd' }}
-							</ng-container>
-							<ng-template #dash>—</ng-template>
+							{{ displayDate(item.end) }}
 						</ng-template>
 					</ngx-gantt-column>
+					
+					<ngx-gantt-column name="Status" width="120px">
+						<ng-template #cell let-item="item">
+							{{ item.statusCode || '—' }}
+						</ng-template>
+					</ngx-gantt-column>
+					
+					<ngx-gantt-column name="Progress" width="90px">
+						<ng-template #cell let-item="item">
+							<span [class.text-danger]="item.delayed">
+								{{ item.delayed ? 'DELAYED' : (item.statusCode || '—') }}
+							</span>
+						</ng-template>
+					</ngx-gantt-column>
+					
+					<ng-template #tableEmpty>
+						<div class="text-muted small py-3 text-center">No rows</div>
+					</ng-template>
 				</ngx-gantt-table>
 				
-				<!-- ✅ Custom bar template so the BAR itself gets your color -->
 				<ng-template #bar let-item="item">
-					<div class="bar-inner" [style.background]="itemColor(item)">
-						<span class="bar-text">{{ item.title }}</span>
+					<div
+					class="bar-inner px-2 d-flex align-items-center"
+					[style.background]="item.color"
+					[style.height.px]="22"
+					[style.borderRadius.px]="6">
+						<span class="bar-text text-white text-truncate">{{ item.title }}</span>
 					</div>
 				</ng-template>
 				
+				<ng-template #item let-item="item" let-refs="refs">
+					<div
+					*ngIf="isMilestone(item)"
+					class="milestone-marker d-flex align-items-center"
+					[style.left.px]="refs?.x"
+					[style.top.px]="refs?.y">
+						<span
+						class="milestone-diamond"
+						[style.background]="item.color">
+						</span>
+						<span class="milestone-label ms-2">{{ item.title }}</span>
+					</div>
+				</ng-template>
 			</ngx-gantt>
 		</div>
 	</div>
