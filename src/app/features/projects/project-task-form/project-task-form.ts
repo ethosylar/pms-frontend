@@ -13,6 +13,7 @@ import {
 	ProjectTaskGanttDto,
 	ProjectTaskUpsertPayload,
 	ProjectMilestoneDto,
+	StoredFileDto,
 } from '../../../core/services/api.service';
 import { ToastService } from '../../../shared/ui/toast/toast';
 
@@ -38,6 +39,14 @@ export class ProjectTaskFormComponent implements OnInit {
 	
 	milestones: ProjectMilestoneDto[] = [];
 	milestone: Array<{ id: number; name: string }> = [];
+	
+	taskFiles: StoredFileDto[] = [];
+	taskFilesLoading = false;
+	taskFilesError: string | null = null;
+	uploadingTaskFile = false;
+	
+	selectedTaskFile: File | null = null;
+	selectedTaskFileName = '';
 	
 	form: FormGroup;
 	
@@ -72,6 +81,10 @@ export class ProjectTaskFormComponent implements OnInit {
 		const taskIdParam = this.route.snapshot.paramMap.get('taskId');
 		this.isCreate = !taskIdParam || taskIdParam === 'new';
 		this.taskId = this.isCreate ? null : Number(taskIdParam);
+		
+		if (this.taskId) {
+			this.loadTaskFiles();
+		}
 		
 		this.loading = true;
 		
@@ -191,5 +204,132 @@ export class ProjectTaskFormComponent implements OnInit {
 	
 	cancel(): void {
 		this.router.navigate(['/projects', this.projectId, 'gantt']);
+	}
+	
+	private loadTaskFiles(): void {
+		if (!this.taskId) {
+			this.taskFiles = [];
+			return;
+		}
+		
+		this.taskFilesLoading = true;
+		this.taskFilesError = null;
+		
+		this.api.getTaskFiles(this.taskId, { per_page: 100 })
+		.pipe(finalize(() => {
+			this.taskFilesLoading = false;
+			this.cdr.detectChanges();
+		}))
+		.subscribe({
+			next: (res) => {
+				this.taskFiles = res.data ?? [];
+			},
+			error: (err) => {
+				console.error(err);
+				this.taskFilesError = 'Failed to load task files.';
+			}
+		});
+	}
+	
+	onTaskFileSelected(event: Event): void {
+		const input = event.target as HTMLInputElement;
+		const file = input.files?.[0] ?? null;
+		
+		this.selectedTaskFile = file;
+		this.selectedTaskFileName = file?.name ?? '';
+		this.cdr.detectChanges();
+	}
+	
+	downloadTaskFile(file: StoredFileDto): void {
+		if (!this.taskId) return;
+		
+		this.api.downloadTaskFile(this.taskId, file.id).subscribe({
+			next: (blob) => {
+				const url = window.URL.createObjectURL(blob);
+				const a = document.createElement('a');
+				a.href = url;
+				a.download = file.original_name || `task-file-${file.id}`;
+				a.click();
+				window.URL.revokeObjectURL(url);
+			},
+			error: (err) => {
+				console.error(err);
+				this.toast.error('Failed to download task file.');
+			}
+		});
+	}
+	
+	removeTaskFile(file: StoredFileDto): void {
+		if (!this.taskId) return;
+		if (!confirm(`Remove file "${file.original_name}"?`)) return;
+		
+		this.api.detachTaskFile(this.taskId, file.id).subscribe({
+			next: () => {
+				this.toast.success('Task file removed.');
+				this.loadTaskFiles();
+			},
+			error: (err) => {
+				console.error(err);
+				this.toast.error('Failed to remove task file.');
+			}
+		});
+	}
+	
+	formatBytes(size?: number | null): string {
+		const bytes = Number(size ?? 0);
+		if (bytes < 1024) return `${bytes} B`;
+		if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+		if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+		return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+	}
+	
+	uploadSelectedTaskFile(): void {
+		if (!this.taskId || !this.selectedTaskFile) return;
+		
+		this.uploadingTaskFile = true;
+		this.taskFilesError = null;
+		
+		this.api.uploadTaskFile(this.taskId, this.selectedTaskFile)
+		.pipe(finalize(() => {
+			this.uploadingTaskFile = false;
+			this.selectedTaskFile = null;
+			this.selectedTaskFileName = '';
+			this.cdr.detectChanges();
+		}))
+		.subscribe({
+			next: () => {
+				this.toast.success('Task file uploaded.');
+				this.loadTaskFiles();
+			},
+			error: (err) => {
+				console.error(err);
+				this.taskFilesError = 'Failed to upload task file.';
+			}
+		});
+	}
+	
+	canPreviewFile(file: StoredFileDto): boolean {
+		const mime = (file.mime_type || '').toLowerCase();
+		return (
+			mime.startsWith('image/') ||
+			mime === 'application/pdf' ||
+			mime.startsWith('text/')
+		);
+	}
+	
+	previewTaskFile(file: StoredFileDto): void {
+		if (!this.taskId) return;
+		
+		this.api.downloadTaskFile(this.taskId, file.id).subscribe({
+			next: (blob) => {
+				const url = window.URL.createObjectURL(blob);
+				window.open(url, '_blank', 'noopener,noreferrer');
+				setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
+			},
+			error: (err) => {
+				console.error(err);
+				this.toast.error('Failed to open task file.');
+			}
+		});
 	}
 }

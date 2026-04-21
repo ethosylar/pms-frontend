@@ -629,6 +629,92 @@ export class ApiService {
 		);
 	}
 	
+	// ******************************************************************************************************************************
+	// Project File's Section
+	// ******************************************************************************************************************************
+	
+	getProjectFiles(projectId: number, params?: { page?: number; per_page?: number }) {
+		let httpParams = new HttpParams();
+		if (params?.page) httpParams = httpParams.set('page', String(params.page));
+		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
+		
+		return this.http.get<ApiCollection<StoredFileDto>>(
+			`${environment.apiBaseUrl}/projects/${projectId}/files`,
+			{ params: httpParams }
+		);
+	}
+	
+	uploadProjectFile(projectId: number, file: File) {
+		const fd = new FormData();
+		fd.append('file', file); // must match backend request field name
+		return this.http.post(`/api/projects/${projectId}/files`, fd);
+	}
+	
+	attachExistingProjectFile(projectId: number, payload: AttachExistingFilePayload) {
+		return this.http.post<FileAttachResponse>(
+			`${environment.apiBaseUrl}/projects/${projectId}/files/attach`,
+			payload
+		);
+	}
+	
+	detachProjectFile(projectId: number, fileId: number) {
+		return this.http.delete<FileDetachResponse>(
+			`${environment.apiBaseUrl}/projects/${projectId}/files/${fileId}`
+		);
+	}
+	
+	downloadProjectFile(projectId: number, fileId: number) {
+		return this.http.get(
+			`${environment.apiBaseUrl}/projects/${projectId}/files/${fileId}/download`,
+			{ responseType: 'blob' }
+		);
+	}
+	
+	// ******************************************************************************************************************************
+	// Task File's Section
+	// ******************************************************************************************************************************
+	
+	getTaskFiles(taskId: number, params?: { page?: number; per_page?: number }) {
+		let httpParams = new HttpParams();
+		if (params?.page) httpParams = httpParams.set('page', String(params.page));
+		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
+		
+		return this.http.get<ApiCollection<StoredFileDto>>(
+			`${environment.apiBaseUrl}/tasks/${taskId}/files`,
+			{ params: httpParams }
+		);
+	}
+	
+	uploadTaskFile(taskId: number, file: File) {
+		const formData = new FormData();
+		formData.append('file', file);
+		
+		return this.http.post<StoredFileDto>(
+			`${environment.apiBaseUrl}/tasks/${taskId}/files`,
+			formData
+		);
+	}
+	
+	attachExistingTaskFile(taskId: number, payload: AttachExistingFilePayload) {
+		return this.http.post<FileAttachResponse>(
+			`${environment.apiBaseUrl}/tasks/${taskId}/files/attach`,
+			payload
+		);
+	}
+	
+	detachTaskFile(taskId: number, fileId: number) {
+		return this.http.delete<FileDetachResponse>(
+			`${environment.apiBaseUrl}/tasks/${taskId}/files/${fileId}`
+		);
+	}
+	
+	downloadTaskFile(taskId: number, fileId: number) {
+		return this.http.get(
+			`${environment.apiBaseUrl}/tasks/${taskId}/files/${fileId}/download`,
+			{ responseType: 'blob' }
+		);
+	}
+	
 }
 
 export interface LaravelPaginated<T> {
@@ -980,28 +1066,28 @@ export interface ProjectTaskGanttDto {
 }
 
 export type ProjectTaskUpsertPayload = {
-  name?: string;
-  description?: string | null;
-
-  task_color?: string | null;
-  task_status_id?: number | null;
-  actual_task_status_id?: number | null;
-
-  progress?: number | null;
-  start_date?: string | null;
-  end_date?: string | null;
-  actual_start_date?: string | null;
-  actual_end_date?: string | null;
-
-  duration?: number | null;
-  assigned_to_user_id?: number | null;
-
-  sort_order?: number | null;
-  parent_task_id?: number | null;
-  depends_on_task_id?: number | null;
-
-  // ✅ NEW
-  milestone_id?: number | null;
+	name?: string;
+	description?: string | null;
+	
+	task_color?: string | null;
+	task_status_id?: number | null;
+	actual_task_status_id?: number | null;
+	
+	progress?: number | null;
+	start_date?: string | null;
+	end_date?: string | null;
+	actual_start_date?: string | null;
+	actual_end_date?: string | null;
+	
+	duration?: number | null;
+	assigned_to_user_id?: number | null;
+	
+	sort_order?: number | null;
+	parent_task_id?: number | null;
+	depends_on_task_id?: number | null;
+	
+	// ✅ NEW
+	milestone_id?: number | null;
 };
 
 type ProjectTaskGanttResponse = {
@@ -1021,9 +1107,39 @@ type GanttResp = {
 };
 
 export interface ProjectMilestoneMiniDto {
-  id: number;
-  project_id: number;
-  name: string;
-  milestone_date: string | null;
+	id: number;
+	project_id: number;
+	name: string;
+	milestone_date: string | null;
 }
+
+export interface StoredFileDto {
+	id: number;
+	original_name: string;
+	mime_type?: string | null;
+	size: number;
+	checksum?: string | null;
+	
+	disk: string;
+	path: string;
+	
+	uploaded_by_user_id?: number | null;
+	created_at?: string | null;
+	updated_at?: string | null;
+}
+
+export interface AttachExistingFilePayload {
+	file_id: number;
+}
+
+export interface FileDetachResponse {
+	ok: boolean;
+	deleted: boolean;
+}
+
+export interface FileAttachResponse {
+	ok: boolean;
+}
+
+export interface FileUploadResponse extends StoredFileDto {}
 

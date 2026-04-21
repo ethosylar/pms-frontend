@@ -11,6 +11,7 @@ import {
 	ProjectDto,
 	ProjectMilestoneDto,
 	ProjectTaskGanttDto,
+	StoredFileDto,
 } from '../../../core/services/api.service';
 import { ToastService } from '../../../shared/ui/toast/toast';
 import { ProjectGanttNgxEmbedComponent } from '../project-gantt-ngx-embed/project-gantt-ngx-embed';
@@ -20,6 +21,12 @@ type TaskVm = ProjectTaskGanttDto & {
 	widthPct: number;
 	startLabel: string;
 	endLabel: string;
+};
+
+type TaskFilesVm = {
+	taskId: number;
+	taskName: string;
+	files: StoredFileDto[];
 };
 
 type GanttResp = {
@@ -48,6 +55,15 @@ export class ProjectDetailComponent implements OnInit {
 	tasks: TaskVm[] = [];
 	ganttTasks: TaskVm[] = [];
 	
+	projectFiles: StoredFileDto[] = [];
+	projectFilesLoading = false;
+	projectFilesError: string | null = null;
+	uploadingProjectFile = false;
+	
+	taskFileGroups: TaskFilesVm[] = [];
+	taskFilesLoading = false;
+	taskFilesError: string | null = null;
+	
 	// ✅ Milestones module state
 	milestonesLoading = false;
 	milestonesError: string | null = null;
@@ -69,39 +85,6 @@ export class ProjectDetailComponent implements OnInit {
 		this.ganttLoading = true;
 		this.error = null;
 		
-		// forkJoin({
-		// project: this.api.getProject(this.projectId),
-		// gantt: this.api.getProjectGantt(this.projectId).pipe(
-		// catchError((err) => {
-		// console.error(err);
-		// this.ganttError = 'Failed to load tasks.';
-		// return of({ project_id: this.projectId, tasks: [] as ProjectTaskGanttDto[] });
-		// })
-		// ),
-		// })
-		// .pipe(
-		// finalize(() => {
-		// this.loading = false;
-		// this.loadMilestones(1);
-		// this.cdr.markForCheck();
-		// })
-		// )
-		// .subscribe({
-		// next: ({ project, gantt }: { project: ApiResource<ProjectDto>; gantt: any }) => {
-		// this.row = project.data;
-		
-		// const rawTasks: ProjectTaskGanttDto[] = gantt?.tasks ?? [];
-		// const tasks = Array.isArray(gantt.tasks) ? gantt.tasks : (gantt.tasks?.data ?? []);
-		// this.tasks = tasks;
-		// this.ganttTasks = tasks;
-		// this.ganttLoading = false;
-		// this.cdr.markForCheck();
-		// },
-		// error: (err) => {
-		// console.error(err);
-		// this.error = 'Failed to load project.';
-		// },
-		// });
 		this.projectId = Number(this.route.snapshot.paramMap.get('id'));
 		
 		this.loading = true;
@@ -112,6 +95,8 @@ export class ProjectDetailComponent implements OnInit {
 			finalize(() => {
 				this.loading = false;
 				this.loadMilestones(1);
+				this.loadProjectFiles();
+				this.loadTaskFilesSummary();
 				this.cdr.markForCheck();
 			})
 		)
@@ -277,4 +262,201 @@ export class ProjectDetailComponent implements OnInit {
 		return 'bg-warning text-dark';
 	}
 	
+	loadProjectFiles(): void {
+		if (!this.projectId) return;
+		
+		this.projectFilesLoading = true;
+		this.projectFilesError = null;
+		
+		this.api.getProjectFiles(this.projectId, { per_page: 100 })
+		.pipe(finalize(() => {
+			this.projectFilesLoading = false;
+			this.cdr.detectChanges();
+		}))
+		.subscribe({
+			next: (res) => {
+				this.projectFiles = res.data ?? [];
+			},
+			error: (err) => {
+				console.error(err);
+				this.projectFilesError = 'Failed to load project files.';
+			}
+		});
+	}
+	
+	onProjectFileSelected(event: Event): void {
+		const input = event.target as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+		
+		this.uploadingProjectFile = true;
+		this.projectFilesError = null;
+		
+		this.api.uploadProjectFile(this.projectId, file)
+		.pipe(finalize(() => {
+			this.uploadingProjectFile = false;
+			input.value = '';
+			this.cdr.detectChanges();
+		}))
+		.subscribe({
+			next: () => {
+				this.toast.success('Project file uploaded.');
+				this.loadProjectFiles();
+			},
+			error: (err) => {
+				console.error(err);
+				this.projectFilesError = 'Failed to upload project file.';
+			}
+		});
+	}
+	
+	downloadProjectFile(file: StoredFileDto): void {
+		this.api.downloadProjectFile(this.projectId, file.id).subscribe({
+			next: (blob) => {
+				const url = window.URL.createObjectURL(blob);
+				const a = document.createElement('a');
+				a.href = url;
+				a.download = file.original_name || `project-file-${file.id}`;
+				a.click();
+				window.URL.revokeObjectURL(url);
+			},
+			error: (err) => {
+				console.error(err);
+				this.toast.error('Failed to download project file.');
+			}
+		});
+	}
+	
+	removeProjectFile(file: StoredFileDto): void {
+		if (!confirm(`Remove file "${file.original_name}"?`)) return;
+		
+		this.api.detachProjectFile(this.projectId, file.id).subscribe({
+			next: () => {
+				this.toast.success('Project file removed.');
+				this.loadProjectFiles();
+			},
+			error: (err) => {
+				console.error(err);
+				this.toast.error('Failed to remove project file.');
+			}
+		});
+	}
+	
+	formatBytes(size?: number | null): string {
+		const bytes = Number(size ?? 0);
+		if (bytes < 1024) return `${bytes} B`;
+		if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+		if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+		return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+	}
+	
+	loadTaskFilesSummary(): void {
+		if (!this.projectId) return;
+		
+		this.taskFilesLoading = true;
+		this.taskFilesError = null;
+		
+		this.api.getProjectGantt(this.projectId).pipe(
+			finalize(() => {
+				this.taskFilesLoading = false;
+				this.cdr.detectChanges();
+			})
+			).subscribe({
+				next: (res) => {
+					const tasks = Array.isArray(res?.tasks) ? res.tasks : [];
+					
+					if (!tasks.length) {
+						this.taskFileGroups = [];
+						return;
+					}
+					
+					forkJoin(
+						tasks.map(task =>
+							this.api.getTaskFiles(task.id, { per_page: 100 }).pipe(
+								finalize(() => {}),
+								// keep page stable even if one task fails
+								catchError((err) => {
+									console.error(err);
+									return of({ data: [] as StoredFileDto[] });
+								})
+							)
+						)
+						).subscribe({
+							next: (allResults) => {
+								this.taskFileGroups = tasks
+								.map((task, idx) => ({
+									taskId: task.id,
+									taskName: task.name,
+									files: allResults[idx]?.data ?? []
+								}))
+								.filter(group => group.files.length > 0);
+								
+								this.cdr.detectChanges();
+							},
+							error: (err) => {
+								console.error(err);
+								this.taskFilesError = 'Failed to load task files.';
+							}
+						});
+				},
+				error: (err) => {
+					console.error(err);
+					this.taskFilesError = 'Failed to load task files.';
+				}
+			});
+	}
+	
+	previewProjectFile(projectId: number,file: StoredFileDto): void {
+		this.api.downloadProjectFile(projectId, file.id).subscribe({
+			next: (blob) => {
+				const url = window.URL.createObjectURL(blob);
+				window.open(url, '_blank', 'noopener,noreferrer');
+				setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
+			},
+			error: (err) => {
+				console.error(err);
+				this.toast.error('Failed to open project file.');
+			}
+		});
+	}
+	
+	previewTaskFileFromProject(taskId: number, file: StoredFileDto): void {
+		this.api.downloadTaskFile(taskId, file.id).subscribe({
+			next: (blob) => {
+				const url = window.URL.createObjectURL(blob);
+				window.open(url, '_blank', 'noopener,noreferrer');
+				setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
+			},
+			error: (err) => {
+				console.error(err);
+				this.toast.error('Failed to open task file.');
+			}
+		});
+	}
+	
+	downloadTaskFileFromProject(taskId: number, file: StoredFileDto): void {
+		this.api.downloadTaskFile(taskId, file.id).subscribe({
+			next: (blob) => {
+				const url = window.URL.createObjectURL(blob);
+				const a = document.createElement('a');
+				a.href = url;
+				a.download = file.original_name || `task-file-${file.id}`;
+				a.click();
+				window.URL.revokeObjectURL(url);
+			},
+			error: (err) => {
+				console.error(err);
+				this.toast.error('Failed to download task file.');
+			}
+		});
+	}
+	
+	canPreviewFile(file: StoredFileDto): boolean {
+		const mime = (file.mime_type || '').toLowerCase();
+		return (
+			mime.startsWith('image/') ||
+			mime === 'application/pdf' ||
+			mime.startsWith('text/')
+		);
+	}	
 }

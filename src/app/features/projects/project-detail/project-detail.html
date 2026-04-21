@@ -182,5 +182,131 @@
 		</div>
 	</div>
 	
+	<div class="card shadow-sm border-0 mt-3" *ngIf="row">
+		<div class="card-header bg-white">
+			<div class="fw-semibold">Project Files</div>
+			<div class="text-muted small">Upload and manage files linked to this project</div>
+		</div>
+		
+		<div class="card-body">
+			<div class="d-flex align-items-center gap-2 mb-3">
+				<input
+				type="file"
+				class="form-control"
+				(change)="onProjectFileSelected($event)"
+				[disabled]="uploadingProjectFile" />
+				
+				<div *ngIf="uploadingProjectFile" class="text-muted small">
+					<span class="spinner-border spinner-border-sm me-2"></span>Uploading...
+				</div>
+			</div>
+			
+			<div *ngIf="projectFilesError" class="alert alert-danger mb-3">
+				{{ projectFilesError }}
+			</div>
+			
+			<div *ngIf="projectFilesLoading" class="text-muted small">
+				<span class="spinner-border spinner-border-sm me-2"></span>Loading files...
+			</div>
+			
+			<div class="table-responsive" *ngIf="!projectFilesLoading">
+				<table class="table table-sm align-middle mb-0">
+					<thead class="table-light">
+						<tr>
+							<th>Name</th>
+							<th style="width: 120px;">Size</th>
+							<th style="width: 180px;">Uploaded</th>
+							<th style="width: 140px;" class="text-end">Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr *ngFor="let f of projectFiles">
+							<td>{{ f.original_name }}</td>
+							<td>{{ formatBytes(f.size) }}</td>
+							<td>{{ f.created_at ? (f.created_at | date:'yyyy-MM-dd HH:mm') : '—' }}</td>
+							<td class="text-end">
+								<button
+								*ngIf="canPreviewFile(f)"
+								class="btn btn-sm btn-outline-primary me-2"
+								(click)="previewProjectFile(projectId, f)">
+									<i class="bi bi-eye"></i>
+								</button>
+								
+								<button class="btn btn-sm btn-outline-secondary me-2" (click)="downloadProjectFile(f)">
+									<i class="bi bi-download"></i>
+								</button>
+								<button class="btn btn-sm btn-outline-danger" (click)="removeProjectFile(f)">
+									<i class="bi bi-trash"></i>
+								</button>
+							</td>
+						</tr>
+						
+						<tr *ngIf="!projectFiles.length">
+							<td colspan="4" class="text-center text-muted py-3">No files uploaded.</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	<div class="card shadow-sm border-0 mt-3" *ngIf="row">
+		<div class="card-header bg-white">
+			<div class="fw-semibold">Task Files</div>
+			<div class="text-muted small">Files attached to tasks under this project</div>
+		</div>
+		
+		<div class="card-body">
+			<div *ngIf="taskFilesLoading" class="text-muted small">
+				<span class="spinner-border spinner-border-sm me-2"></span>Loading task files...
+			</div>
+			
+			<div *ngIf="taskFilesError" class="alert alert-danger mb-3">
+				{{ taskFilesError }}
+			</div>
+			
+			<div *ngIf="!taskFilesLoading && !taskFileGroups.length" class="text-muted small">
+				No task files found.
+			</div>
+			
+			<div *ngFor="let group of taskFileGroups" class="mb-4">
+				<div class="fw-semibold mb-2">#{{ group.taskId }} - {{ group.taskName }}</div>
+				
+				<div class="table-responsive">
+					<table class="table table-sm align-middle mb-0">
+						<thead class="table-light">
+							<tr>
+								<th>Name</th>
+								<th style="width: 120px;">Size</th>
+								<th style="width: 180px;">Uploaded</th>
+								<th style="width: 120px;" class="text-end">Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr *ngFor="let f of group.files">
+								<td>{{ f.original_name }}</td>
+								<td>{{ formatBytes(f.size) }}</td>
+								<td>{{ f.created_at ? (f.created_at | date:'yyyy-MM-dd HH:mm') : '—' }}</td>
+								<td class="text-end">
+									<button
+									*ngIf="canPreviewFile(f)"
+									class="btn btn-sm btn-outline-primary me-2"
+									(click)="previewTaskFileFromProject(group.taskId, f)">
+										<i class="bi bi-eye"></i>
+									</button>
+									
+									<button
+									class="btn btn-sm btn-outline-secondary"
+									(click)="downloadTaskFileFromProject(group.taskId, f)">
+										<i class="bi bi-download"></i>
+									</button>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+	
 	
 </div>
