@@ -62,6 +62,16 @@ export class ProjectFormComponent implements OnInit {
 			target_start_date: [null],
 			target_end_date: [null],
 			actual_end_date: [null],
+			description: [null],
+			
+			currency_code: ['MYR'],
+			planned_cost_total: [0],
+			actual_cost_total: [0],
+			committed_cost_total: [0],
+			planned_funding_total: [0],
+			actual_funding_total: [0],
+			budget_notes: [null],
+			budget_updated_at: [null],
 		});
 	}
 	
@@ -121,23 +131,24 @@ export class ProjectFormComponent implements OnInit {
 					sponsor: p.sponsor ?? '',
 					progress: p.progress ?? 0,
 					
-					// department_id: p.department_id ?? null,
-					// project_status_id: p.project_status_id ?? null,
-					// priority_id: p.priority_id ?? null,
-					// owner_user_id: p.owner_user_id ?? null,
 					department_id: (p.department_id ?? p.department?.id ?? null),
 					project_status_id: (p.project_status_id ?? p.status?.id ?? null),
 					priority_id: (p.priority_id ?? p.priority?.id ?? null),
 					owner_user_id: (p.owner_user_id ?? p.owner?.id ?? null),
 					
-					// start_date: p.start_date ?? null,
-					// target_start_date: p.target_start_date ?? null,
-					// target_end_date: p.target_end_date ?? null,
-					// actual_end_date: p.actual_end_date ?? null,
 					start_date: this.toDateInput(p.start_date ?? null),
 					target_start_date: this.toDateInput(p.target_start_date ?? null),
 					target_end_date: this.toDateInput(p.target_end_date ?? null),
 					actual_end_date: this.toDateInput(p.actual_end_date ?? null),
+					description: p.description ?? null,
+					currency_code: p.currency_code ?? 'MYR',
+					planned_cost_total: p.planned_cost_total ?? 0,
+					actual_cost_total: p.actual_cost_total ?? 0,
+					committed_cost_total: p.committed_cost_total ?? 0,
+					planned_funding_total: p.planned_funding_total ?? 0,
+					actual_funding_total: p.actual_funding_total ?? 0,
+					budget_notes: p.budget_notes ?? null,
+					budget_updated_at: p.budget_updated_at ? String(p.budget_updated_at).slice(0, 10) : null,
 					
 				});
 				
@@ -175,6 +186,16 @@ export class ProjectFormComponent implements OnInit {
 			target_start_date: v.target_start_date || null,
 			target_end_date: v.target_end_date || null,
 			actual_end_date: v.actual_end_date || null,
+			description: v.description || null,
+			
+			currency_code: v.currency_code || 'MYR',
+			planned_cost_total: this.money(v.planned_cost_total),
+			actual_cost_total: this.money(v.actual_cost_total),
+			committed_cost_total: this.money(v.committed_cost_total),
+			planned_funding_total: this.money(v.planned_funding_total),
+			actual_funding_total: this.money(v.actual_funding_total),
+			budget_notes: v.budget_notes || null,
+			budget_updated_at: v.budget_updated_at || null,
 		};
 		
 		this.saving = true;
@@ -207,5 +228,10 @@ export class ProjectFormComponent implements OnInit {
 	cancel(): void {
 		if (this.projectId) this.router.navigate(['/projects', this.projectId]);
 		else this.router.navigateByUrl('/projects');
+	}
+	
+	private money(value: unknown): number {
+		const n = Number(value);
+		return Number.isFinite(n) && n >= 0 ? n : 0;
 	}
 }

@@ -106,6 +106,55 @@
 					
 				</div>
 				
+				<hr class="my-4">
+				
+				<div class="row g-3">
+					<div class="col-12">
+						<h2 class="h6 mb-0">Budget Summary</h2>
+						<div class="text-muted small">Project-level cost and funding totals</div>
+					</div>
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label">Currency</label>
+						<input class="form-control" formControlName="currency_code" maxlength="3" placeholder="MYR">
+					</div>
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label">Planned Cost</label>
+						<input type="number" min="0" step="0.01" class="form-control" formControlName="planned_cost_total">
+					</div>
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label">Actual Cost</label>
+						<input type="number" min="0" step="0.01" class="form-control" formControlName="actual_cost_total">
+					</div>
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label">Committed Cost</label>
+						<input type="number" min="0" step="0.01" class="form-control" formControlName="committed_cost_total">
+					</div>
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label">Planned Funding</label>
+						<input type="number" min="0" step="0.01" class="form-control" formControlName="planned_funding_total">
+					</div>
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label">Actual Funding</label>
+						<input type="number" min="0" step="0.01" class="form-control" formControlName="actual_funding_total">
+					</div>
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label">Budget Updated At</label>
+						<input type="date" class="form-control" formControlName="budget_updated_at">
+					</div>
+					
+					<div class="col-12">
+						<label class="form-label">Budget Notes</label>
+						<textarea class="form-control" rows="3" formControlName="budget_notes"></textarea>
+					</div>
+				</div>
+				
 				<div class="d-flex gap-2 justify-content-end mt-4">
 					<button type="button" class="btn btn-outline-secondary" (click)="cancel()" [disabled]="saving">
 						Cancel

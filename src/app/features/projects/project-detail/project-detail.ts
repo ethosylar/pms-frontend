@@ -12,6 +12,7 @@ import {
 	ProjectMilestoneDto,
 	ProjectTaskGanttDto,
 	StoredFileDto,
+	ProjectBudgetLineDto,
 } from '../../../core/services/api.service';
 import { ToastService } from '../../../shared/ui/toast/toast';
 import { ProjectGanttNgxEmbedComponent } from '../project-gantt-ngx-embed/project-gantt-ngx-embed';
@@ -70,6 +71,14 @@ export class ProjectDetailComponent implements OnInit {
 	milestones: ProjectMilestoneDto[] = [];
 	milestoneMeta = { current_page: 1, last_page: 1, per_page: 5, total: 0 };
 	
+	budgetLines: ProjectBudgetLineDto[] = [];
+	budgetLinesLoading = false;
+	budgetLinesError: string | null = null;
+	
+	budgetLineForm: ProjectBudgetLineUpsertPayload = this.emptyBudgetLine();
+	editingBudgetLineId: number | null = null;
+	savingBudgetLine = false;
+	
 	constructor(
 		private api: ApiService,
 		private route: ActivatedRoute,
@@ -98,6 +107,7 @@ export class ProjectDetailComponent implements OnInit {
 				this.loadProjectFiles();
 				this.loadTaskFilesSummary();
 				this.cdr.markForCheck();
+				this.loadBudgetLines();
 			})
 		)
 		.subscribe({
@@ -458,5 +468,137 @@ export class ProjectDetailComponent implements OnInit {
 			mime === 'application/pdf' ||
 			mime.startsWith('text/')
 		);
-	}	
+	}
+	
+	loadBudgetLines(): void {
+		if (!this.projectId) return;
+		
+		this.budgetLinesLoading = true;
+		this.budgetLinesError = null;
+		
+		this.api.getProjectBudgetLines(this.projectId, { per_page: 100 })
+		.pipe(finalize(() => {
+			this.budgetLinesLoading = false;
+			this.cdr.detectChanges();
+		}))
+		.subscribe({
+			next: (res) => this.budgetLines = res.data ?? [],
+			error: (err) => {
+				console.error(err);
+				this.budgetLinesError = 'Failed to load budget lines.';
+			}
+		});
+	}
+	
+	emptyBudgetLine(): ProjectBudgetLineUpsertPayload {
+		return {
+			line_type: 'COST',
+			code: '',
+			name: '',
+			planned_amount: 0,
+			actual_amount: 0,
+			committed_amount: 0,
+			sort_order: 0,
+			is_active: true,
+			notes: null,
+		};
+	}
+	
+	newBudgetLine(type: ProjectBudgetLineType = 'COST'): void {
+		this.editingBudgetLineId = null;
+		this.budgetLineForm = { ...this.emptyBudgetLine(), line_type: type };
+	}
+	
+	editBudgetLine(line: ProjectBudgetLineDto): void {
+		this.editingBudgetLineId = line.id;
+		this.budgetLineForm = {
+			line_type: line.line_type,
+			code: line.code,
+			name: line.name,
+			planned_amount: line.planned_amount,
+			actual_amount: line.actual_amount,
+			committed_amount: line.committed_amount,
+			sort_order: line.sort_order,
+			is_active: line.is_active,
+			notes: line.notes ?? null,
+		};
+	}
+	
+	saveBudgetLine(): void {
+		if (!this.budgetLineForm.code || !this.budgetLineForm.name) {
+			this.toast.error('Code and name are required.');
+			return;
+		}
+		
+		const payload: ProjectBudgetLineUpsertPayload = {
+			...this.budgetLineForm,
+			code: String(this.budgetLineForm.code).trim().toUpperCase(),
+			name: String(this.budgetLineForm.name).trim(),
+			planned_amount: this.money(this.budgetLineForm.planned_amount),
+			actual_amount: this.money(this.budgetLineForm.actual_amount),
+			committed_amount: this.money(this.budgetLineForm.committed_amount),
+			sort_order: Number(this.budgetLineForm.sort_order ?? 0),
+			is_active: this.budgetLineForm.is_active ?? true,
+			notes: this.budgetLineForm.notes || null,
+		};
+		
+		this.savingBudgetLine = true;
+		
+		const req$ = this.editingBudgetLineId
+		? this.api.updateProjectBudgetLine(this.projectId, this.editingBudgetLineId, payload)
+		: this.api.createProjectBudgetLine(this.projectId, payload);
+		
+		req$
+		.pipe(finalize(() => {
+			this.savingBudgetLine = false;
+			this.cdr.detectChanges();
+		}))
+		.subscribe({
+			next: () => {
+				this.toast.success(this.editingBudgetLineId ? 'Budget line updated.' : 'Budget line created.');
+				this.newBudgetLine(payload.line_type ?? 'COST');
+				this.loadBudgetLines();
+			},
+			error: (err) => {
+				console.error(err);
+				this.toast.error('Failed to save budget line.');
+			}
+		});
+	}
+	
+	deleteBudgetLine(line: ProjectBudgetLineDto): void {
+		if (!confirm(`Delete budget line "${line.code} - ${line.name}"?`)) return;
+		
+		this.api.deleteProjectBudgetLine(this.projectId, line.id).subscribe({
+			next: () => {
+				this.toast.success('Budget line deleted.');
+				this.loadBudgetLines();
+			},
+			error: (err) => {
+				console.error(err);
+				this.toast.error('Failed to delete budget line.');
+			}
+		});
+	}
+	
+	budgetLinesByType(type: ProjectBudgetLineType): ProjectBudgetLineDto[] {
+		return this.budgetLines.filter(x => x.line_type === type);
+	}
+	
+	budgetTotal(type: ProjectBudgetLineType, field: 'planned_amount' | 'actual_amount' | 'committed_amount'): number {
+		return this.budgetLinesByType(type).reduce((sum, x) => sum + Number(x[field] ?? 0), 0);
+	}
+	
+	moneyLabel(value?: number | null): string {
+		const currency = this.row?.currency_code || 'MYR';
+		return `${currency} ${Number(value ?? 0).toLocaleString(undefined, {
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2
+		})}`;
+	}
+	
+	private money(value: unknown): number {
+		const n = Number(value);
+		return Number.isFinite(n) && n >= 0 ? n : 0;
+	}
 }

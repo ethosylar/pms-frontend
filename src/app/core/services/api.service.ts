@@ -715,6 +715,52 @@ export class ApiService {
 		);
 	}
 	
+	// ******************************************************************************************************************************
+	// Project Budget Line's Section
+	// ******************************************************************************************************************************
+	getProjectBudgetLines(
+		projectId: number,
+		params?: { line_type?: ProjectBudgetLineType; is_active?: number; page?: number; per_page?: number }
+		) {
+		let httpParams = new HttpParams();
+		
+		if (params?.line_type) httpParams = httpParams.set('line_type', params.line_type);
+		if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
+		if (params?.page) httpParams = httpParams.set('page', String(params.page));
+		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
+		
+		return this.http.get<ApiCollection<ProjectBudgetLineDto>>(
+			`${environment.apiBaseUrl}/projects/${projectId}/budget-lines`,
+			{ params: httpParams }
+		);
+	}
+	
+	getProjectBudgetLine(projectId: number, lineId: number) {
+		return this.http.get<ApiResource<ProjectBudgetLineDto>>(
+			`${environment.apiBaseUrl}/projects/${projectId}/budget-lines/${lineId}`
+		);
+	}
+	
+	createProjectBudgetLine(projectId: number, payload: ProjectBudgetLineUpsertPayload) {
+		return this.http.post<ApiResource<ProjectBudgetLineDto>>(
+			`${environment.apiBaseUrl}/projects/${projectId}/budget-lines`,
+			payload
+		);
+	}
+	
+	updateProjectBudgetLine(projectId: number, lineId: number, payload: ProjectBudgetLineUpsertPayload) {
+		return this.http.put<ApiResource<ProjectBudgetLineDto> | { ok: true; message?: string }>(
+			`${environment.apiBaseUrl}/projects/${projectId}/budget-lines/${lineId}`,
+			payload
+		);
+	}
+	
+	deleteProjectBudgetLine(projectId: number, lineId: number) {
+		return this.http.delete<{ ok: boolean; mode: 'HARD' }>(
+			`${environment.apiBaseUrl}/projects/${projectId}/budget-lines/${lineId}`
+		);
+	}
+	
 }
 
 export interface LaravelPaginated<T> {
@@ -958,6 +1004,7 @@ export interface ProjectDto {
 	id: number;
 	code: string;
 	name: string;
+	description?: string | null;
 	
 	sponsor?: string | null;
 	progress?: number | null;
@@ -979,11 +1026,27 @@ export interface ProjectDto {
 	status?: ProjectStatusDto | null;
 	priority?: PriorityDto | null;
 	owner?: UserMiniDto | null;
+	
+	currency_code?: string | null;
+	planned_cost_total?: number | null;
+	actual_cost_total?: number | null;
+	committed_cost_total?: number | null;
+	planned_funding_total?: number | null;
+	actual_funding_total?: number | null;
+	budget_notes?: string | null;
+	budget_updated_at?: string | null;
+	
+	cost_utilization_pct?: number | null;
+	cost_variance?: number | null;
+	funding_utilization_pct?: number | null;
+	funding_variance?: number | null;
 }
 
 export type ProjectUpsertPayload = {
 	code?: string;
 	name?: string;
+	description?: string | null;
+	
 	sponsor?: string | null;
 	progress?: number;
 	
@@ -993,10 +1056,20 @@ export type ProjectUpsertPayload = {
 	owner_user_id?: number | null;
 	
 	start_date?: string | null;
-	target_start_date?: string | null;
 	target_end_date?: string | null;
 	actual_end_date?: string | null;
+	
+	currency_code?: string | null;
+	planned_cost_total?: number | null;
+	actual_cost_total?: number | null;
+	committed_cost_total?: number | null;
+	planned_funding_total?: number | null;
+	actual_funding_total?: number | null;
+	budget_notes?: string | null;
+	budget_updated_at?: string | null;
 };
+
+export type ProjectBudgetLineType = 'COST' | 'FUNDING';
 
 type ExternalRiskIssueListParams = {
 	search?: string;
@@ -1143,3 +1216,30 @@ export interface FileAttachResponse {
 
 export interface FileUploadResponse extends StoredFileDto {}
 
+export interface ProjectBudgetLineDto {
+	id: number;
+	project_id: number;
+	line_type: ProjectBudgetLineType;
+	code: string;
+	name: string;
+	planned_amount: number;
+	actual_amount: number;
+	committed_amount: number;
+	sort_order: number;
+	is_active: boolean;
+	notes?: string | null;
+	created_at?: string | null;
+	updated_at?: string | null;
+}
+
+export type ProjectBudgetLineUpsertPayload = {
+	line_type?: ProjectBudgetLineType;
+	code?: string;
+	name?: string;
+	planned_amount?: number | null;
+	actual_amount?: number | null;
+	committed_amount?: number | null;
+	sort_order?: number | null;
+	is_active?: boolean | null;
+	notes?: string | null;
+};
