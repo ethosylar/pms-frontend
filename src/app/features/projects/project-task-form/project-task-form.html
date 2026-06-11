@@ -38,9 +38,24 @@
 					</div>
 				</div>
 				
+				<div class="col-12">
+					<label class="form-label">Description</label>
+					<textarea class="form-control" rows="3" formControlName="description"></textarea>
+				</div>
+				
 				<div class="col-12 col-md-4">
 					<label class="form-label">Status</label>
 					<select class="form-select" formControlName="task_status_id">
+						<option [ngValue]="null">—</option>
+						<option *ngFor="let s of statuses" [ngValue]="s.id">
+							{{ s.code }} - {{ s.name }}
+						</option>
+					</select>
+				</div>
+				
+				<div class="col-12 col-md-4">
+					<label class="form-label">Actual Status</label>
+					<select class="form-select" formControlName="actual_task_status_id">
 						<option [ngValue]="null">—</option>
 						<option *ngFor="let s of statuses" [ngValue]="s.id">
 							{{ s.code }} - {{ s.name }}
@@ -62,13 +77,23 @@
 				</div>
 				
 				<div class="col-12 col-md-3">
-					<label class="form-label">Start Date</label>
-					<input class="form-control" type="date" formControlName="start_date" />
+					<label class="form-label">Actual Start Date</label>
+					<input class="form-control" type="date" formControlName="actual_start_date" />
 				</div>
 				
 				<div class="col-12 col-md-3">
-					<label class="form-label">End Date</label>
-					<input class="form-control" type="date" formControlName="end_date" />
+					<label class="form-label">Actual End Date</label>
+					<input class="form-control" type="date" formControlName="actual_end_date" />
+				</div>
+				
+				<div class="col-12 col-md-3">
+					<label class="form-label">Duration</label>
+					<input class="form-control" type="number" min="0" formControlName="duration" />
+				</div>
+				
+				<div class="col-12 col-md-3">
+					<label class="form-label">Task Color</label>
+					<input class="form-control" type="color" formControlName="task_color" />
 				</div>
 				
 				<div class="col-12 col-md-3">

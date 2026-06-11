@@ -720,7 +720,12 @@ export class ApiService {
 	// ******************************************************************************************************************************
 	getProjectBudgetLines(
 		projectId: number,
-		params?: { line_type?: ProjectBudgetLineType; is_active?: number; page?: number; per_page?: number }
+		params?: {
+			line_type?: ProjectBudgetLineType;
+			is_active?: number;
+			page?: number;
+			per_page?: number;
+		}
 		) {
 		let httpParams = new HttpParams();
 		
@@ -758,6 +763,61 @@ export class ApiService {
 	deleteProjectBudgetLine(projectId: number, lineId: number) {
 		return this.http.delete<{ ok: boolean; mode: 'HARD' }>(
 			`${environment.apiBaseUrl}/projects/${projectId}/budget-lines/${lineId}`
+		);
+	}
+	
+	// Project Budget Allocations
+	getProjectBudgetAllocations(
+		projectId: number,
+		params?: {
+			budget_line_id?: number;
+			task_id?: number;
+			milestone_id?: number;
+			line_type?: ProjectBudgetLineType;
+			is_active?: number;
+			page?: number;
+			per_page?: number;
+		}
+		) {
+		let httpParams = new HttpParams();
+		
+		if (params?.budget_line_id) httpParams = httpParams.set('budget_line_id', String(params.budget_line_id));
+		if (params?.task_id) httpParams = httpParams.set('task_id', String(params.task_id));
+		if (params?.milestone_id) httpParams = httpParams.set('milestone_id', String(params.milestone_id));
+		if (params?.line_type) httpParams = httpParams.set('line_type', params.line_type);
+		if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
+		if (params?.page) httpParams = httpParams.set('page', String(params.page));
+		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
+		
+		return this.http.get<ApiCollection<ProjectBudgetAllocationDto>>(
+			`${environment.apiBaseUrl}/projects/${projectId}/budget-allocations`,
+			{ params: httpParams }
+		);
+	}
+	
+	getProjectBudgetAllocation(projectId: number, allocationId: number) {
+		return this.http.get<ApiResource<ProjectBudgetAllocationDto>>(
+			`${environment.apiBaseUrl}/projects/${projectId}/budget-allocations/${allocationId}`
+		);
+	}
+	
+	createProjectBudgetAllocation(projectId: number, payload: ProjectBudgetAllocationUpsertPayload) {
+		return this.http.post<ApiResource<ProjectBudgetAllocationDto>>(
+			`${environment.apiBaseUrl}/projects/${projectId}/budget-allocations`,
+			payload
+		);
+	}
+	
+	updateProjectBudgetAllocation(projectId: number, allocationId: number, payload: ProjectBudgetAllocationUpsertPayload) {
+		return this.http.put<ApiResource<ProjectBudgetAllocationDto> | { ok: boolean; message?: string }>(
+			`${environment.apiBaseUrl}/projects/${projectId}/budget-allocations/${allocationId}`,
+			payload
+		);
+	}
+	
+	deleteProjectBudgetAllocation(projectId: number, allocationId: number) {
+		return this.http.delete<{ ok: boolean; mode: 'HARD' }>(
+			`${environment.apiBaseUrl}/projects/${projectId}/budget-allocations/${allocationId}`
 		);
 	}
 	
@@ -1007,25 +1067,25 @@ export interface ProjectDto {
 	description?: string | null;
 	
 	sponsor?: string | null;
-	progress?: number | null;
 	
 	department_id?: number | null;
 	project_status_id?: number | null;
 	priority_id?: number | null;
 	owner_user_id?: number | null;
 	
+	project_category_id?: number | null;
+	category_code?: string | null;
+	category_name?: string | null;
+	
+	planned_progress?: number | null;
+	progress?: number | null;
+	
 	start_date?: string | null;
-	target_start_date?: string | null;
+	actual_start_date?: string | null;
 	target_end_date?: string | null;
 	actual_end_date?: string | null;
 	
-	created_at?: string;
-	updated_at?: string;
-	
-	department?: DepartmentDto | null;
-	status?: ProjectStatusDto | null;
-	priority?: PriorityDto | null;
-	owner?: UserMiniDto | null;
+	notes?: string | null;
 	
 	currency_code?: string | null;
 	planned_cost_total?: number | null;
@@ -1040,6 +1100,14 @@ export interface ProjectDto {
 	cost_variance?: number | null;
 	funding_utilization_pct?: number | null;
 	funding_variance?: number | null;
+	
+	department?: DepartmentDto | null;
+	status?: ProjectStatusDto | null;
+	priority?: PriorityDto | null;
+	owner?: UserMiniDto | null;
+	
+	created_at?: string;
+	updated_at?: string;
 }
 
 export type ProjectUpsertPayload = {
@@ -1090,6 +1158,7 @@ export interface ProjectMilestoneDto {
 	name: string;
 	milestone_date: string | null;
 	status: string;
+	budget?: ProjectBudgetSummaryDto;
 	created_at?: string;
 	updated_at?: string;
 }
@@ -1111,10 +1180,9 @@ export interface ProjectTaskGanttDto {
 	description?: string | null;
 	
 	task_color?: string | null;
-	
 	progress?: number | null;
 	
-	start_date?: string | null;        // 'YYYY-MM-DD'
+	start_date?: string | null;
 	end_date?: string | null;
 	
 	actual_start_date?: string | null;
@@ -1122,6 +1190,8 @@ export interface ProjectTaskGanttDto {
 	
 	duration?: number | null;
 	sort_order?: number | null;
+	
+	budget?: ProjectBudgetSummaryDto;
 	
 	task_status_id?: number | null;
 	status_code?: string | null;
@@ -1243,3 +1313,68 @@ export type ProjectBudgetLineUpsertPayload = {
 	is_active?: boolean | null;
 	notes?: string | null;
 };
+
+export interface ProjectBudgetSummaryDto {
+	planned_cost: number;
+	actual_cost: number;
+	committed_cost: number;
+	spent_cost: number;
+	
+	planned_funding: number;
+	actual_funding: number;
+	committed_funding: number;
+	received_funding: number;
+	
+	net_spent: number;
+}
+
+export interface ProjectCategoryDto {
+	id: number;
+	code: string;
+	name: string;
+	group?: string | null;
+	year?: number | null;
+	sort_order?: number;
+	is_active?: boolean;
+	created_at?: string | null;
+	updated_at?: string | null;
+}
+
+export interface ProjectBudgetAllocationDto {
+	id: number;
+	project_id: number;
+	budget_line_id: number;
+	task_id?: number | null;
+	milestone_id?: number | null;
+	
+	planned_amount: number;
+	actual_amount: number;
+	committed_amount: number;
+	
+	sort_order: number;
+	is_active: boolean;
+	notes?: string | null;
+	
+	budget_line?: {
+		id: number;
+		line_type: ProjectBudgetLineType;
+		code: string;
+		name: string;
+	} | null;
+	
+	created_at?: string | null;
+	updated_at?: string | null;
+}
+
+export type ProjectBudgetAllocationUpsertPayload = {
+	budget_line_id?: number | null;
+	task_id?: number | null;
+	milestone_id?: number | null;
+	planned_amount?: number | null;
+	actual_amount?: number | null;
+	committed_amount?: number | null;
+	sort_order?: number | null;
+	is_active?: boolean | null;
+	notes?: string | null;
+};
+

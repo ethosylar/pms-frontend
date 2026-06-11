@@ -48,6 +48,13 @@ export class ProjectTaskFormComponent implements OnInit {
 	selectedTaskFile: File | null = null;
 	selectedTaskFileName = '';
 	
+	description: [null],
+	actual_task_status_id: [null],
+	actual_start_date: [null],
+	actual_end_date: [null],
+	duration: [0],
+	task_color: [null],
+	
 	form: FormGroup;
 	
 	constructor(
@@ -130,12 +137,23 @@ export class ProjectTaskFormComponent implements OnInit {
 				
 				this.form.patchValue({
 					name: t.name,
+					description: t.description ?? null,
+					
 					task_status_id: t.task_status_id ?? null,
+					actual_task_status_id: t.actual_task_status_id ?? null,
 					assigned_to_user_id: t.assigned_to_user_id ?? null,
+					
 					start_date: t.start_date ?? null,
 					end_date: t.end_date ?? null,
+					actual_start_date: t.actual_start_date ?? null,
+					actual_end_date: t.actual_end_date ?? null,
+					
+					duration: t.duration ?? 0,
+					task_color: t.task_color ?? null,
+					
 					progress: t.progress ?? 0,
 					sort_order: t.sort_order ?? 0,
+					
 					parent_task_id: t.parent_task_id ?? null,
 					depends_on_task_id: t.depends_on_task_id ?? null,
 					milestone_id: t.milestone_id ?? null,
@@ -162,19 +180,25 @@ export class ProjectTaskFormComponent implements OnInit {
 		
 		const payload: ProjectTaskUpsertPayload = {
 			name: String(v.name).trim(),
+			description: v.description || null,
 			
 			task_status_id: v.task_status_id ?? null,
+			actual_task_status_id: v.actual_task_status_id ?? null,
 			assigned_to_user_id: v.assigned_to_user_id ?? null,
 			
 			start_date: v.start_date || null,
 			end_date: v.end_date || null,
+			actual_start_date: v.actual_start_date || null,
+			actual_end_date: v.actual_end_date || null,
+			
+			duration: Number.isFinite(Number(v.duration)) ? Number(v.duration) : 0,
+			task_color: v.task_color || null,
 			
 			progress: Number.isFinite(Number(v.progress)) ? Number(v.progress) : 0,
 			sort_order: Number.isFinite(Number(v.sort_order)) ? Number(v.sort_order) : 0,
 			
 			parent_task_id: v.parent_task_id ?? null,
 			depends_on_task_id: v.depends_on_task_id ?? null,
-			
 			milestone_id: v.milestone_id ?? null,
 		};
 		

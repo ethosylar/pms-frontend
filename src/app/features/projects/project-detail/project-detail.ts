@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { catchError, finalize } from 'rxjs/operators';
 import { forkJoin, of } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 
 import {
 	ApiService,
@@ -13,6 +14,10 @@ import {
 	ProjectTaskGanttDto,
 	StoredFileDto,
 	ProjectBudgetLineDto,
+	ProjectBudgetLineType,
+	ProjectBudgetLineUpsertPayload,
+	ProjectBudgetAllocationDto,
+	ProjectBudgetAllocationUpsertPayload,
 } from '../../../core/services/api.service';
 import { ToastService } from '../../../shared/ui/toast/toast';
 import { ProjectGanttNgxEmbedComponent } from '../project-gantt-ngx-embed/project-gantt-ngx-embed';
@@ -38,7 +43,7 @@ type GanttResp = {
 @Component({
 	standalone: true,
 	selector: 'app-project-detail',
-	imports: [CommonModule, RouterModule, ProjectGanttNgxEmbedComponent],
+	imports: [CommonModule, RouterModule, FormsModule, ProjectGanttNgxEmbedComponent],
 	templateUrl: './project-detail.html',
 	styleUrls: ['./project-detail.scss'],
 })
@@ -79,6 +84,18 @@ export class ProjectDetailComponent implements OnInit {
 	editingBudgetLineId: number | null = null;
 	savingBudgetLine = false;
 	
+	budgetAllocations: ProjectBudgetAllocationDto[] = [];
+	
+	budgetLoading = false;
+	budgetError: string | null = null;
+	
+	taskOptions: Array<{ id: number; name: string }> = [];
+	
+	editingAllocationId: number | null = null;
+	savingAllocation = false;
+	
+	allocationForm: ProjectBudgetAllocationUpsertPayload = this.emptyAllocation();
+	
 	constructor(
 		private api: ApiService,
 		private route: ActivatedRoute,
@@ -108,6 +125,7 @@ export class ProjectDetailComponent implements OnInit {
 				this.loadTaskFilesSummary();
 				this.cdr.markForCheck();
 				this.loadBudgetLines();
+				this.loadBudgetModule();
 			})
 		)
 		.subscribe({
@@ -597,8 +615,160 @@ export class ProjectDetailComponent implements OnInit {
 		})}`;
 	}
 	
+	
 	private money(value: unknown): number {
 		const n = Number(value);
 		return Number.isFinite(n) && n >= 0 ? n : 0;
 	}
+	
+	private emptyAllocation(): ProjectBudgetAllocationUpsertPayload {
+		return {
+			budget_line_id: null,
+			task_id: null,
+			milestone_id: null,
+			planned_amount: 0,
+			actual_amount: 0,
+			committed_amount: 0,
+			sort_order: 0,
+			is_active: true,
+			notes: null,
+		};
+	}
+	
+	loadBudgetModule(): void {
+		if (!this.projectId) return;
+		
+		this.budgetLoading = true;
+		this.budgetError = null;
+		
+		forkJoin({
+			lines: this.api.getProjectBudgetLines(this.projectId, { per_page: 100 }),
+			allocations: this.api.getProjectBudgetAllocations(this.projectId, { per_page: 100 }),
+			gantt: this.api.getProjectGantt(this.projectId),
+		})
+		.pipe(finalize(() => {
+			this.budgetLoading = false;
+			this.cdr.detectChanges();
+		}))
+		.subscribe({
+			next: ({ lines, allocations, gantt }) => {
+				this.budgetLines = lines.data ?? [];
+				this.budgetAllocations = allocations.data ?? [];
+				
+				const tasks = Array.isArray(gantt?.tasks) ? gantt.tasks : [];
+				this.taskOptions = tasks.map(t => ({ id: t.id, name: t.name }));
+			},
+			error: (err) => {
+				console.error(err);
+				this.budgetError = 'Failed to load budget module.';
+			}
+		});
+	}
+	
+	newAllocation(): void {
+		this.editingAllocationId = null;
+		this.allocationForm = this.emptyAllocation();
+	}
+	
+	editAllocation(a: ProjectBudgetAllocationDto): void {
+		this.editingAllocationId = a.id;
+		this.allocationForm = {
+			budget_line_id: a.budget_line_id,
+			task_id: a.task_id ?? null,
+			milestone_id: a.milestone_id ?? null,
+			planned_amount: a.planned_amount ?? 0,
+			actual_amount: a.actual_amount ?? 0,
+			committed_amount: a.committed_amount ?? 0,
+			sort_order: a.sort_order ?? 0,
+			is_active: a.is_active,
+			notes: a.notes ?? null,
+		};
+	}
+	
+	saveAllocation(): void {
+		if (!this.allocationForm.budget_line_id) {
+			this.toast.error('Budget line is required.');
+			return;
+		}
+		
+		const payload: ProjectBudgetAllocationUpsertPayload = {
+			budget_line_id: Number(this.allocationForm.budget_line_id),
+			task_id: this.allocationForm.task_id ? Number(this.allocationForm.task_id) : null,
+			milestone_id: this.allocationForm.milestone_id ? Number(this.allocationForm.milestone_id) : null,
+			planned_amount: this.money(this.allocationForm.planned_amount),
+			actual_amount: this.money(this.allocationForm.actual_amount),
+			committed_amount: this.money(this.allocationForm.committed_amount),
+			sort_order: Number(this.allocationForm.sort_order ?? 0),
+			is_active: this.allocationForm.is_active ?? true,
+			notes: this.allocationForm.notes || null,
+		};
+		
+		this.savingAllocation = true;
+		
+		const req$ = this.editingAllocationId
+		? this.api.updateProjectBudgetAllocation(this.projectId, this.editingAllocationId, payload)
+		: this.api.createProjectBudgetAllocation(this.projectId, payload);
+		
+		req$
+		.pipe(finalize(() => {
+			this.savingAllocation = false;
+			this.cdr.detectChanges();
+		}))
+		.subscribe({
+			next: () => {
+				this.toast.success(this.editingAllocationId ? 'Budget allocation updated.' : 'Budget allocation created.');
+				this.newAllocation();
+				this.loadBudgetModule();
+			},
+			error: (err) => {
+				console.error(err);
+				this.toast.error('Failed to save budget allocation.');
+			}
+		});
+	}
+	
+	deleteAllocation(a: ProjectBudgetAllocationDto): void {
+		if (!confirm('Delete this budget allocation?')) return;
+		
+		this.api.deleteProjectBudgetAllocation(this.projectId, a.id).subscribe({
+			next: () => {
+				this.toast.success('Budget allocation deleted.');
+				this.loadBudgetModule();
+			},
+			error: (err) => {
+				console.error(err);
+				this.toast.error('Failed to delete budget allocation.');
+			}
+		});
+	}
+	
+	budgetLineLabel(id?: number | null): string {
+		const line = this.budgetLines.find(x => x.id === Number(id));
+		return line ? `${line.line_type} • ${line.code} - ${line.name}` : '—';
+	}
+	
+	allocationTargetLabel(a: ProjectBudgetAllocationDto): string {
+		if (a.task_id) {
+			const task = this.taskOptions.find(t => t.id === a.task_id);
+			return `Task: ${task?.name ?? '#' + a.task_id}`;
+		}
+		
+		if (a.milestone_id) {
+			const milestone = this.milestones?.find(m => m.id === a.milestone_id);
+			return `Milestone: ${milestone?.name ?? '#' + a.milestone_id}`;
+		}
+		
+		return 'Project level';
+	}
+	
+	budgetLineTotal(type: ProjectBudgetLineType, field: 'planned_amount' | 'actual_amount' | 'committed_amount'): number {
+		return this.budgetLinesByType(type).reduce((sum, x) => sum + Number(x[field] ?? 0), 0);
+	}
+	
+	allocationTotal(field: 'planned_amount' | 'actual_amount' | 'committed_amount'): number {
+		return this.budgetAllocations.reduce((sum, x) => sum + Number(x[field] ?? 0), 0);
+	}
+	
+	
+	
 }

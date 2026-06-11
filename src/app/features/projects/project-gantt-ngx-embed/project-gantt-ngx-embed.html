@@ -65,6 +65,9 @@
 							<div class="small text-muted" *ngIf="item.milestoneName && !isMilestone(item)">
 								Milestone: {{ item.milestoneName }}
 							</div>
+							<div class="small text-muted" *ngIf="item.budget && !isMilestone(item)">
+								Cost: {{ moneyLabel(item.budget.spent_cost) }} / {{ moneyLabel(item.budget.planned_cost) }}
+							</div>
 						</ng-template>
 					</ngx-gantt-column>
 					

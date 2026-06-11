@@ -38,6 +38,7 @@ export class ProjectFormComponent implements OnInit {
 	statuses: ProjectStatusDto[] = [];
 	priorities: PriorityDto[] = [];
 	owners: Array<{ id: number; name: string }> = [];
+	categories: ProjectCategoryDto[] = [];
 	
 	constructor(
 		private fb: FormBuilder,
@@ -63,6 +64,29 @@ export class ProjectFormComponent implements OnInit {
 			target_end_date: [null],
 			actual_end_date: [null],
 			description: [null],
+			
+			currency_code: ['MYR'],
+			planned_cost_total: [0],
+			actual_cost_total: [0],
+			committed_cost_total: [0],
+			planned_funding_total: [0],
+			actual_funding_total: [0],
+			budget_notes: [null],
+			budget_updated_at: [null],
+			
+			description: [null],
+			
+			project_category_id: [null],
+			
+			planned_progress: [0],
+			progress: [0],
+			
+			start_date: [null],
+			actual_start_date: [null],
+			target_end_date: [null],
+			actual_end_date: [null],
+			
+			notes: [null],
 			
 			currency_code: ['MYR'],
 			planned_cost_total: [0],
@@ -107,6 +131,7 @@ export class ProjectFormComponent implements OnInit {
 				this.departments = (lk.departments as ApiCollection<DepartmentDto>)?.data ?? [];
 				this.statuses = (lk.statuses as ApiCollection<ProjectStatusDto>)?.data ?? [];
 				this.priorities = (lk.priorities as ApiCollection<PriorityDto>)?.data ?? [];
+				this.categories = lookups.project_categories ?? [];
 				
 				const users = (lk.owners as ApiCollection<UserDto>)?.data ?? [];
 				this.owners = users.map(u => ({ id: u.id, name: u.name }));
@@ -128,19 +153,26 @@ export class ProjectFormComponent implements OnInit {
 				this.form.patchValue({
 					code: p.code,
 					name: p.name,
-					sponsor: p.sponsor ?? '',
+					description: p.description ?? null,
+					
+					department_id: p.department?.id ?? p.department_id ?? null,
+					owner_user_id: p.owner?.id ?? p.owner_user_id ?? null,
+					project_status_id: p.status?.id ?? p.project_status_id ?? null,
+					priority_id: p.priority?.id ?? p.priority_id ?? null,
+					project_category_id: p.project_category_id ?? null,
+					
+					sponsor: p.sponsor ?? null,
+					
+					planned_progress: p.planned_progress ?? 0,
 					progress: p.progress ?? 0,
 					
-					department_id: (p.department_id ?? p.department?.id ?? null),
-					project_status_id: (p.project_status_id ?? p.status?.id ?? null),
-					priority_id: (p.priority_id ?? p.priority?.id ?? null),
-					owner_user_id: (p.owner_user_id ?? p.owner?.id ?? null),
+					start_date: p.start_date ?? null,
+					actual_start_date: p.actual_start_date ?? null,
+					target_end_date: p.target_end_date ?? null,
+					actual_end_date: p.actual_end_date ?? null,
 					
-					start_date: this.toDateInput(p.start_date ?? null),
-					target_start_date: this.toDateInput(p.target_start_date ?? null),
-					target_end_date: this.toDateInput(p.target_end_date ?? null),
-					actual_end_date: this.toDateInput(p.actual_end_date ?? null),
-					description: p.description ?? null,
+					notes: p.notes ?? null,
+					
 					currency_code: p.currency_code ?? 'MYR',
 					planned_cost_total: p.planned_cost_total ?? 0,
 					actual_cost_total: p.actual_cost_total ?? 0,
@@ -149,7 +181,6 @@ export class ProjectFormComponent implements OnInit {
 					actual_funding_total: p.actual_funding_total ?? 0,
 					budget_notes: p.budget_notes ?? null,
 					budget_updated_at: p.budget_updated_at ? String(p.budget_updated_at).slice(0, 10) : null,
-					
 				});
 				
 				this.cdr.detectChanges();
@@ -171,22 +202,28 @@ export class ProjectFormComponent implements OnInit {
 		
 		const v = this.form.value;
 		
-		const payload = {
-			code: String(v.code).trim().toUpperCase(),
+		const payload: ProjectUpsertPayload = {
+			code: String(v.code).trim(),
 			name: String(v.name).trim(),
-			sponsor: String(v.sponsor ?? '').trim() || null,
-			progress: Number.isFinite(Number(v.progress)) ? Number(v.progress) : 0,
+			description: v.description || null,
 			
 			department_id: v.department_id ?? null,
+			owner_user_id: v.owner_user_id ?? null,
 			project_status_id: v.project_status_id ?? null,
 			priority_id: v.priority_id ?? null,
-			owner_user_id: v.owner_user_id ?? null,
+			project_category_id: v.project_category_id ?? null,
+			
+			sponsor: v.sponsor || null,
+			
+			planned_progress: this.percent(v.planned_progress),
+			progress: this.percent(v.progress),
 			
 			start_date: v.start_date || null,
-			target_start_date: v.target_start_date || null,
+			actual_start_date: v.actual_start_date || null,
 			target_end_date: v.target_end_date || null,
 			actual_end_date: v.actual_end_date || null,
-			description: v.description || null,
+			
+			notes: v.notes || null,
 			
 			currency_code: v.currency_code || 'MYR',
 			planned_cost_total: this.money(v.planned_cost_total),
@@ -233,5 +270,11 @@ export class ProjectFormComponent implements OnInit {
 	private money(value: unknown): number {
 		const n = Number(value);
 		return Number.isFinite(n) && n >= 0 ? n : 0;
+	}
+	
+	private percent(value: unknown): number {
+		const n = Number(value);
+		if (!Number.isFinite(n)) return 0;
+		return Math.max(0, Math.min(100, n));
 	}
 }

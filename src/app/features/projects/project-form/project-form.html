@@ -47,6 +47,21 @@
 						</select>
 					</div>
 					
+					<div class="col-12">
+						<label class="form-label">Description</label>
+						<textarea class="form-control" rows="3" formControlName="description"></textarea>
+					</div>
+					
+					<div class="col-12 col-md-6">
+						<label class="form-label">Project Category</label>
+						<select class="form-select" formControlName="project_category_id">
+							<option [ngValue]="null">—</option>
+							<option *ngFor="let c of categories" [ngValue]="c.id">
+								{{ c.code }} - {{ c.name }}
+							</option>
+						</select>
+					</div>
+					
 					<div class="col-12 col-md-6">
 						<label class="form-label">Owner</label>
 						<select class="form-select" formControlName="owner_user_id">
@@ -74,8 +89,13 @@
 						</select>
 					</div>
 					
-					<div class="col-12 col-md-4">
-						<label class="form-label">Progress (%)</label>
+					<div class="col-12 col-md-3">
+						<label class="form-label">Planned Progress (%)</label>
+						<input type="number" class="form-control" formControlName="planned_progress" min="0" max="100">
+					</div>
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label">Actual Progress (%)</label>
 						<input type="number" class="form-control" formControlName="progress" min="0" max="100">
 					</div>
 					
@@ -85,8 +105,13 @@
 					</div>
 					
 					<div class="col-12 col-md-3">
-						<label class="form-label">Target Start</label>
-						<input type="date" class="form-control" formControlName="target_start_date">
+						<label class="form-label">Start Date</label>
+						<input type="date" class="form-control" formControlName="start_date">
+					</div>
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label">Actual Start</label>
+						<input type="date" class="form-control" formControlName="actual_start_date">
 					</div>
 					
 					<div class="col-12 col-md-3">
@@ -95,13 +120,13 @@
 					</div>
 					
 					<div class="col-12 col-md-3">
-						<label class="form-label">Start Date</label>
-						<input type="date" class="form-control" formControlName="start_date">
-					</div>
-					
-					<div class="col-12 col-md-3">
 						<label class="form-label">Actual End</label>
 						<input type="date" class="form-control" formControlName="actual_end_date">
+					</div>
+					
+					<div class="col-12">
+						<label class="form-label">Project Notes</label>
+						<textarea class="form-control" rows="3" formControlName="notes"></textarea>
 					</div>
 					
 				</div>
@@ -116,7 +141,7 @@
 					
 					<div class="col-12 col-md-3">
 						<label class="form-label">Currency</label>
-						<input class="form-control" formControlName="currency_code" maxlength="3" placeholder="MYR">
+						<input class="form-control" formControlName="currency_code" maxlength="3">
 					</div>
 					
 					<div class="col-12 col-md-3">
