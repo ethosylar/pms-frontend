@@ -106,12 +106,14 @@
 								<span *ngIf="!r.department" class="text-muted">—</span>
 							</td>
 							<td>
-								<span class="badge text-bg-secondary" *ngIf="r.status">{{ r.status.code }}</span>
-								<span class="text-muted" *ngIf="!r.status">—</span>
+								<span class="badge rounded-pill" [ngClass]="statusBadgeClass(r.status?.code)">
+									{{ r.status?.code || '—' }}
+								</span>
 							</td>
 							<td>
-								<span class="badge text-bg-info" *ngIf="r.priority">{{ r.priority.code }}</span>
-								<span class="text-muted" *ngIf="!r.priority">—</span>
+								<span class="badge rounded-pill" [ngClass]="priorityBadgeClass(r.priority?.code)">
+									{{ r.priority?.code || '—' }}
+								</span>
 							</td>
 							<td>
 								<span *ngIf="r.owner">{{ r.owner.name }}</span>

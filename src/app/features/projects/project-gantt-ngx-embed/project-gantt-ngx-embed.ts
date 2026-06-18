@@ -24,7 +24,8 @@ import {
 	ApiCollection,
 	ApiService,
 	ProjectMilestoneDto,
-	ProjectTaskGanttDto
+	ProjectTaskGanttDto,
+	ProjectBudgetSummaryDto,
 } from '../../../core/services/api.service';
 
 type GanttProjectItem = GanttItem & {

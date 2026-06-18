@@ -48,13 +48,6 @@ export class ProjectTaskFormComponent implements OnInit {
 	selectedTaskFile: File | null = null;
 	selectedTaskFileName = '';
 	
-	description: [null],
-	actual_task_status_id: [null],
-	actual_start_date: [null],
-	actual_end_date: [null],
-	duration: [0],
-	task_color: [null],
-	
 	form: FormGroup;
 	
 	constructor(
@@ -79,6 +72,13 @@ export class ProjectTaskFormComponent implements OnInit {
 			parent_task_id: [null],
 			depends_on_task_id: [null],
 			milestone_id: [null],
+			
+			description: [null],
+			actual_task_status_id: [null],
+			actual_start_date: [null],
+			actual_end_date: [null],
+			duration: [0],
+			task_color: [null],
 		});
 	}
 	

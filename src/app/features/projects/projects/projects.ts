@@ -177,4 +177,58 @@ export class ProjectsComponent implements OnInit {
 	goNew(): void {
 		this.router.navigateByUrl('/projects/new');
 	}
+	
+	statusBadgeClass(code?: string | null): string {
+		const value = String(code ?? '').trim().toUpperCase();
+		
+		switch (value) {
+			case 'COMPLETED':
+			return 'bg-success';
+			
+			case 'DELAYED':
+			return 'bg-danger';
+			
+			case 'AT_RISK':
+			return 'bg-warning text-dark';
+			
+			case 'IN_PROGRESS':
+			case 'INPROGRESS':
+			return 'bg-primary';
+			
+			case 'ON_HOLD':
+			case 'ONHOLD':
+			return 'bg-secondary';
+			
+			case 'PLANNED':
+			case 'PENDING':
+			return 'bg-info text-dark';
+			
+			case 'CANCELLED':
+			return 'bg-dark';
+			
+			default:
+			return 'bg-light text-dark border';
+		}
+	}
+	
+	priorityBadgeClass(code?: string | null): string {
+		const value = String(code ?? '').trim().toUpperCase();
+		
+		switch (value) {
+			case 'LOW':
+			return 'bg-success';
+			
+			case 'MEDIUM':
+			return 'bg-info text-dark';
+			
+			case 'HIGH':
+			return 'bg-warning text-dark';
+			
+			case 'CRITICAL':
+			return 'bg-danger';
+			
+			default:
+			return 'bg-light text-dark border';
+		}
+	}
 }

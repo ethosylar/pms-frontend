@@ -69,7 +69,7 @@
 				</div>
 				<div class="col-12 col-md-3">
 					<div class="text-muted small">Target Start</div>
-					<div class="fw-semibold">{{ row.target_start_date ? (row.target_start_date | date:'yyyy-MM-dd') : '—' }}</div>
+					<div class="fw-semibold">{{ row.actual_start_date ? (row.actual_start_date | date:'yyyy-MM-dd') : '—' }}</div>
 				</div>
 				<div class="col-12 col-md-3">
 					<div class="text-muted small">Target End</div>
@@ -141,20 +141,137 @@
 	</div>
 	
 	<div class="card shadow-sm border-0 mt-3" *ngIf="row">
-		<div class="card-header bg-white">
-			<div class="fw-semibold">Budget Lines</div>
-			<div class="text-muted small">Read-only budget line setup for this project</div>
+		<div class="card-header bg-white d-flex align-items-center justify-content-between">
+			<div>
+				<div class="fw-semibold">Budget Lines</div>
+				<div class="text-muted small">
+					Create cost or funding lines before allocating them
+				</div>
+			</div>
+			
+			<button
+			type="button"
+			class="btn btn-outline-primary btn-sm"
+			(click)="newBudgetLine()">
+				<i class="bi bi-plus-lg"></i>
+				<span class="ms-2">New Line</span>
+			</button>
 		</div>
 		
 		<div class="card-body">
-			<div *ngIf="budgetLoading" class="text-muted small">
-				<span class="spinner-border spinner-border-sm me-2"></span>Loading budget data...
+			<div *ngIf="budgetLineError" class="alert alert-danger">
+				{{ budgetLineError }}
 			</div>
 			
-			<div *ngIf="budgetError" class="alert alert-danger">{{ budgetError }}</div>
+			<div class="row g-2 align-items-end mb-4">
+				<div class="col-12 col-md-2">
+					<label class="form-label">Type</label>
+					<select
+					class="form-select"
+					[(ngModel)]="budgetLineForm.line_type">
+						<option value="COST">Cost</option>
+						<option value="FUND">Fund</option>
+					</select>
+				</div>
+				
+				<div class="col-12 col-md-2">
+					<label class="form-label">Code *</label>
+					<input
+					class="form-control"
+					[(ngModel)]="budgetLineForm.code"
+					placeholder="e.g. DEV">
+				</div>
+				
+				<div class="col-12 col-md-4">
+					<label class="form-label">Name *</label>
+					<input
+					class="form-control"
+					[(ngModel)]="budgetLineForm.name"
+					placeholder="e.g. Software Development">
+				</div>
+				
+				<div class="col-12 col-md-2">
+					<label class="form-label">Planned</label>
+					<input
+					type="number"
+					min="0"
+					step="0.01"
+					class="form-control"
+					[(ngModel)]="budgetLineForm.planned_amount">
+				</div>
+				
+				<div class="col-12 col-md-2">
+					<label class="form-label">Sort Order</label>
+					<input
+					type="number"
+					min="0"
+					class="form-control"
+					[(ngModel)]="budgetLineForm.sort_order">
+				</div>
+				
+				<div class="col-12 col-md-3">
+					<label class="form-label">Actual</label>
+					<input
+					type="number"
+					min="0"
+					step="0.01"
+					class="form-control"
+					[(ngModel)]="budgetLineForm.actual_amount">
+				</div>
+				
+				<div class="col-12 col-md-3">
+					<label class="form-label">Committed</label>
+					<input
+					type="number"
+					min="0"
+					step="0.01"
+					class="form-control"
+					[(ngModel)]="budgetLineForm.committed_amount">
+				</div>
+				
+				<div class="col-12 col-md-2">
+					<label class="form-label">Active</label>
+					<select
+					class="form-select"
+					[(ngModel)]="budgetLineForm.is_active">
+						<option [ngValue]="true">Yes</option>
+						<option [ngValue]="false">No</option>
+					</select>
+				</div>
+				
+				<div class="col-12 col-md-4">
+					<label class="form-label">Notes</label>
+					<input
+					class="form-control"
+					[(ngModel)]="budgetLineForm.notes">
+				</div>
+				
+				<div class="col-12 d-flex justify-content-end gap-2">
+					<button
+					type="button"
+					class="btn btn-outline-secondary"
+					(click)="newBudgetLine()"
+					[disabled]="savingBudgetLine">
+						Reset
+					</button>
+					
+					<button
+					type="button"
+					class="btn btn-primary"
+					(click)="saveBudgetLine()"
+					[disabled]="savingBudgetLine">
+						<span
+						*ngIf="savingBudgetLine"
+						class="spinner-border spinner-border-sm me-2">
+						</span>
+						
+						{{ editingBudgetLineId ? 'Save Changes' : 'Create Budget Line' }}
+					</button>
+				</div>
+			</div>
 			
-			<div class="table-responsive" *ngIf="!budgetLoading">
-				<table class="table table-sm align-middle mb-0">
+			<div class="table-responsive">
+				<table class="table table-sm table-hover align-middle mb-0">
 					<thead class="table-light">
 						<tr>
 							<th>Type</th>
@@ -164,48 +281,68 @@
 							<th class="text-end">Actual</th>
 							<th class="text-end">Committed</th>
 							<th>Active</th>
+							<th class="text-end">Actions</th>
 						</tr>
 					</thead>
 					
 					<tbody>
 						<tr *ngFor="let line of budgetLines">
 							<td>
-								<span class="badge" [ngClass]="line.line_type === 'COST' ? 'bg-danger' : 'bg-success'">
+								<span
+								class="badge"
+								[ngClass]="line.line_type === 'COST'
+								? 'bg-danger'
+								: 'bg-success'">
 									{{ line.line_type }}
 								</span>
 							</td>
+							
 							<td>{{ line.code }}</td>
+							
 							<td>
 								<div class="fw-semibold">{{ line.name }}</div>
-								<div class="text-muted small" *ngIf="line.notes">{{ line.notes }}</div>
+								<div class="small text-muted" *ngIf="line.notes">
+									{{ line.notes }}
+								</div>
 							</td>
-							<td class="text-end">{{ moneyLabel(line.planned_amount) }}</td>
-							<td class="text-end">{{ moneyLabel(line.actual_amount) }}</td>
-							<td class="text-end">{{ moneyLabel(line.committed_amount) }}</td>
+							
+							<td class="text-end">
+								{{ moneyLabel(line.planned_amount) }}
+							</td>
+							
+							<td class="text-end">
+								{{ moneyLabel(line.actual_amount) }}
+							</td>
+							
+							<td class="text-end">
+								{{ moneyLabel(line.committed_amount) }}
+							</td>
+							
 							<td>{{ line.is_active ? 'Yes' : 'No' }}</td>
+							
+							<td class="text-end">
+								<button
+								type="button"
+								class="btn btn-sm btn-outline-primary me-2"
+								(click)="editBudgetLine(line)">
+									<i class="bi bi-pencil"></i>
+								</button>
+								
+								<button
+								type="button"
+								class="btn btn-sm btn-outline-danger"
+								(click)="deleteBudgetLine(line)">
+									<i class="bi bi-trash"></i>
+								</button>
+							</td>
 						</tr>
 						
 						<tr *ngIf="!budgetLines.length">
-							<td colspan="7" class="text-center text-muted py-3">No budget lines found.</td>
+							<td colspan="8" class="text-center text-muted py-4">
+								No budget lines yet. Create one before adding an allocation.
+							</td>
 						</tr>
 					</tbody>
-					
-					<tfoot class="table-light">
-						<tr>
-							<th colspan="3">Cost Total</th>
-							<th class="text-end">{{ moneyLabel(budgetLineTotal('COST', 'planned_amount')) }}</th>
-							<th class="text-end">{{ moneyLabel(budgetLineTotal('COST', 'actual_amount')) }}</th>
-							<th class="text-end">{{ moneyLabel(budgetLineTotal('COST', 'committed_amount')) }}</th>
-							<th></th>
-						</tr>
-						<tr>
-							<th colspan="3">Funding Total</th>
-							<th class="text-end">{{ moneyLabel(budgetLineTotal('FUNDING', 'planned_amount')) }}</th>
-							<th class="text-end">{{ moneyLabel(budgetLineTotal('FUNDING', 'actual_amount')) }}</th>
-							<th class="text-end">{{ moneyLabel(budgetLineTotal('FUNDING', 'committed_amount')) }}</th>
-							<th></th>
-						</tr>
-					</tfoot>
 				</table>
 			</div>
 		</div>
@@ -231,8 +368,11 @@
 				
 				<div class="col-12 col-md-4">
 					<label class="form-label">Task</label>
-					<select class="form-select" [(ngModel)]="allocationForm.task_id">
-						<option [ngValue]="null">— Project/Milestone Level —</option>
+					<select
+					class="form-select"
+					[(ngModel)]="allocationForm.task_id"
+					(ngModelChange)="onAllocationTaskChange()">
+						<option [ngValue]="null">— Project/Task Level —</option>
 						<option *ngFor="let t of taskOptions" [ngValue]="t.id">
 							#{{ t.id }} - {{ t.name }}
 						</option>
@@ -241,7 +381,10 @@
 				
 				<div class="col-12 col-md-4">
 					<label class="form-label">Milestone</label>
-					<select class="form-select" [(ngModel)]="allocationForm.milestone_id">
+					<select
+					class="form-select"
+					[(ngModel)]="allocationForm.milestone_id"
+					(ngModelChange)="onAllocationMilestoneChange()">
 						<option [ngValue]="null">— None —</option>
 						<option *ngFor="let m of milestones" [ngValue]="m.id">
 							{{ m.name }}
@@ -283,7 +426,14 @@
 				</div>
 				
 				<div class="col-12 col-md-2 d-flex gap-2">
-					<button class="btn btn-primary w-100" [disabled]="savingAllocation" (click)="saveAllocation()">
+					<button
+					class="btn btn-primary w-100"
+					[disabled]="
+					savingAllocation ||
+					budgetLines.length === 0 ||
+					!allocationForm.budget_line_id
+					"
+					(click)="saveAllocation()">
 						{{ editingAllocationId ? 'Save' : 'Add' }}
 					</button>
 					<button class="btn btn-outline-secondary" (click)="newAllocation()">
@@ -291,6 +441,60 @@
 					</button>
 				</div>
 			</div>
+			<br>
+			<br>
+			<div class="row g-3 mb-3">
+				<div class="col-12 col-md-4">
+					<div class="border rounded p-3 h-100 bg-light-subtle">
+						<div class="fw-semibold mb-2">Total Cost</div>
+						<div class="small text-muted">Planned</div>
+						<div>{{ moneyLabel(allocationTotalByType('COST', 'planned_amount')) }}</div>
+						
+						<div class="small text-muted mt-2">Actual</div>
+						<div>{{ moneyLabel(allocationTotalByType('COST', 'actual_amount')) }}</div>
+						
+						<div class="small text-muted mt-2">Committed</div>
+						<div>{{ moneyLabel(allocationTotalByType('COST', 'committed_amount')) }}</div>
+					</div>
+				</div>
+				
+				<div class="col-12 col-md-4">
+					<div class="border rounded p-3 h-100 bg-light-subtle">
+						<div class="fw-semibold mb-2">Total Funding</div>
+						<div class="small text-muted">Planned</div>
+						<div>{{ moneyLabel(allocationTotalByType('FUND', 'planned_amount')) }}</div>
+						
+						<div class="small text-muted mt-2">Actual</div>
+						<div>{{ moneyLabel(allocationTotalByType('FUND', 'actual_amount')) }}</div>
+						
+						<div class="small text-muted mt-2">Committed</div>
+						<div>{{ moneyLabel(allocationTotalByType('FUND', 'committed_amount')) }}</div>
+					</div>
+				</div>
+				
+				<div class="col-12 col-md-4">
+					<div class="border rounded p-3 h-100 bg-light-subtle">
+						<div class="fw-semibold mb-2">Variance (Funding - Cost)</div>
+						
+						<div class="small text-muted">Planned</div>
+						<div [ngClass]="varianceClass(allocationVariance('planned_amount'))">
+							{{ moneyLabel(allocationVariance('planned_amount')) }}
+						</div>
+						
+						<div class="small text-muted mt-2">Actual</div>
+						<div [ngClass]="varianceClass(allocationVariance('actual_amount'))">
+							{{ moneyLabel(allocationVariance('actual_amount')) }}
+						</div>
+						
+						<div class="small text-muted mt-2">Committed</div>
+						<div [ngClass]="varianceClass(allocationVariance('committed_amount'))">
+							{{ moneyLabel(allocationVariance('committed_amount')) }}
+						</div>
+					</div>
+				</div>
+			</div>
+			<br>
+			<br>
 			
 			<div class="table-responsive">
 				<table class="table table-sm align-middle mb-0">
@@ -334,10 +538,32 @@
 					
 					<tfoot class="table-light">
 						<tr>
-							<th colspan="2">Allocation Total</th>
-							<th class="text-end">{{ moneyLabel(allocationTotal('planned_amount')) }}</th>
-							<th class="text-end">{{ moneyLabel(allocationTotal('actual_amount')) }}</th>
-							<th class="text-end">{{ moneyLabel(allocationTotal('committed_amount')) }}</th>
+							<th colspan="2">Cost Total</th>
+							<th class="text-end">{{ moneyLabel(allocationTotalByType('COST', 'planned_amount')) }}</th>
+							<th class="text-end">{{ moneyLabel(allocationTotalByType('COST', 'actual_amount')) }}</th>
+							<th class="text-end">{{ moneyLabel(allocationTotalByType('COST', 'committed_amount')) }}</th>
+							<th colspan="2"></th>
+						</tr>
+						
+						<tr>
+							<th colspan="2">Funding Total</th>
+							<th class="text-end">{{ moneyLabel(allocationTotalByType('FUND', 'planned_amount')) }}</th>
+							<th class="text-end">{{ moneyLabel(allocationTotalByType('FUND', 'actual_amount')) }}</th>
+							<th class="text-end">{{ moneyLabel(allocationTotalByType('FUND', 'committed_amount')) }}</th>
+							<th colspan="2"></th>
+						</tr>
+						
+						<tr>
+							<th colspan="2">Variance (Funding - Cost)</th>
+							<th class="text-end" [ngClass]="varianceClass(allocationVariance('planned_amount'))">
+								{{ moneyLabel(allocationVariance('planned_amount')) }}
+							</th>
+							<th class="text-end" [ngClass]="varianceClass(allocationVariance('actual_amount'))">
+								{{ moneyLabel(allocationVariance('actual_amount')) }}
+							</th>
+							<th class="text-end" [ngClass]="varianceClass(allocationVariance('committed_amount'))">
+								{{ moneyLabel(allocationVariance('committed_amount')) }}
+							</th>
 							<th colspan="2"></th>
 						</tr>
 					</tfoot>
@@ -352,7 +578,7 @@
 			<app-project-gantt-ngx-embed
 			*ngIf="row"
 			[projectId]="projectId"
-			[projectStartDate]="row.start_date ?? row.target_start_date ?? null"
+			[projectStartDate]="row.start_date ?? row.actual_start_date ?? null"
 			[projectEndDate]="row.target_end_date ?? row.actual_end_date ?? null">
 			</app-project-gantt-ngx-embed>
 		</div>

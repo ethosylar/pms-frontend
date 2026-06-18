@@ -821,6 +821,20 @@ export class ApiService {
 		);
 	}
 	
+	getProjectCategories(params?: { search?: string; is_active?: number; page?: number; per_page?: number }) {
+		let httpParams = new HttpParams();
+		
+		if (params?.search) httpParams = httpParams.set('search', params.search);
+		if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
+		if (params?.page) httpParams = httpParams.set('page', String(params.page));
+		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
+		
+		return this.http.get<ApiCollection<ProjectCategoryDto>>(
+			`${environment.apiBaseUrl}/project-categories`,
+			{ params: httpParams }
+		);
+	}
+	
 }
 
 export interface LaravelPaginated<T> {
@@ -1116,16 +1130,22 @@ export type ProjectUpsertPayload = {
 	description?: string | null;
 	
 	sponsor?: string | null;
-	progress?: number;
 	
 	department_id?: number | null;
 	project_status_id?: number | null;
 	priority_id?: number | null;
 	owner_user_id?: number | null;
+	project_category_id?: number | null;
+	
+	planned_progress?: number;
+	progress?: number;
 	
 	start_date?: string | null;
+	actual_start_date?: string | null;
 	target_end_date?: string | null;
 	actual_end_date?: string | null;
+	
+	notes?: string | null;
 	
 	currency_code?: string | null;
 	planned_cost_total?: number | null;
@@ -1137,7 +1157,7 @@ export type ProjectUpsertPayload = {
 	budget_updated_at?: string | null;
 };
 
-export type ProjectBudgetLineType = 'COST' | 'FUNDING';
+export type ProjectBudgetLineType = 'COST' | 'FUND';
 
 type ExternalRiskIssueListParams = {
 	search?: string;

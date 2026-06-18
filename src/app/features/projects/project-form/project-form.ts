@@ -14,6 +14,8 @@ import {
 	ProjectStatusDto,
 	UserDto,
 	ApiCollection,
+	ProjectCategoryDto,
+	ProjectUpsertPayload,
 } from '../../../core/services/api.service';
 import { ToastService } from '../../../shared/ui/toast/toast';
 
@@ -40,6 +42,7 @@ export class ProjectFormComponent implements OnInit {
 	owners: Array<{ id: number; name: string }> = [];
 	categories: ProjectCategoryDto[] = [];
 	
+	
 	constructor(
 		private fb: FormBuilder,
 		private api: ApiService,
@@ -60,6 +63,7 @@ export class ProjectFormComponent implements OnInit {
 			owner_user_id: [null],
 			
 			start_date: [null],
+			actual_start_date: [null],
 			target_start_date: [null],
 			target_end_date: [null],
 			actual_end_date: [null],
@@ -74,28 +78,11 @@ export class ProjectFormComponent implements OnInit {
 			budget_notes: [null],
 			budget_updated_at: [null],
 			
-			description: [null],
-			
 			project_category_id: [null],
 			
 			planned_progress: [0],
-			progress: [0],
-			
-			start_date: [null],
-			actual_start_date: [null],
-			target_end_date: [null],
-			actual_end_date: [null],
 			
 			notes: [null],
-			
-			currency_code: ['MYR'],
-			planned_cost_total: [0],
-			actual_cost_total: [0],
-			committed_cost_total: [0],
-			planned_funding_total: [0],
-			actual_funding_total: [0],
-			budget_notes: [null],
-			budget_updated_at: [null],
 		});
 	}
 	
@@ -122,7 +109,7 @@ export class ProjectFormComponent implements OnInit {
 			departments: this.api.getDepartments({ per_page: 100 }).pipe(catchError(() => of({ data: [] } as any))),
 			statuses: this.api.getProjectStatuses({ per_page: 100, is_active: 1 }).pipe(catchError(() => of({ data: [] } as any))),
 			priorities: this.api.getPriorities({ per_page: 100, is_active: 1 }).pipe(catchError(() => of({ data: [] } as any))),
-			
+			categories: this.api.getProjectCategories({ per_page: 100, is_active: 1 }).pipe(catchError(() => of({ data: [] } as any))),
 			// owners are optional (your /users might be ADMIN-only). We handle failures gracefully.
 			owners: this.api.getUsers({ per_page: 100 }).pipe(catchError(() => of({ data: [] } as any))),
 		})
@@ -131,7 +118,7 @@ export class ProjectFormComponent implements OnInit {
 				this.departments = (lk.departments as ApiCollection<DepartmentDto>)?.data ?? [];
 				this.statuses = (lk.statuses as ApiCollection<ProjectStatusDto>)?.data ?? [];
 				this.priorities = (lk.priorities as ApiCollection<PriorityDto>)?.data ?? [];
-				this.categories = lookups.project_categories ?? [];
+				this.categories = (lk.categories as ApiCollection<ProjectCategoryDto>)?.data ?? [];
 				
 				const users = (lk.owners as ApiCollection<UserDto>)?.data ?? [];
 				this.owners = users.map(u => ({ id: u.id, name: u.name }));

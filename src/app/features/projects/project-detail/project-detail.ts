@@ -83,6 +83,7 @@ export class ProjectDetailComponent implements OnInit {
 	budgetLineForm: ProjectBudgetLineUpsertPayload = this.emptyBudgetLine();
 	editingBudgetLineId: number | null = null;
 	savingBudgetLine = false;
+	budgetLineError: string | null = null;
 	
 	budgetAllocations: ProjectBudgetAllocationDto[] = [];
 	
@@ -508,9 +509,9 @@ export class ProjectDetailComponent implements OnInit {
 		});
 	}
 	
-	emptyBudgetLine(): ProjectBudgetLineUpsertPayload {
+	emptyBudgetLine(type: ProjectBudgetLineType = 'COST'): ProjectBudgetLineUpsertPayload {
 		return {
-			line_type: 'COST',
+			line_type: type,
 			code: '',
 			name: '',
 			planned_amount: 0,
@@ -524,11 +525,14 @@ export class ProjectDetailComponent implements OnInit {
 	
 	newBudgetLine(type: ProjectBudgetLineType = 'COST'): void {
 		this.editingBudgetLineId = null;
-		this.budgetLineForm = { ...this.emptyBudgetLine(), line_type: type };
+		this.budgetLineError = null;
+		this.budgetLineForm = this.emptyBudgetLine(type);
 	}
 	
 	editBudgetLine(line: ProjectBudgetLineDto): void {
 		this.editingBudgetLineId = line.id;
+		this.budgetLineError = null;
+		
 		this.budgetLineForm = {
 			line_type: line.line_type,
 			code: line.code,
@@ -543,15 +547,20 @@ export class ProjectDetailComponent implements OnInit {
 	}
 	
 	saveBudgetLine(): void {
-		if (!this.budgetLineForm.code || !this.budgetLineForm.name) {
-			this.toast.error('Code and name are required.');
+		this.budgetLineError = null;
+		
+		const code = String(this.budgetLineForm.code ?? '').trim();
+		const name = String(this.budgetLineForm.name ?? '').trim();
+		
+		if (!code || !name) {
+			this.budgetLineError = 'Budget line code and name are required.';
 			return;
 		}
 		
 		const payload: ProjectBudgetLineUpsertPayload = {
-			...this.budgetLineForm,
-			code: String(this.budgetLineForm.code).trim().toUpperCase(),
-			name: String(this.budgetLineForm.name).trim(),
+			line_type: this.budgetLineForm.line_type ?? 'COST',
+			code: code.toUpperCase(),
+			name,
 			planned_amount: this.money(this.budgetLineForm.planned_amount),
 			actual_amount: this.money(this.budgetLineForm.actual_amount),
 			committed_amount: this.money(this.budgetLineForm.committed_amount),
@@ -562,35 +571,81 @@ export class ProjectDetailComponent implements OnInit {
 		
 		this.savingBudgetLine = true;
 		
-		const req$ = this.editingBudgetLineId
-		? this.api.updateProjectBudgetLine(this.projectId, this.editingBudgetLineId, payload)
+		const request$ = this.editingBudgetLineId
+		? this.api.updateProjectBudgetLine(
+			this.projectId,
+			this.editingBudgetLineId,
+			payload
+		)
 		: this.api.createProjectBudgetLine(this.projectId, payload);
 		
-		req$
-		.pipe(finalize(() => {
-			this.savingBudgetLine = false;
-			this.cdr.detectChanges();
-		}))
+		request$
+		.pipe(
+			finalize(() => {
+				this.savingBudgetLine = false;
+				this.cdr.detectChanges();
+			})
+		)
 		.subscribe({
-			next: () => {
-				this.toast.success(this.editingBudgetLineId ? 'Budget line updated.' : 'Budget line created.');
+			next: (response) => {
+				this.toast.success(
+					this.editingBudgetLineId
+					? 'Budget line updated.'
+					: 'Budget line created.'
+				);
+				
+				const createdLine =
+				'data' in response ? response.data : null;
+				
+				if (createdLine) {
+					// Immediately make the new line selectable.
+					this.budgetLines = [
+						...this.budgetLines.filter(x => x.id !== createdLine.id),
+						createdLine
+					];
+					
+					this.allocationForm = {
+						...this.allocationForm,
+						budget_line_id: createdLine.id
+					};
+				}
+				
 				this.newBudgetLine(payload.line_type ?? 'COST');
-				this.loadBudgetLines();
+				this.loadBudgetModule();
 			},
 			error: (err) => {
 				console.error(err);
-				this.toast.error('Failed to save budget line.');
+				
+				if (err?.status === 409) {
+					this.budgetLineError =
+					'This budget-line code already exists for the selected type.';
+					} else {
+					this.budgetLineError = 'Failed to save budget line.';
+				}
+				
+				this.cdr.detectChanges();
 			}
 		});
 	}
 	
 	deleteBudgetLine(line: ProjectBudgetLineDto): void {
-		if (!confirm(`Delete budget line "${line.code} - ${line.name}"?`)) return;
+		if (!confirm(`Delete budget line "${line.code} - ${line.name}"?`)) {
+			return;
+		}
 		
-		this.api.deleteProjectBudgetLine(this.projectId, line.id).subscribe({
+		this.api.deleteProjectBudgetLine(this.projectId, line.id)
+		.subscribe({
 			next: () => {
 				this.toast.success('Budget line deleted.');
-				this.loadBudgetLines();
+				
+				if (this.allocationForm.budget_line_id === line.id) {
+					this.allocationForm = {
+						...this.allocationForm,
+						budget_line_id: null
+					};
+				}
+				
+				this.loadBudgetModule();
 			},
 			error: (err) => {
 				console.error(err);
@@ -614,7 +669,6 @@ export class ProjectDetailComponent implements OnInit {
 		maximumFractionDigits: 2
 		})}`;
 	}
-	
 	
 	private money(value: unknown): number {
 		const n = Number(value);
@@ -686,8 +740,11 @@ export class ProjectDetailComponent implements OnInit {
 	}
 	
 	saveAllocation(): void {
-		if (!this.allocationForm.budget_line_id) {
-			this.toast.error('Budget line is required.');
+		if (
+			!this.allocationForm.task_id &&
+			!this.allocationForm.milestone_id
+			) {
+			this.toast.error('Select either a task or milestone.');
 			return;
 		}
 		
@@ -769,6 +826,53 @@ export class ProjectDetailComponent implements OnInit {
 		return this.budgetAllocations.reduce((sum, x) => sum + Number(x[field] ?? 0), 0);
 	}
 	
+	onAllocationTaskChange(): void {
+		if (this.allocationForm.task_id) {
+			this.allocationForm = {
+				...this.allocationForm,
+				milestone_id: null
+			};
+		}
+	}
+	
+	onAllocationMilestoneChange(): void {
+		if (this.allocationForm.milestone_id) {
+			this.allocationForm = {
+				...this.allocationForm,
+				task_id: null
+			};
+		}
+	}
+	
+	allocationLineType(a: ProjectBudgetAllocationDto): 'COST' | 'FUND' | null {
+		if (a.budget_line?.line_type === 'COST' || a.budget_line?.line_type === 'FUND') {
+			return a.budget_line.line_type;
+		}
+		
+		const line = this.budgetLines.find(x => x.id === a.budget_line_id);
+		return line?.line_type ?? null;
+	}
+	
+	allocationTotalByType(
+		type: 'COST' | 'FUND',
+		field: 'planned_amount' | 'actual_amount' | 'committed_amount'
+		): number {
+		return this.budgetAllocations
+		.filter(a => this.allocationLineType(a) === type)
+		.reduce((sum, a) => sum + Number(a[field] ?? 0), 0);
+	}
+	
+	allocationVariance(field: 'planned_amount' | 'actual_amount' | 'committed_amount'): number {
+		const funding = this.allocationTotalByType('FUND', field);
+		const cost = this.allocationTotalByType('COST', field);
+		return funding - cost;
+	}
+	
+	varianceClass(value: number | null | undefined): string {
+		if ((value ?? 0) < 0) return 'text-danger fw-semibold';
+		if ((value ?? 0) > 0) return 'text-success fw-semibold';
+		return 'fw-semibold';
+	}
 	
 	
 }

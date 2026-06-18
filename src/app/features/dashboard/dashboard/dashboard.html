@@ -1,28 +1,40 @@
 <div class="dashboard-wrap position-relative">
-	<!-- ✅ overlay loader -->
 	<div *ngIf="loading" class="loading-overlay">
 		<div class="text-center">
 			<div class="spinner-border" role="status"></div>
 			<div class="mt-2 fw-semibold">Loading dashboard…</div>
-			<div class="text-muted small">Fetching latest overview & charts</div>
+			<div class="text-muted small">
+				Fetching project, task, milestone and finance data
+			</div>
 		</div>
 	</div>
 	
-	<!-- existing header -->
 	<div class="d-flex align-items-center justify-content-between mb-4">
-		<h1 class="h4 mb-0">Overview</h1>
-		<div class="text-muted small">Last updated: {{ now | date:'medium' }}</div>
+		<div>
+			<h1 class="h4 mb-0">Portfolio Overview</h1>
+			<div class="text-muted small">
+				Projects, tasks, milestones and financial performance
+			</div>
+		</div>
+		
+		<div class="text-muted small">
+			Last updated: {{ now | date:'medium' }}
+		</div>
 	</div>
 	
-	<div *ngIf="!loading && error" class="alert alert-danger">{{ error }}</div>
+	<div *ngIf="!loading && error" class="alert alert-danger">
+		{{ error }}
+	</div>
 	
 	<ng-container *ngIf="!loading && !error && data">
 		
-		<!-- KPI Row -->
+		<!-- Project KPIs -->
+		<div class="section-heading">Projects</div>
+		
 		<div class="row g-3 mb-4">
-			<div class="col-12 col-md-6 col-xl-3">
-				<a class="text-decoration-none" [routerLink]="['/projects']">
-					<div class="card shadow-sm border-0 kpi kpi-primary">
+			<div class="col-6 col-xl-3">
+				<a class="text-decoration-none" routerLink="/projects">
+					<div class="card shadow-sm border-0 kpi kpi-primary h-100">
 						<div class="card-body">
 							<div class="text-muted small">Total Projects</div>
 							<div class="fs-3 fw-bold">{{ data.counts.total }}</div>
@@ -31,93 +43,533 @@
 				</a>
 			</div>
 			
-			<div class="col-12 col-md-6 col-xl-3">
-				<a class="text-decoration-none"
-				[routerLink]="['/projects']"
-				[queryParams]="{ status: 'IN_PROGRESS' }">
-					<div class="card shadow-sm border-0 kpi kpi-info">
-						<div class="card-body">
-							<div class="text-muted small">In Progress</div>
-							<div class="fs-3 fw-bold">{{ data.counts.in_progress }}</div>
+			<div class="col-6 col-xl-3">
+				<div class="card shadow-sm border-0 kpi kpi-info h-100">
+					<div class="card-body">
+						<div class="text-muted small">In Progress</div>
+						<div class="fs-3 fw-bold">
+							{{ data.counts.in_progress }}
+						</div>
+						<div class="small text-muted">
+							Avg. {{ data.counts.avg_progress_in_progress ?? 0 }}%
 						</div>
 					</div>
-				</a>
+				</div>
 			</div>
 			
-			<div class="col-12 col-md-6 col-xl-3">
-				<a class="text-decoration-none"
-				[routerLink]="['/projects']"
-				[queryParams]="{ status: 'AT_RISK' }">
-					<div class="card shadow-sm border-0 kpi kpi-danger">
-						<div class="card-body">
-							<div class="text-muted small">At Risk</div>
-							<div class="fs-3 fw-bold">{{ data.counts.at_risk }}</div>
+			<div class="col-6 col-xl-3">
+				<div class="card shadow-sm border-0 kpi kpi-warning h-100">
+					<div class="card-body">
+						<div class="text-muted small">Due in 7 Days</div>
+						<div class="fs-3 fw-bold">
+							{{ data.counts.due_in_7_days }}
 						</div>
 					</div>
-				</a>
+				</div>
 			</div>
 			
-			<div class="col-12 col-md-6 col-xl-3">
-				<a class="text-decoration-none"
-				[routerLink]="['/projects']"
-				[queryParams]="{ status: 'DELAYED' }">
-					<div class="card shadow-sm border-0 kpi kpi-warning">
-						<div class="card-body">
-							<div class="text-muted small">Delayed</div>
-							<div class="fs-3 fw-bold">{{ data.counts.delayed_count }}</div>
+			<div class="col-6 col-xl-3">
+				<div class="card shadow-sm border-0 kpi kpi-danger h-100">
+					<div class="card-body">
+						<div class="text-muted small">Overdue Projects</div>
+						<div class="fs-3 fw-bold">
+							{{ data.counts.overdue_projects }}
 						</div>
 					</div>
-				</a>
+				</div>
 			</div>
 		</div>
 		
+		<!-- Task and milestone KPIs -->
+		<div class="section-heading">Delivery</div>
+		
 		<div class="row g-3 mb-4">
-			<div class="col-12 col-lg-4">
-				<div class="card shadow-sm border-0">
-					<div class="card-header bg-white fw-semibold">Projects by Status</div>
+			<div class="col-6 col-lg-3">
+				<div class="card shadow-sm border-0 kpi kpi-primary h-100">
 					<div class="card-body">
+						<div class="text-muted small">Total Tasks</div>
+						<div class="fs-3 fw-bold">
+							{{ data.task_counts.total }}
+						</div>
+						<div class="small text-muted">
+							Avg. progress {{ data.task_counts.avg_progress ?? 0 }}%
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-6 col-lg-3">
+				<div class="card shadow-sm border-0 kpi kpi-danger h-100">
+					<div class="card-body">
+						<div class="text-muted small">Overdue Tasks</div>
+						<div class="fs-3 fw-bold">
+							{{ data.task_counts.overdue }}
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-6 col-lg-3">
+				<div class="card shadow-sm border-0 kpi kpi-success h-100">
+					<div class="card-body">
+						<div class="text-muted small">Completed Tasks</div>
+						<div class="fs-3 fw-bold">
+							{{ data.task_counts.completed }}
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-6 col-lg-3">
+				<div class="card shadow-sm border-0 kpi kpi-warning h-100">
+					<div class="card-body">
+						<div class="text-muted small">Upcoming Milestones</div>
+						<div class="fs-3 fw-bold">
+							{{ data.milestone_counts.due_in_14_days }}
+						</div>
+						<div class="small text-muted">Next 14 days</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- Finance KPIs -->
+		<ng-container *ngIf="data.finance as finance">
+			<div class="section-heading">Financial Overview</div>
+			
+			<div class="row g-3 mb-4">
+				<div class="col-12 col-md-6 col-xl-3">
+					<div class="card shadow-sm border-0 finance-kpi h-100">
+						<div class="card-body">
+							<div class="text-muted small">Planned Cost</div>
+							<div class="fs-5 fw-bold">
+								{{ money(finance.planned_cost) }}
+							</div>
+							<div class="small text-muted">
+								Spent: {{ money(finance.spent_cost) }}
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="col-12 col-md-6 col-xl-3">
+					<div class="card shadow-sm border-0 finance-kpi h-100">
+						<div class="card-body">
+							<div class="text-muted small">Planned Funding</div>
+							<div class="fs-5 fw-bold">
+								{{ money(finance.planned_funding) }}
+							</div>
+							<div class="small text-muted">
+								Received: {{ money(finance.received_funding) }}
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="col-12 col-md-6 col-xl-3">
+					<div class="card shadow-sm border-0 finance-kpi h-100">
+						<div class="card-body">
+							<div class="text-muted small">Cost Utilization</div>
+							<div class="fs-5 fw-bold">
+								{{ finance.cost_utilization_pct ?? 0 }}%
+							</div>
+							
+							<div class="progress mt-2" style="height: 8px;">
+								<div
+								class="progress-bar"
+								[class.bg-danger]="
+								(finance.cost_utilization_pct ?? 0) > 100
+								"
+								[style.width.%]="
+								(finance.cost_utilization_pct ?? 0) > 100
+								? 100
+								: (finance.cost_utilization_pct ?? 0)
+								">
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="col-12 col-md-6 col-xl-3">
+					<div
+					class="card shadow-sm border-0 finance-kpi h-100"
+					[class.negative-finance]="finance.variance < 0">
+						<div class="card-body">
+							<div class="text-muted small">
+								Financial Variance
+							</div>
+							
+							<div
+							class="fs-5 fw-bold"
+							[class.text-danger]="finance.variance < 0"
+							[class.text-success]="finance.variance >= 0">
+								{{ money(finance.variance) }}
+							</div>
+							
+							<div class="small text-muted">
+								Received funding − spent cost
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</ng-container>
+		
+		<!-- Charts -->
+		<div class="section-heading">Portfolio Analytics</div>
+		
+		<div class="row g-3 mb-4">
+			<div class="col-12 col-xl-4">
+				<div class="card shadow-sm border-0 chart-card">
+					<div class="card-header bg-white fw-semibold">
+						Projects by Status
+					</div>
+					<div class="card-body chart-container">
 						<canvas
 						baseChart
 						[data]="projectsByStatusData"
-						[options]="projectsByStatusOptions"
-						[type]="'doughnut'">
+						[options]="doughnutOptions"
+						type="doughnut">
+						</canvas>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-12 col-xl-4">
+				<div class="card shadow-sm border-0 chart-card">
+					<div class="card-header bg-white fw-semibold">
+						Tasks by Status
+					</div>
+					<div class="card-body chart-container">
+						<canvas
+						baseChart
+						[data]="tasksByStatusData"
+						[options]="doughnutOptions"
+						type="doughnut">
+						</canvas>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-12 col-xl-4">
+				<div class="card shadow-sm border-0 chart-card">
+					<div class="card-header bg-white fw-semibold">
+						Milestones by Status
+					</div>
+					<div class="card-body chart-container">
+						<canvas
+						baseChart
+						[data]="milestonesByStatusData"
+						[options]="doughnutOptions"
+						type="doughnut">
+						</canvas>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-12 col-xl-6">
+				<div class="card shadow-sm border-0 chart-card">
+					<div class="card-header bg-white fw-semibold">
+						Projects by Department
+					</div>
+					<div class="card-body chart-container chart-container-lg">
+						<canvas
+						baseChart
+						[data]="projectsByDepartmentData"
+						[options]="horizontalBarOptions"
+						type="bar">
+						</canvas>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-12 col-xl-6">
+				<div class="card shadow-sm border-0 chart-card">
+					<div class="card-header bg-white fw-semibold">
+						Six-Month Delivery Forecast
+					</div>
+					<div class="card-body chart-container chart-container-lg">
+						<canvas
+						baseChart
+						[data]="deliveryForecastData"
+						[options]="lineOptions"
+						type="line">
+						</canvas>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-12 col-xl-4">
+				<div class="card shadow-sm border-0 chart-card">
+					<div class="card-header bg-white fw-semibold">
+						Timeline Health
+					</div>
+					<div class="card-body chart-container">
+						<canvas
+						baseChart
+						[data]="timelineHealthData"
+						[options]="doughnutOptions"
+						type="doughnut">
+						</canvas>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-12 col-xl-4">
+				<div class="card shadow-sm border-0 chart-card">
+					<div class="card-header bg-white fw-semibold">
+						Project Progress Distribution
+					</div>
+					<div class="card-body chart-container">
+						<canvas
+						baseChart
+						[data]="progressDistributionData"
+						[options]="barOptions"
+						type="bar">
+						</canvas>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-12 col-xl-4">
+				<div class="card shadow-sm border-0 chart-card">
+					<div class="card-header bg-white fw-semibold">
+						Budget Utilization
+					</div>
+					<div class="card-body chart-container">
+						<canvas
+						baseChart
+						[data]="budgetUtilizationData"
+						[options]="doughnutOptions"
+						type="doughnut">
+						</canvas>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-12 col-xl-6">
+				<div class="card shadow-sm border-0 chart-card">
+					<div class="card-header bg-white fw-semibold">
+						Cost and Funding Summary
+					</div>
+					<div class="card-body chart-container chart-container-lg">
+						<canvas
+						baseChart
+						[data]="financeSummaryData"
+						[options]="barOptions"
+						type="bar">
+						</canvas>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-12 col-xl-6">
+				<div class="card shadow-sm border-0 chart-card">
+					<div class="card-header bg-white fw-semibold">
+						Financial Performance by Department
+					</div>
+					<div class="card-body chart-container chart-container-lg">
+						<canvas
+						baseChart
+						[data]="financeByDepartmentData"
+						[options]="horizontalBarOptions"
+						type="bar">
 						</canvas>
 					</div>
 				</div>
 			</div>
 		</div>
 		
-		
-		<!-- Delayed Projects Table -->
-		<div class="card shadow-sm border-0 mb-4">
-			<div class="card-header bg-white fw-semibold">Delayed Projects</div>
-			<div class="table-responsive">
-				<table class="table table-sm mb-0">
-					<thead class="table-light">
-						<tr>
-							<th>Code</th>
-							<th>Name</th>
-							<th>Target End</th>
-							<th>Progress</th>
-							<th>Status</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr *ngFor="let p of data.delayed_projects">
-							<td>{{ p.code }}</td>
-							<td>{{ p.name }}</td>
-							<td>{{ p.target_end_date }}</td>
-							<td>{{ p.progress }}%</td>
-							<td>{{ p.status_code }}</td>
-						</tr>
-						
-						<tr *ngIf="data.delayed_projects.length === 0">
-							<td colspan="5" class="text-center text-muted py-3">No delayed projects</td>
-						</tr>
-					</tbody>
-				</table>
+		<!-- Attention lists -->
+		<div class="row g-3 mb-4">
+			<div class="col-12 col-xl-6">
+				<div class="card shadow-sm border-0 h-100">
+					<div class="card-header bg-white fw-semibold">
+						Delayed Projects
+					</div>
+					
+					<div class="table-responsive">
+						<table class="table table-sm align-middle mb-0">
+							<thead class="table-light">
+								<tr>
+									<th>Project</th>
+									<th>Target End</th>
+									<th>Progress</th>
+									<th>Status</th>
+								</tr>
+							</thead>
+							
+							<tbody>
+								<tr *ngFor="let p of data.delayed_projects">
+									<td>
+										<a
+										[routerLink]="['/projects', p.id]"
+										class="fw-semibold text-decoration-none">
+											{{ p.code }}
+										</a>
+										<div class="small text-muted">{{ p.name }}</div>
+									</td>
+									
+									<td>{{ p.target_end_date | date:'yyyy-MM-dd' }}</td>
+									<td>{{ p.progress }}%</td>
+									
+									<td>
+										<span
+										class="badge"
+										[ngClass]="statusBadgeClass(p.status_code)">
+											{{ p.status_code }}
+										</span>
+									</td>
+								</tr>
+								
+								<tr *ngIf="!data.delayed_projects.length">
+									<td colspan="4" class="text-center text-muted py-3">
+										No delayed projects
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-12 col-xl-6">
+				<div class="card shadow-sm border-0 h-100">
+					<div class="card-header bg-white fw-semibold">
+						Overdue Tasks
+					</div>
+					
+					<div class="table-responsive">
+						<table class="table table-sm align-middle mb-0">
+							<thead class="table-light">
+								<tr>
+									<th>Task</th>
+									<th>Project</th>
+									<th>End</th>
+									<th>Progress</th>
+								</tr>
+							</thead>
+							
+							<tbody>
+								<tr *ngFor="let task of data.overdue_tasks">
+									<td>
+										<a
+										[routerLink]="[
+										'/projects',
+										task.project_id,
+										'tasks',
+										task.id
+										]"
+										class="fw-semibold text-decoration-none">
+											{{ task.name }}
+										</a>
+									</td>
+									
+									<td>{{ task.project_code }}</td>
+									<td>{{ task.end_date | date:'yyyy-MM-dd' }}</td>
+									<td>{{ task.progress }}%</td>
+								</tr>
+								
+								<tr *ngIf="!data.overdue_tasks.length">
+									<td colspan="4" class="text-center text-muted py-3">
+										No overdue tasks
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-12 col-xl-6">
+				<div class="card shadow-sm border-0 h-100">
+					<div class="card-header bg-white fw-semibold">
+						Upcoming Milestones
+					</div>
+					
+					<div class="table-responsive">
+						<table class="table table-sm align-middle mb-0">
+							<thead class="table-light">
+								<tr>
+									<th>Milestone</th>
+									<th>Project</th>
+									<th>Date</th>
+								</tr>
+							</thead>
+							
+							<tbody>
+								<tr *ngFor="let m of data.upcoming_milestones">
+									<td class="fw-semibold">{{ m.name }}</td>
+									
+									<td>
+										<a
+										*ngIf="m.project"
+										[routerLink]="['/projects', m.project.id]">
+											{{ m.project.code }}
+										</a>
+									</td>
+									
+									<td>{{ m.milestone_date | date:'yyyy-MM-dd' }}</td>
+								</tr>
+								
+								<tr *ngIf="!data.upcoming_milestones.length">
+									<td colspan="3" class="text-center text-muted py-3">
+										No upcoming milestones
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-12 col-xl-6">
+				<div class="card shadow-sm border-0 h-100">
+					<div class="card-header bg-white fw-semibold">
+						Over-Budget Projects
+					</div>
+					
+					<div class="table-responsive">
+						<table class="table table-sm align-middle mb-0">
+							<thead class="table-light">
+								<tr>
+									<th>Project</th>
+									<th class="text-end">Planned</th>
+									<th class="text-end">Spent</th>
+									<th class="text-end">Over By</th>
+								</tr>
+							</thead>
+							
+							<tbody>
+								<tr *ngFor="let p of data.over_budget_projects">
+									<td>
+										<a
+										[routerLink]="['/projects', p.id]"
+										class="fw-semibold text-decoration-none">
+											{{ p.code }}
+										</a>
+										<div class="small text-muted">{{ p.name }}</div>
+									</td>
+									
+									<td class="text-end">{{ money(p.planned_cost) }}</td>
+									<td class="text-end">{{ money(p.spent_cost) }}</td>
+									
+									<td class="text-end text-danger fw-semibold">
+										{{ money(p.over_by) }}
+									</td>
+								</tr>
+								
+								<tr *ngIf="!data.over_budget_projects.length">
+									<td colspan="4" class="text-center text-muted py-3">
+										No over-budget projects
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
 			</div>
 		</div>
-		
 	</ng-container>
 </div>
