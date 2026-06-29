@@ -5,6 +5,8 @@ import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { AuthInterceptor } from './core/auth/auth.interceptor';
 import { GANTT_GLOBAL_CONFIG, GanttI18nLocale  } from '@worktile/gantt';
+import { TitleStrategy } from '@angular/router';
+import { HpmsTitleStrategy } from './core/title/hpms-title.strategy';
 
 export const appConfig: ApplicationConfig = {
 	providers: [
@@ -21,6 +23,10 @@ export const appConfig: ApplicationConfig = {
 					weekStartsOn: 1
 				}
 			}
+		},
+		{
+			provide: TitleStrategy,
+			useClass: HpmsTitleStrategy
 		},
 	],
 };

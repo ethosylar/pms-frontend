@@ -1,1 +1,80 @@
-<p>login works!</p>
+<div class="login-page">
+	<section class="login-visual">
+		<div class="login-visual-overlay">
+			<div class="brand-block">
+				<div class="brand-badge">HPMS</div>
+				
+				<h1>Hospital Project Management System</h1>
+				
+				<p>
+					Monitor projects, tasks, milestones, budgets, risks and delivery progress
+					from one centralized dashboard.
+				</p>
+			</div>
+		</div>
+	</section>
+	
+	<section class="login-panel">
+		<div class="login-card">
+			<div class="mb-4">
+				<div class="system-name">HPMS</div>
+				<h2 class="mb-1">Welcome back</h2>
+				<div class="text-muted">
+					Sign in to continue to your project dashboard.
+				</div>
+			</div>
+			
+			<form [formGroup]="form" (ngSubmit)="submit()">
+				<div class="mb-3">
+					<label class="form-label">Username / Email</label>
+					<input
+					type="text"
+					class="form-control form-control-lg"
+					formControlName="login"
+					placeholder="name@company.com"
+					autocomplete="username"
+					[class.is-invalid]="form.get('login')?.touched && form.get('login')?.invalid" />
+					
+					<div class="invalid-feedback">
+						Username or email is required.
+					</div>
+				</div>
+				
+				<div class="mb-3">
+					<label class="form-label">Password</label>
+					<input
+					type="password"
+					class="form-control form-control-lg"
+					formControlName="password"
+					placeholder="Enter your password"
+					autocomplete="current-password"
+					[class.is-invalid]="form.get('password')?.touched && form.get('password')?.invalid" />
+					
+					<div class="invalid-feedback">
+						Password is required.
+					</div>
+				</div>
+				
+				<div *ngIf="error" class="alert alert-danger py-2">
+					{{ error }}
+				</div>
+				
+				<button
+				type="submit"
+				class="btn btn-primary btn-lg w-100"
+				[disabled]="form.invalid || loading">
+					<span
+					*ngIf="loading"
+					class="spinner-border spinner-border-sm me-2">
+					</span>
+					
+					{{ loading ? 'Signing in...' : 'Sign In' }}
+				</button>
+			</form>
+			
+			<div class="login-footer">
+				<span>Hospital Project Tracking & Management</span>
+			</div>
+		</div>
+	</section>
+</div>
