@@ -50,7 +50,11 @@ export class UserFormComponent implements OnInit {
 	
 	ngOnInit(): void {
 		forkJoin({
-			roles: this.api.getRoles(),
+			roles: this.api.getRoles({
+				include_permissions: 1,
+				is_active: 1,
+				per_page: 100
+			}),
 			departments: this.api.getDepartments({ per_page: 2000 }) // big enough for dropdown
 		}).pipe(
 		switchMap(({ roles, departments }) => {
@@ -214,5 +218,53 @@ export class UserFormComponent implements OnInit {
 	
 	cancel(): void {
 		this.router.navigateByUrl('/admin/users');
+	}
+	
+	rolePermissionCount(role: RoleDto): number {
+		return role.permissions?.length ?? 0;
+	}
+	
+	rolePermissionPreview(role: RoleDto): string {
+		const permissions = role.permissions ?? [];
+		
+		if (!permissions.length) {
+			return 'No permissions assigned';
+		}
+		
+		const codes = permissions.map(p => p.code);
+		
+		if (codes.length <= 4) {
+			return codes.join(', ');
+		}
+		
+		return `${codes.slice(0, 4).join(', ')} +${codes.length - 4} more`;
+	}
+	
+	selectedPermissionCodes(): string[] {
+		const selectedRoleIds = new Set(
+			((this.form.get('role_ids')?.value ?? []) as number[])
+			.map(Number)
+		);
+		
+		const codes = this.roles
+		.filter(role => selectedRoleIds.has(Number(role.id)))
+		.flatMap(role => role.permissions ?? [])
+		.map(permission => permission.code);
+		
+		return Array.from(new Set(codes)).sort();
+	}
+	
+	selectedPermissionPreview(): string {
+		const codes = this.selectedPermissionCodes();
+		
+		if (!codes.length) {
+			return '-';
+		}
+		
+		if (codes.length <= 8) {
+			return codes.join(', ');
+		}
+		
+		return `${codes.slice(0, 8).join(', ')} +${codes.length - 8} more`;
 	}
 }

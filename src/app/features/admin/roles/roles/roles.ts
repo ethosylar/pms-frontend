@@ -44,6 +44,7 @@ export class RolesComponent implements OnInit {
 		this.api.getRoles({
 			search: this.search || undefined,
 			is_active: this.isActiveFilter === '' ? undefined : Number(this.isActiveFilter),
+			include_permissions: 1,
 			page: this.page,
 			per_page: this.perPage,
 		})
@@ -101,5 +102,25 @@ export class RolesComponent implements OnInit {
 				this.toast.error('Failed to delete role.');
 			}
 		});
+	}
+	
+	permissionCount(r: RoleDto): number {
+		return r.permissions?.length ?? 0;
+	}
+	
+	permissionPreview(r: RoleDto): string {
+		const permissions = r.permissions ?? [];
+		
+		if (!permissions.length) {
+			return '-';
+		}
+		
+		const codes = permissions.map(p => p.code);
+		
+		if (codes.length <= 4) {
+			return codes.join(', ');
+		}
+		
+		return `${codes.slice(0, 4).join(', ')} +${codes.length - 4} more`;
 	}
 }

@@ -89,4 +89,22 @@ export class UsersComponent implements OnInit {
 			}
 		});
 	}
+	
+	permissionCount(u: UserDto): number {
+		return u.permissions?.length ?? 0;
+	}
+	
+	permissionPreview(u: UserDto): string {
+		const permissions = u.permissions ?? [];
+		
+		if (!permissions.length) {
+			return '-';
+		}
+		
+		if (permissions.length <= 4) {
+			return permissions.join(', ');
+		}
+		
+		return `${permissions.slice(0, 4).join(', ')} +${permissions.length - 4} more`;
+	}
 }

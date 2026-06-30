@@ -10,7 +10,7 @@
 	<div class="d-flex align-items-center justify-content-between mb-3">
 		<div>
 			<h1 class="h4 mb-0">Role Management</h1>
-			<div class="text-muted small">Admin only</div>
+			<div class="text-muted small">Permission-based access</div>
 		</div>
 		
 		<a class="btn btn-primary" routerLink="/admin/roles/new">
@@ -60,6 +60,7 @@
 							<th style="width: 80px;">ID</th>
 							<th style="width: 180px;">Code</th>
 							<th>Name</th>
+							<th>Permissions</th>
 							<th style="width: 140px;">Status</th>
 							<th style="width: 150px;">Actions</th>
 						</tr>
@@ -69,6 +70,14 @@
 							<td>{{ r.id }}</td>
 							<td class="fw-semibold">{{ r.code }}</td>
 							<td>{{ r.name }}</td>
+							<td>
+								<span class="badge bg-light text-dark border">
+									{{ permissionCount(r) }} permissions
+								</span>
+								<div class="small text-muted mt-1">
+									{{ permissionPreview(r) }}
+								</div>
+							</td>
 							<td>
 								<span class="badge" [ngClass]="badgeClass(r)">{{ badgeText(r) }}</span>
 							</td>
@@ -83,7 +92,7 @@
 						</tr>
 						
 						<tr *ngIf="!loading && rows.length === 0">
-							<td colspan="5" class="text-center text-muted py-4">No roles found</td>
+							<td colspan="6" class="text-center text-muted py-4">No roles found</td>
 						</tr>
 					</tbody>
 				</table>

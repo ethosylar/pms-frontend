@@ -10,7 +10,7 @@
 	<div class="d-flex align-items-center justify-content-between mb-3">
 		<div>
 			<h1 class="h4 mb-0">{{ isCreate ? 'Add User' : 'Edit User' }}</h1>
-			<div class="text-muted small">Admin only</div>
+			<div class="text-muted small">Assign roles. Permissions are inherited from selected roles.</div>
 		</div>
 		
 		<button class="btn btn-outline-secondary" (click)="cancel()">
@@ -72,18 +72,45 @@
 					
 					<div class="col-12">
 						<label class="form-label">Roles</label>
+						
 						<div class="row g-2">
 							<div class="col-12 col-md-4" *ngFor="let r of roles">
-								<div class="form-check border rounded p-2">
-									<input class="form-check-input"
+								<div class="form-check border rounded p-2 h-100">
+									<input
+									class="form-check-input"
 									type="checkbox"
 									[checked]="isRoleChecked(r.id)"
-									(change)="toggleRole(r.id, $any($event.target).checked)">
-									<label class="form-check-label">
+									(change)="toggleRole(r.id, $any($event.target).checked)"
+									[id]="'role_' + r.id">
+									
+									<label
+									class="form-check-label w-100"
+									[for]="'role_' + r.id">
+										
 										<span class="fw-semibold">{{ r.code }}</span>
 										<span class="text-muted ms-2">{{ r.name }}</span>
+										
+										<div class="small text-muted mt-1">
+											{{ rolePermissionCount(r) }} permissions
+										</div>
+										
+										<div class="small text-muted">
+											{{ rolePermissionPreview(r) }}
+										</div>
 									</label>
 								</div>
+							</div>
+						</div>
+					</div>
+					
+					<div class="col-12">
+						<div class="alert alert-info mb-0">
+							<div class="fw-semibold mb-1">
+								Effective Permissions
+							</div>
+							
+							<div class="small">
+								{{ selectedPermissionPreview() }}
 							</div>
 						</div>
 					</div>

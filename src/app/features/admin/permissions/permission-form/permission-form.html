@@ -1,0 +1,154 @@
+<div class="position-relative admin-permission-form-wrap">
+	
+	<div *ngIf="loading" class="loading-overlay">
+		<div class="text-center">
+			<div class="spinner-border" role="status"></div>
+			<div class="mt-2 fw-semibold">Loading…</div>
+		</div>
+	</div>
+	
+	<div class="d-flex align-items-center justify-content-between mb-3">
+		<div>
+			<h1 class="h4 mb-0">
+				{{ isCreate ? 'Add Permission' : 'Edit Permission' }}
+			</h1>
+			
+			<div class="text-muted small">
+				Permission code controls access to protected API and frontend routes.
+			</div>
+		</div>
+		
+		<button
+		type="button"
+		class="btn btn-outline-secondary"
+		(click)="cancel()">
+			<i class="bi bi-arrow-left"></i>
+			<span class="ms-2">Back</span>
+		</button>
+	</div>
+	
+	<div *ngIf="error" class="alert alert-danger">
+		{{ error }}
+	</div>
+	
+	<div class="card shadow-sm border-0">
+		<div class="card-body">
+			<form [formGroup]="form" (ngSubmit)="save()">
+				
+				<div class="row g-3">
+					<div class="col-12 col-md-5">
+						<label class="form-label">Permission Code</label>
+						
+						<input
+						class="form-control"
+						formControlName="code"
+						placeholder="e.g. projects.write"
+						[class.is-invalid]="form.get('code')?.touched && form.get('code')?.invalid">
+						
+						<div class="invalid-feedback">
+							Code is required and may only contain lowercase letters,
+							numbers, dot, dash and underscore.
+						</div>
+						
+						<div class="form-text">
+							Example: dashboard.view, projects.read, users.manage
+						</div>
+					</div>
+					
+					<div class="col-12 col-md-7">
+						<label class="form-label">Permission Name</label>
+						
+						<input
+						class="form-control"
+						formControlName="name"
+						placeholder="e.g. Edit Projects"
+						[class.is-invalid]="form.get('name')?.touched && form.get('name')?.invalid">
+						
+						<div class="invalid-feedback">
+							Name is required.
+						</div>
+					</div>
+					
+					<div class="col-12 col-md-5">
+						<label class="form-label">Module</label>
+						
+						<input
+						class="form-control"
+						formControlName="module"
+						placeholder="e.g. Projects">
+					</div>
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label">Sort Order</label>
+						
+						<input
+						type="number"
+						min="0"
+						class="form-control"
+						formControlName="sort_order">
+					</div>
+					
+					<div class="col-12 col-md-4 d-flex align-items-end">
+						<div class="form-check mb-2">
+							<input
+							class="form-check-input"
+							type="checkbox"
+							formControlName="is_active"
+							id="isActive">
+							
+							<label
+							class="form-check-label"
+							for="isActive">
+								Active
+							</label>
+						</div>
+					</div>
+					
+					<div class="col-12">
+						<label class="form-label">Description</label>
+						
+						<textarea
+						class="form-control"
+						rows="4"
+						formControlName="description"
+						placeholder="Short description of what this permission allows.">
+						</textarea>
+					</div>
+				</div>
+				
+				<div class="alert alert-info mt-4 mb-0">
+					<div class="fw-semibold mb-1">Reminder</div>
+					<div class="small">
+						Creating a permission here only makes it available for role assignment.
+						To actually protect a frontend route or backend API, the permission code
+						must also be used in the route guard or backend middleware.
+					</div>
+				</div>
+				
+				<div class="d-flex gap-2 justify-content-end mt-4">
+					<button
+					type="button"
+					class="btn btn-outline-secondary"
+					(click)="cancel()"
+					[disabled]="saving">
+						Cancel
+					</button>
+					
+					<button
+					type="submit"
+					class="btn btn-primary"
+					[disabled]="saving">
+						<span *ngIf="!saving">
+							{{ isCreate ? 'Create Permission' : 'Save Changes' }}
+						</span>
+						
+						<span *ngIf="saving">
+							Saving…
+						</span>
+					</button>
+				</div>
+				
+			</form>
+		</div>
+	</div>
+</div>

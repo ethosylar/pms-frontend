@@ -47,8 +47,14 @@ export class ApiService {
 		return this.http.post<ApiResource<UserDto>>(`${environment.apiBaseUrl}/users`, payload);
 	}
 	
-	updateUser(id: number, payload: { name?: string; email?: string; password?: string; department_id?: number | null; }) {
-		return this.http.put<{ ok: true; message?: string }>(`${environment.apiBaseUrl}/users/${id}`, payload);
+	updateUser(id: number, payload: {
+		name?: string;
+		username?: string;
+		email?: string;
+		password?: string;
+		department_id?: number | null;
+	}) {
+	return this.http.put<{ ok: true; message?: string }>(`${environment.apiBaseUrl}/users/${id}`, payload);
 	}
 	
 	deleteUser(id: number) {
@@ -66,31 +72,118 @@ export class ApiService {
 	// ******************************************************************************************************************************
 	
 	
-	getRoles(params?: { search?: string; is_active?: number; page?: number; per_page?: number }) {
-		let httpParams = new HttpParams();
-		if (params?.search) httpParams = httpParams.set('search', params.search);
-		if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
-		if (params?.page) httpParams = httpParams.set('page', String(params.page));
-		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
-		
-		return this.http.get<ApiCollection<RoleDto>>(`${environment.apiBaseUrl}/roles`, { params: httpParams });
+	getRoles(params?: {
+		search?: string;
+		is_active?: number;
+		include_permissions?: boolean | number;
+		page?: number;
+		per_page?: number;
+	}) {
+	let httpParams = new HttpParams();
+	
+	if (params?.search) httpParams = httpParams.set('search', params.search);
+	if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
+	if (params?.include_permissions !== undefined) {
+		httpParams = httpParams.set(
+			'include_permissions',
+			params.include_permissions ? '1' : '0'
+		);
+	}
+	if (params?.page) httpParams = httpParams.set('page', String(params.page));
+	if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
+	
+	return this.http.get<ApiCollection<RoleDto>>(
+		`${environment.apiBaseUrl}/roles`,
+		{ params: httpParams }
+	);
 	}
 	
 	getRole(id: number) {
-		return this.http.get<ApiResource<RoleDto>>(`${environment.apiBaseUrl}/roles/${id}`);
+		return this.http.get<ApiResource<RoleDto>>(
+			`${environment.apiBaseUrl}/roles/${id}`
+		);
 	}
 	
-	createRole(payload: { code: string; name: string; is_active?: boolean }) {
-		return this.http.post<ApiResource<RoleDto>>(`${environment.apiBaseUrl}/roles`, payload);
+	createRole(payload: RoleUpsertPayload) {
+		return this.http.post<ApiResource<RoleDto>>(
+			`${environment.apiBaseUrl}/roles`,
+			payload
+		);
 	}
 	
-	updateRole(id: number, payload: { code?: string; name?: string; is_active?: boolean }) {
-		return this.http.put<ApiResource<RoleDto>>(`${environment.apiBaseUrl}/roles/${id}`, payload);
+	updateRole(id: number, payload: RoleUpsertPayload) {
+		return this.http.put<ApiResource<RoleDto> | { ok: true; message?: string }>(
+			`${environment.apiBaseUrl}/roles/${id}`,
+			payload
+		);
 	}
 	
 	deleteRole(id: number) {
-		return this.http.delete<{ ok: boolean; mode: 'SOFT' | 'HARD' }>(`${environment.apiBaseUrl}/roles/${id}`);
-	}	
+		return this.http.delete<{ ok: boolean; mode: 'SOFT' | 'HARD' }>(
+			`${environment.apiBaseUrl}/roles/${id}`
+		);
+	}
+	
+	syncRolePermissions(roleId: number, permissionIds: number[]) {
+		return this.http.put<ApiResource<RoleDto>>(
+			`${environment.apiBaseUrl}/roles/${roleId}/permissions`,
+			{
+				permission_ids: permissionIds
+			}
+		);
+	}
+	
+	// ******************************************************************************************************************************
+	// Permission's Section
+	// ******************************************************************************************************************************
+	
+	
+	getPermissions(params?: {
+		search?: string;
+		module?: string;
+		is_active?: number;
+		page?: number;
+		per_page?: number;
+	}) {
+	let httpParams = new HttpParams();
+	
+	if (params?.search) httpParams = httpParams.set('search', params.search);
+	if (params?.module) httpParams = httpParams.set('module', params.module);
+	if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
+	if (params?.page) httpParams = httpParams.set('page', String(params.page));
+	if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
+	
+	return this.http.get<ApiCollection<PermissionDto>>(
+		`${environment.apiBaseUrl}/permissions`,
+		{ params: httpParams }
+	);
+	}
+	
+	getPermission(id: number) {
+		return this.http.get<ApiResource<PermissionDto>>(
+			`${environment.apiBaseUrl}/permissions/${id}`
+		);
+	}
+	
+	createPermission(payload: PermissionUpsertPayload) {
+		return this.http.post<ApiResource<PermissionDto>>(
+			`${environment.apiBaseUrl}/permissions`,
+			payload
+		);
+	}
+	
+	updatePermission(id: number, payload: PermissionUpsertPayload) {
+		return this.http.put<ApiResource<PermissionDto> | { ok: true; message?: string }>(
+			`${environment.apiBaseUrl}/permissions/${id}`,
+			payload
+		);
+	}
+	
+	deletePermission(id: number) {
+		return this.http.delete<{ ok: boolean; mode: 'SOFT' | 'HARD' }>(
+			`${environment.apiBaseUrl}/permissions/${id}`
+		);
+	}
 	
 	// ******************************************************************************************************************************
 	// Department's Section
@@ -873,13 +966,43 @@ export interface ApiCollection<T> {
 	links?: any;
 }
 
-export interface RoleDto {
+export interface PermissionDto {
 	id: number;
 	code: string;
 	name: string;
-	is_active: boolean;     // backend may return 0/1, but we’ll treat as boolean
+	module?: string | null;
+	description?: string | null;
+	sort_order?: number;
+	is_active: boolean;
 	created_at?: string;
 	updated_at?: string;
+}
+
+export interface RoleDto {
+	id: number;
+	role_id?: number;
+	code: string;
+	name: string;
+	is_active: boolean;
+	permissions?: PermissionDto[];
+	created_at?: string;
+	updated_at?: string;
+}
+
+export interface RoleUpsertPayload {
+	code?: string;
+	name?: string;
+	is_active?: boolean;
+	permission_ids?: number[];
+}
+
+export interface PermissionUpsertPayload {
+	code?: string;
+	name?: string;
+	module?: string | null;
+	description?: string | null;
+	sort_order?: number | null;
+	is_active?: boolean;
 }
 
 export interface UserDto {
@@ -888,6 +1011,7 @@ export interface UserDto {
 	username: string;
 	email: string;
 	roles?: RoleDto[];
+	permissions?: string[];
 	created_at?: string;
 	updated_at?: string;
 	department_id?: number | null;
