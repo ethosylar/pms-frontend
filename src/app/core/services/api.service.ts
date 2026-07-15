@@ -740,7 +740,7 @@ export class ApiService {
 	uploadProjectFile(projectId: number, file: File) {
 		const fd = new FormData();
 		fd.append('file', file); // must match backend request field name
-		return this.http.post(`/api/projects/${projectId}/files`, fd);
+		return this.http.post(`${environment.apiBaseUrl}/projects/${projectId}/files`, fd);
 	}
 	
 	attachExistingProjectFile(projectId: number, payload: AttachExistingFilePayload) {

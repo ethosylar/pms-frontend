@@ -21,6 +21,8 @@ import {
 	RoleName
 } from './auth.models';
 
+import { environment } from '../../../environments/environment'; 
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 	private tokenKey = 'pms_token';
@@ -51,7 +53,7 @@ export class AuthService {
 	}
 	
 	login(login: string, password: string): Observable<AuthUser> {
-		return this.http.post<LoginResponse>('/api/login', { login, password }).pipe(
+		return this.http.post<LoginResponse>(`${environment.apiBaseUrl}/login`, { login, password }).pipe(
 			tap(res => {
 				if (res?.token) {
 					localStorage.setItem(this.tokenKey, res.token);
@@ -63,14 +65,14 @@ export class AuthService {
 	}
 	
 	logout() {
-		return this.http.post('/api/logout', {}).pipe(
+		return this.http.post(`${environment.apiBaseUrl}/logout`, {}).pipe(
 			catchError(() => of(null)),
 			tap(() => this.clearLocalAuth())
 		);
 	}
 	
 	me(): Observable<AuthUser> {
-		return this.http.get<MeResponse>('/api/me').pipe(
+		return this.http.get<MeResponse>(`${environment.apiBaseUrl}/me`).pipe(
 			tap(res => this.setAuthPayload(res)),
 			map(res => res.user),
 			catchError(err => {
