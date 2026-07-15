@@ -1,0 +1,767 @@
+<div class="eptw-wrap position-relative">
+	
+	<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+		<div>
+			<h1 class="h4 mb-0">ePTW Sync</h1>
+			<div class="text-muted small">
+				Synchronize external permit-to-work records and link them with hospital projects.
+			</div>
+		</div>
+		
+		<div class="d-flex align-items-center gap-2">
+			<button
+			class="btn btn-outline-secondary btn-sm"
+			type="button"
+			(click)="loadPermits(1); loadRuns(1)">
+				<i class="bi bi-arrow-clockwise"></i>
+				<span class="ms-1">Refresh</span>
+			</button>
+		</div>
+	</div>
+	
+	<div *ngIf="error" class="alert alert-danger">
+		{{ error }}
+	</div>
+	
+	<!-- Sync controls -->
+	<div class="card shadow-sm border-0 mb-3" *ngIf="canSync()">
+		<div class="card-header bg-white fw-semibold">
+			Sync Control
+		</div>
+		
+		<div class="card-body">
+			<div class="row g-3 align-items-end">
+				
+				<div class="col-12 col-xl-5">
+					<label class="form-label">Many-permit sync</label>
+					
+					<div class="d-flex flex-wrap gap-2">
+						<button
+						class="btn btn-primary"
+						type="button"
+						[disabled]="!!syncing"
+						(click)="startSync('INCREMENTAL')">
+							<span *ngIf="syncing !== 'INCREMENTAL'">
+								Incremental Sync
+							</span>
+							<span *ngIf="syncing === 'INCREMENTAL'">
+								Syncing…
+							</span>
+						</button>
+						
+						<button
+						class="btn btn-outline-primary"
+						type="button"
+						[disabled]="!!syncing"
+						(click)="startSync('FULL')">
+							<span *ngIf="syncing !== 'FULL'">
+								Full Sync
+							</span>
+							<span *ngIf="syncing === 'FULL'">
+								Syncing…
+							</span>
+						</button>
+						
+						<button
+						class="btn btn-outline-secondary"
+						type="button"
+						[disabled]="!!syncing"
+						(click)="startSync('MANUAL')">
+							<span *ngIf="syncing !== 'MANUAL'">
+								Manual Sync
+							</span>
+							<span *ngIf="syncing === 'MANUAL'">
+								Syncing…
+							</span>
+						</button>
+					</div>
+					
+					<div class="form-check mt-2">
+						<input
+						class="form-check-input"
+						type="checkbox"
+						id="runAsync"
+						[(ngModel)]="runAsync">
+						
+						<label class="form-check-label small" for="runAsync">
+							Queue sync in background
+						</label>
+					</div>
+				</div>
+				
+				<div class="col-12 col-xl-7">
+					<form
+					class="row g-2 align-items-end"
+					(ngSubmit)="syncSinglePermit()">
+						
+						<div class="col-12 col-md-5">
+							<label class="form-label">Single ePTW Form ID</label>
+							<input
+							class="form-control"
+							name="singleExternalFormId"
+							[(ngModel)]="singleExternalFormId"
+							placeholder="Example: 00411">
+						</div>
+						
+						<div class="col-12 col-md-3">
+							<div class="form-check mb-2">
+								<input
+								class="form-check-input"
+								type="checkbox"
+								id="singleRunAsync"
+								name="singleRunAsync"
+								[(ngModel)]="singleRunAsync">
+								
+								<label class="form-check-label small" for="singleRunAsync">
+									Queue
+								</label>
+							</div>
+						</div>
+						
+						<div class="col-12 col-md-4">
+							<button
+							class="btn btn-success w-100"
+							type="submit"
+							[disabled]="syncingOne">
+								{{ syncingOne ? 'Syncing…' : 'Sync One Permit' }}
+							</button>
+						</div>
+					</form>
+				</div>
+				
+			</div>
+		</div>
+	</div>
+	
+	<div class="alert alert-warning" *ngIf="!canSync()">
+		You can view ePTW permits, but you do not have permission to start a sync.
+	</div>
+	
+	<!-- Tabs -->
+	<div class="card shadow-sm border-0">
+		<div class="card-header bg-white">
+			<div class="btn-group btn-group-sm">
+				<button
+				type="button"
+				class="btn"
+				[class.btn-primary]="activeTab === 'permits'"
+				[class.btn-outline-primary]="activeTab !== 'permits'"
+				(click)="setTab('permits')">
+					Permits
+				</button>
+				
+				<button
+				type="button"
+				class="btn"
+				[class.btn-primary]="activeTab === 'history'"
+				[class.btn-outline-primary]="activeTab !== 'history'"
+				(click)="setTab('history')">
+					Sync History
+				</button>
+			</div>
+		</div>
+		
+		<!-- Permit List -->
+		<div class="card-body" *ngIf="activeTab === 'permits'">
+			
+			<div class="row g-2 mb-3">
+				<div class="col-12 col-xl-3">
+					<label class="form-label small">Search</label>
+					<input
+					class="form-control"
+					[(ngModel)]="permitFilters.search"
+					placeholder="Form ID, company, applicant, location">
+				</div>
+				
+				<div class="col-6 col-xl-2">
+					<label class="form-label small">Status</label>
+					<select
+					class="form-select"
+					[(ngModel)]="permitFilters.normalized_status">
+						<option
+						*ngFor="let s of permitStatuses"
+						[ngValue]="s">
+							{{ s || 'All' }}
+						</option>
+					</select>
+				</div>
+				
+				<div class="col-6 col-xl-2">
+					<label class="form-label small">Linked</label>
+					<select
+					class="form-select"
+					[(ngModel)]="permitFilters.is_linked">
+						<option [ngValue]="''">All</option>
+						<option [ngValue]="true">Linked</option>
+						<option [ngValue]="false">Unlinked</option>
+					</select>
+				</div>
+				
+				<div class="col-6 col-xl-2">
+					<label class="form-label small">Date From</label>
+					<input
+					type="date"
+					class="form-control"
+					[(ngModel)]="permitFilters.date_from">
+				</div>
+				
+				<div class="col-6 col-xl-2">
+					<label class="form-label small">Date To</label>
+					<input
+					type="date"
+					class="form-control"
+					[(ngModel)]="permitFilters.date_to">
+				</div>
+				
+				<div class="col-12 col-xl-1 d-flex align-items-end gap-2">
+					<button
+					class="btn btn-primary w-100"
+					type="button"
+					(click)="loadPermits(1)">
+						Search
+					</button>
+				</div>
+				
+				<div class="col-12">
+					<div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+						<div class="form-check">
+							<input
+							class="form-check-input"
+							type="checkbox"
+							id="includeDeleted"
+							[(ngModel)]="permitFilters.include_deleted">
+							
+							<label class="form-check-label small" for="includeDeleted">
+								Include deleted records from source
+							</label>
+						</div>
+						
+						<button
+						class="btn btn-link btn-sm text-decoration-none"
+						type="button"
+						(click)="resetPermitFilters()">
+							Reset filters
+						</button>
+					</div>
+				</div>
+			</div>
+			
+			<div *ngIf="loadingPermits" class="text-center py-4">
+				<div class="spinner-border"></div>
+				<div class="mt-2 text-muted">Loading ePTW permits…</div>
+			</div>
+			
+			<div class="table-responsive" *ngIf="!loadingPermits">
+				<table class="table table-hover align-middle">
+					<thead class="table-light">
+						<tr>
+							<th>Form</th>
+							<th>Status</th>
+							<th>Company / Service</th>
+							<th>Applicant</th>
+							<th>Work Period</th>
+							<th>Location</th>
+							<th>Links</th>
+							<th>Last Synced</th>
+							<th class="text-end">Action</th>
+						</tr>
+					</thead>
+					
+					<tbody>
+						<tr *ngFor="let permit of permits">
+							<td>
+								<div class="fw-semibold">
+									{{ permit.external_form_id }}
+								</div>
+								<div class="small text-muted" *ngIf="permit.external_permit_id">
+									{{ permit.external_permit_id }}
+								</div>
+							</td>
+							
+							<td>
+								<span
+								class="badge"
+								[ngClass]="deletedBadgeClass(permit)">
+									{{
+									permit.is_source_deleted
+									? 'SOURCE DELETED'
+									: permit.normalized_status
+									}}
+								</span>
+								
+								<div
+								class="small text-danger mt-1"
+								*ngIf="permit.is_expired">
+									Expired
+								</div>
+							</td>
+							
+							<td>
+								<div class="fw-semibold">
+									{{ permit.company_name || '-' }}
+								</div>
+								<div class="small text-muted">
+									{{ permit.service_name || '-' }}
+								</div>
+							</td>
+							
+							<td>
+								<div>{{ permit.applicant_name || '-' }}</div>
+								<div class="small text-muted">
+									{{ permit.supervisor_name || '' }}
+								</div>
+							</td>
+							
+							<td>
+								<div>{{ workPeriod(permit) }}</div>
+								<div class="small text-muted">
+									{{ workTime(permit) }}
+								</div>
+							</td>
+							
+							<td>
+								{{ permit.exact_location || '-' }}
+							</td>
+							
+							<td>
+								<span
+								class="badge"
+								[class.bg-success]="(permit.active_links_count ?? 0) > 0"
+								[class.bg-secondary]="(permit.active_links_count ?? 0) === 0">
+									{{ permit.active_links_count ?? 0 }}
+								</span>
+							</td>
+							
+							<td>
+								<span *ngIf="permit.last_synced_at">
+									{{ permit.last_synced_at | date:'yyyy-MM-dd HH:mm' }}
+								</span>
+								<span *ngIf="!permit.last_synced_at">-</span>
+							</td>
+							
+							<td class="text-end">
+								<button
+								class="btn btn-outline-primary btn-sm"
+								type="button"
+								(click)="viewPermit(permit)">
+									View
+								</button>
+							</td>
+						</tr>
+						
+						<tr *ngIf="!permits.length">
+							<td colspan="9" class="text-center text-muted py-4">
+								No ePTW permits found.
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			
+			<div class="d-flex align-items-center justify-content-between mt-3">
+				<div class="small text-muted">
+					Total: {{ permitMeta.total }}
+				</div>
+				
+				<div class="btn-group btn-group-sm">
+					<button
+					class="btn btn-outline-secondary"
+					type="button"
+					[disabled]="permitMeta.current_page <= 1"
+					(click)="pagePermits(-1)">
+						Prev
+					</button>
+					
+					<button class="btn btn-outline-secondary" type="button" disabled>
+						Page {{ permitMeta.current_page }} / {{ permitMeta.last_page }}
+					</button>
+					
+					<button
+					class="btn btn-outline-secondary"
+					type="button"
+					[disabled]="permitMeta.current_page >= permitMeta.last_page"
+					(click)="pagePermits(1)">
+						Next
+					</button>
+				</div>
+			</div>
+			
+			<!-- Permit detail -->
+			<div class="card border-0 shadow-sm mt-4" *ngIf="loadingDetail || selectedPermit">
+				<div class="card-header bg-white d-flex justify-content-between align-items-center">
+					<div class="fw-semibold">
+						Permit Detail
+					</div>
+					
+					<button
+					class="btn btn-outline-secondary btn-sm"
+					type="button"
+					(click)="closePermitDetail()">
+						Close
+					</button>
+				</div>
+				
+				<div class="card-body" *ngIf="loadingDetail">
+					<div class="text-center py-3">
+						<div class="spinner-border"></div>
+						<div class="text-muted mt-2">Loading permit detail…</div>
+					</div>
+				</div>
+				
+				<div class="card-body" *ngIf="!loadingDetail && selectedPermit as p">
+					<div class="row g-3">
+						<div class="col-12 col-xl-4">
+							<div class="detail-box">
+								<div class="text-muted small">Form ID</div>
+								<div class="fw-bold">{{ p.external_form_id }}</div>
+							</div>
+						</div>
+						
+						<div class="col-12 col-xl-4">
+							<div class="detail-box">
+								<div class="text-muted small">Status</div>
+								<span class="badge" [ngClass]="deletedBadgeClass(p)">
+									{{
+									p.is_source_deleted
+									? 'SOURCE DELETED'
+									: p.normalized_status
+									}}
+								</span>
+							</div>
+						</div>
+						
+						<div class="col-12 col-xl-4">
+							<div class="detail-box">
+								<div class="text-muted small">Source</div>
+								<a
+								*ngIf="p.source_url"
+								[href]="p.source_url"
+								target="_blank"
+								rel="noopener">
+									{{ sourceLinkLabel(p) }}
+								</a>
+								<span *ngIf="!p.source_url">-</span>
+							</div>
+						</div>
+						
+						<div class="col-12 col-xl-6">
+							<div class="detail-box">
+								<div class="text-muted small">Company</div>
+								<div>{{ p.company_name || '-' }}</div>
+							</div>
+						</div>
+						
+						<div class="col-12 col-xl-6">
+							<div class="detail-box">
+								<div class="text-muted small">Service</div>
+								<div>{{ p.service_name || '-' }}</div>
+							</div>
+						</div>
+						
+						<div class="col-12 col-xl-6">
+							<div class="detail-box">
+								<div class="text-muted small">Applicant</div>
+								<div>{{ p.applicant_name || '-' }}</div>
+							</div>
+						</div>
+						
+						<div class="col-12 col-xl-6">
+							<div class="detail-box">
+								<div class="text-muted small">Supervisor</div>
+								<div>{{ p.supervisor_name || '-' }}</div>
+							</div>
+						</div>
+						
+						<div class="col-12">
+							<div class="detail-box">
+								<div class="text-muted small">Exact Location</div>
+								<div>{{ p.exact_location || '-' }}</div>
+							</div>
+						</div>
+						
+						<div class="col-12 col-xl-6">
+							<div class="detail-box">
+								<div class="text-muted small">Work Period</div>
+								<div>{{ workPeriod(p) }}</div>
+								<div class="small text-muted">{{ workTime(p) }}</div>
+							</div>
+						</div>
+						
+						<div class="col-12 col-xl-6">
+							<div class="detail-box">
+								<div class="text-muted small">Safety Briefing</div>
+								<div>{{ p.brief_date || '-' }} {{ p.brief_time || '' }}</div>
+								<div class="small text-muted">
+									{{ p.brief_conducted_by || '-' }}
+								</div>
+							</div>
+						</div>
+						
+						<div class="col-12 col-xl-6">
+							<div class="detail-box">
+								<div class="text-muted small">Work Type</div>
+								<div class="pre-line">{{ p.work_type || '-' }}</div>
+							</div>
+						</div>
+						
+						<div class="col-12 col-xl-6">
+							<div class="detail-box">
+								<div class="text-muted small">Hazards</div>
+								<div class="pre-line">{{ p.hazards || '-' }}</div>
+							</div>
+						</div>
+						
+						<div class="col-12 col-xl-6">
+							<div class="detail-box">
+								<div class="text-muted small">PPE</div>
+								<div class="pre-line">{{ p.ppe || '-' }}</div>
+							</div>
+						</div>
+						
+						<div class="col-12 col-xl-6">
+							<div class="detail-box">
+								<div class="text-muted small">Worksite Controls</div>
+								<div class="pre-line">{{ p.worksite_controls || '-' }}</div>
+							</div>
+						</div>
+						
+						<div class="col-12">
+							<div class="detail-box">
+								<div class="text-muted small">Remark</div>
+								<div class="pre-line">{{ p.remark || '-' }}</div>
+							</div>
+						</div>
+						
+						<div class="col-12">
+							<div class="detail-box">
+								<div class="d-flex justify-content-between align-items-center mb-2">
+									<div class="fw-semibold">Linked Projects / Tasks</div>
+									<div class="small text-muted">
+										{{ p.links?.length ?? 0 }} active link(s)
+									</div>
+								</div>
+								
+								<div *ngIf="!(p.links?.length)" class="text-muted small">
+									This permit is not linked to any project yet.
+								</div>
+								
+								<div
+								class="linked-row"
+								*ngFor="let link of p.links">
+									<div>
+										<a
+										*ngIf="link.project"
+										[routerLink]="['/projects', link.project.id]"
+										class="fw-semibold">
+											{{ link.project.code }}
+										</a>
+										<span *ngIf="!link.project">Project #{{ link.project_id }}</span>
+										
+										<div class="small text-muted" *ngIf="link.project">
+											{{ link.project.name }}
+										</div>
+										
+										<div class="small" *ngIf="link.task">
+											Task: {{ link.task.name }}
+										</div>
+									</div>
+									
+									<div class="text-end small text-muted">
+										<div>{{ link.linked_at | date:'yyyy-MM-dd HH:mm' }}</div>
+										<div *ngIf="link.linked_by">
+											{{ link.linked_by.name }}
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						
+					</div>
+				</div>
+			</div>
+			
+		</div>
+		
+		<!-- Sync history -->
+		<div class="card-body" *ngIf="activeTab === 'history'">
+			
+			<div class="row g-2 mb-3">
+				<div class="col-6 col-xl-2">
+					<label class="form-label small">Status</label>
+					<select
+					class="form-select"
+					[(ngModel)]="runFilters.status">
+						<option
+						*ngFor="let s of runStatuses"
+						[ngValue]="s">
+							{{ s || 'All' }}
+						</option>
+					</select>
+				</div>
+				
+				<div class="col-6 col-xl-2">
+					<label class="form-label small">Sync Type</label>
+					<select
+					class="form-select"
+					[(ngModel)]="runFilters.sync_type">
+						<option
+						*ngFor="let s of syncTypes"
+						[ngValue]="s">
+							{{ s || 'All' }}
+						</option>
+					</select>
+				</div>
+				
+				<div class="col-6 col-xl-2">
+					<label class="form-label small">Date From</label>
+					<input
+					type="date"
+					class="form-control"
+					[(ngModel)]="runFilters.date_from">
+				</div>
+				
+				<div class="col-6 col-xl-2">
+					<label class="form-label small">Date To</label>
+					<input
+					type="date"
+					class="form-control"
+					[(ngModel)]="runFilters.date_to">
+				</div>
+				
+				<div class="col-12 col-xl-4 d-flex align-items-end gap-2">
+					<button
+					class="btn btn-primary"
+					type="button"
+					(click)="loadRuns(1)">
+						Search
+					</button>
+					
+					<button
+					class="btn btn-outline-secondary"
+					type="button"
+					(click)="resetRunFilters()">
+						Reset
+					</button>
+				</div>
+			</div>
+			
+			<div *ngIf="loadingRuns" class="text-center py-4">
+				<div class="spinner-border"></div>
+				<div class="mt-2 text-muted">Loading sync history…</div>
+			</div>
+			
+			<div class="table-responsive" *ngIf="!loadingRuns">
+				<table class="table table-hover align-middle">
+					<thead class="table-light">
+						<tr>
+							<th>Run</th>
+							<th>Type</th>
+							<th>Status</th>
+							<th>Fetched</th>
+							<th>Created</th>
+							<th>Updated</th>
+							<th>Unchanged</th>
+							<th>Deleted</th>
+							<th>Failed</th>
+							<th>Started</th>
+							<th>Completed</th>
+							<th>Triggered By</th>
+						</tr>
+					</thead>
+					
+					<tbody>
+						<tr *ngFor="let run of runs">
+							<td class="fw-semibold">
+								#{{ run.id }}
+							</td>
+							
+							<td>
+								<span class="badge bg-light text-dark border">
+									{{ run.sync_type }}
+								</span>
+							</td>
+							
+							<td>
+								<span
+								class="badge"
+								[ngClass]="runBadgeClass(run.status)">
+									{{ run.status }}
+								</span>
+								
+								<div
+								class="small text-danger mt-1"
+								*ngIf="run.error_message">
+									{{ run.error_message }}
+								</div>
+							</td>
+							
+							<td>{{ run.fetched_count }}</td>
+							<td>{{ run.created_count }}</td>
+							<td>{{ run.updated_count }}</td>
+							<td>{{ run.unchanged_count }}</td>
+							<td>{{ run.deleted_count }}</td>
+							<td>
+								<span [class.text-danger]="run.failed_count > 0">
+									{{ run.failed_count }}
+								</span>
+							</td>
+							
+							<td>
+								{{ run.started_at | date:'yyyy-MM-dd HH:mm' }}
+							</td>
+							
+							<td>
+								<span *ngIf="run.completed_at">
+									{{ run.completed_at | date:'yyyy-MM-dd HH:mm' }}
+								</span>
+								<span *ngIf="!run.completed_at">-</span>
+							</td>
+							
+							<td>
+								<span *ngIf="run.triggered_by">
+									{{ run.triggered_by.name }}
+								</span>
+								<span *ngIf="!run.triggered_by">System</span>
+							</td>
+						</tr>
+						
+						<tr *ngIf="!runs.length">
+							<td colspan="12" class="text-center text-muted py-4">
+								No ePTW sync history found.
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			
+			<div class="d-flex align-items-center justify-content-between mt-3">
+				<div class="small text-muted">
+					Total: {{ runMeta.total }}
+				</div>
+				
+				<div class="btn-group btn-group-sm">
+					<button
+					class="btn btn-outline-secondary"
+					type="button"
+					[disabled]="runMeta.current_page <= 1"
+					(click)="pageRuns(-1)">
+						Prev
+					</button>
+					
+					<button class="btn btn-outline-secondary" type="button" disabled>
+						Page {{ runMeta.current_page }} / {{ runMeta.last_page }}
+					</button>
+					
+					<button
+					class="btn btn-outline-secondary"
+					type="button"
+					[disabled]="runMeta.current_page >= runMeta.last_page"
+					(click)="pageRuns(1)">
+						Next
+					</button>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+</div>

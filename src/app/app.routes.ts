@@ -174,6 +174,15 @@ export const routes: Routes = [
 				.then(m => m.ProjectTaskFormComponent),
 				title: 'Project Task',
 			},
+			// ePTW Sync
+			{
+				path: 'eptw-sync',
+				title: 'ePTW Sync',
+				canActivate: [permissionGuard(['permits.read'])],
+				loadComponent: () =>
+				import('./features/eptw/eptw-sync/eptw-sync')
+				.then(m => m.EptwSyncComponent),
+			},
 			
 			// Admin
 			{

@@ -51,6 +51,12 @@ export class ShellComponent {
 			permissions: ['projects.read'],
 		},
 		{
+			label: 'ePTW Sync',
+			route: '/eptw-sync',
+			icon: 'bi-arrow-repeat',
+			permissions: ['permits.read'],
+		},
+		{
 			label: 'Audit Logs',
 			route: '/audit-logs',
 			icon: 'bi-clipboard-data',

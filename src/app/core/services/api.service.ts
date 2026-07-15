@@ -859,7 +859,10 @@ export class ApiService {
 		);
 	}
 	
-	// Project Budget Allocations
+	// ******************************************************************************************************************************
+	// Project Budget Allocation's Section
+	// ******************************************************************************************************************************
+	
 	getProjectBudgetAllocations(
 		projectId: number,
 		params?: {
@@ -926,6 +929,114 @@ export class ApiService {
 			`${environment.apiBaseUrl}/project-categories`,
 			{ params: httpParams }
 		);
+	}
+	
+	// ******************************************************************************************************************************
+	// External Permit Section (ePTW Sync)
+	// ******************************************************************************************************************************
+	
+	getExternalPermits(params?: ExternalPermitQueryParams) {
+		return this.http.get<ApiPagedResponse<ExternalPermitDto>>(
+			`${environment.apiBaseUrl}/external-permits`,
+			{
+				params: this.hpmsHttpParams(params)
+			}
+		);
+	}
+	
+	getExternalPermit(id: number) {
+		return this.http.get<ApiResource<ExternalPermitDto>>(
+			`${environment.apiBaseUrl}/external-permits/${id}`
+		);
+	}
+	
+	getIntegrationSyncRuns(params?: IntegrationSyncRunQueryParams) {
+		return this.http.get<ApiPagedResponse<IntegrationSyncRunDto>>(
+			`${environment.apiBaseUrl}/integrations/eptw/sync-runs`,
+			{
+				params: this.hpmsHttpParams(params)
+			}
+		);
+	}
+	
+	getIntegrationSyncRun(id: number) {
+		return this.http.get<ApiResource<IntegrationSyncRunDto>>(
+			`${environment.apiBaseUrl}/integrations/eptw/sync-runs/${id}`
+		);
+	}
+	
+	startEptwSync(payload: EptwSyncPayload) {
+		return this.http.post<
+		EptwQueuedResponse | ApiResource<IntegrationSyncRunDto>
+		>(
+			`${environment.apiBaseUrl}/integrations/eptw/sync`,
+			payload
+		);
+	}
+	
+	syncOneEptwPermit(payload: EptwSyncOnePayload) {
+		return this.http.post<
+		EptwQueuedResponse | ApiResource<IntegrationSyncRunDto>
+		>(
+			`${environment.apiBaseUrl}/integrations/eptw/sync-one`,
+			payload
+		);
+	}
+	
+	importTestEptwPermits(payload: ImportEptwPermitsPayload) {
+		return this.http.post<ApiResource<IntegrationSyncRunDto>>(
+			`${environment.apiBaseUrl}/integrations/eptw/import-test`,
+			payload
+		);
+	}
+	
+	linkPermitToProject(projectId: number, payload: ProjectPermitLinkPayload) {
+		return this.http.post<ApiCollectionResource<ProjectPermitLinkDto>>(
+			`${environment.apiBaseUrl}/projects/${projectId}/permit-links`,
+			payload
+		);
+	}
+	
+	unlinkPermitFromProject(projectId: number, linkId: number) {
+		return this.http.delete<{ ok: boolean; mode?: string; message?: string }>(
+			`${environment.apiBaseUrl}/projects/${projectId}/permit-links/${linkId}`
+		);
+	}
+	
+	getProjectPermits(projectId: number) {
+		return this.http.get<ApiCollectionResource<ExternalPermitDto>>(
+			`${environment.apiBaseUrl}/projects/${projectId}/permits`
+		);
+	}
+	
+	getTaskPermits(taskId: number) {
+		return this.http.get<ApiCollectionResource<ExternalPermitDto>>(
+			`${environment.apiBaseUrl}/tasks/${taskId}/permits`
+		);
+	}
+	
+	getMilestonePermits(projectId: number, milestoneId: number) {
+		return this.http.get<ApiCollectionResource<ExternalPermitDto>>(
+			`${environment.apiBaseUrl}/projects/${projectId}/milestones/${milestoneId}/permits`
+		);
+	}
+	
+	private hpmsHttpParams(params?: Record<string, any>): HttpParams {
+		let httpParams = new HttpParams();
+		
+		Object.entries(params ?? {}).forEach(([key, value]) => {
+			if (
+				value === null ||
+				value === undefined ||
+				value === ''
+				) {
+				return;
+			}
+			
+			httpParams = httpParams.set(key, String(value));
+		});
+		
+		return httpParams;
 	}
 	
 }
@@ -1522,3 +1633,255 @@ export type ProjectBudgetAllocationUpsertPayload = {
 	notes?: string | null;
 };
 
+export interface ApiPagedResponse<T> {
+	data: T[];
+	links?: {
+		first?: string | null;
+		last?: string | null;
+		prev?: string | null;
+		next?: string | null;
+	};
+	meta?: {
+		current_page: number;
+		from?: number | null;
+		last_page: number;
+		path?: string;
+		per_page: number;
+		to?: number | null;
+		total: number;
+	};
+}
+
+export interface ExternalPermitSourceDto {
+	id: number;
+	code: string;
+	name: string;
+	base_url?: string | null;
+}
+
+export interface ProjectPermitLinkMiniDto {
+	id: number;
+	permit_id: number;
+	project_id: number;
+	task_id?: number | null;
+	linked_by_user_id?: number | null;
+	linked_at?: string | null;
+	notes?: string | null;
+	is_active: boolean;
+	project?: {
+		id: number;
+		code: string;
+		name: string;
+	};
+	task?: {
+		id: number;
+		project_id: number;
+		milestone_id?: number | null;
+		name: string;
+	};
+	linked_by?: {
+		id: number;
+		name: string;
+		email: string;
+	};
+}
+
+export interface ExternalPermitDto {
+	id: number;
+	
+	external_source_id: number;
+	external_form_id: string;
+	external_permit_id?: string | null;
+	
+	raw_status?: string | null;
+	normalized_status: string;
+	
+	applicant_name?: string | null;
+	service_name?: string | null;
+	company_name?: string | null;
+	supervisor_name?: string | null;
+	exact_location?: string | null;
+	
+	work_type?: string | null;
+	hazards?: string | null;
+	ppe?: string | null;
+	worksite_controls?: string | null;
+	infection_controls?: string | null;
+	remark?: string | null;
+	
+	work_start_date?: string | null;
+	work_end_date?: string | null;
+	work_start_time?: string | null;
+	work_end_time?: string | null;
+	
+	brief_date?: string | null;
+	brief_time?: string | null;
+	brief_conducted_by?: string | null;
+	
+	source_created_at?: string | null;
+	source_updated_at?: string | null;
+	last_synced_at?: string | null;
+	last_seen_at?: string | null;
+	
+	source_url?: string | null;
+	
+	is_source_deleted: boolean;
+	source_deleted_at?: string | null;
+	
+	is_expired: boolean;
+	days_until_end?: number | null;
+	
+	active_links_count?: number | null;
+	
+	source?: ExternalPermitSourceDto;
+	links?: ProjectPermitLinkMiniDto[];
+	
+	created_at?: string | null;
+	updated_at?: string | null;
+}
+
+export interface ExternalPermitQueryParams {
+	search?: string;
+	normalized_status?: string;
+	raw_status?: string;
+	company_name?: string;
+	service_name?: string;
+	date_from?: string;
+	date_to?: string;
+	project_id?: number;
+	task_id?: number;
+	is_linked?: boolean | '';
+	include_deleted?: boolean;
+	page?: number;
+	per_page?: number;
+}
+
+export interface IntegrationSyncRunDto {
+	id: number;
+	
+	external_source_id: number;
+	integration_code: string;
+	sync_type: string;
+	status: string;
+	
+	started_at?: string | null;
+	completed_at?: string | null;
+	
+	fetched_count: number;
+	created_count: number;
+	updated_count: number;
+	unchanged_count: number;
+	deleted_count: number;
+	failed_count: number;
+	
+	cursor_from?: string | null;
+	cursor_to?: string | null;
+	error_message?: string | null;
+	
+	triggered_by_user_id?: number | null;
+	
+	source?: {
+		id: number;
+		code: string;
+		name: string;
+	};
+	
+	triggered_by?: {
+		id: number;
+		name: string;
+		email: string;
+	};
+	
+	created_at?: string | null;
+	updated_at?: string | null;
+}
+
+export interface IntegrationSyncRunQueryParams {
+	status?: string;
+	sync_type?: string;
+	date_from?: string;
+	date_to?: string;
+	page?: number;
+	per_page?: number;
+}
+
+export type EptwSyncMode = 'FULL' | 'INCREMENTAL' | 'MANUAL';
+
+export interface EptwSyncPayload {
+	mode: EptwSyncMode;
+	run_async?: boolean;
+}
+
+export interface EptwSyncOnePayload {
+	external_form_id: string;
+	run_async?: boolean;
+}
+
+export interface EptwQueuedResponse {
+	ok: boolean;
+	queued: boolean;
+	message: string;
+	mode?: string;
+	external_form_id?: string;
+}
+
+export interface ApiCollectionResource<T> {
+	data: T[];
+}
+
+export interface ImportEptwPermitsPayload {
+	sync_type?: 'FULL' | 'INCREMENTAL' | 'MANUAL';
+	cursor_from?: string | null;
+	cursor_to?: string | null;
+	permits: any[];
+}
+
+export interface ProjectPermitLinkPayload {
+	permit_id: number;
+	task_ids?: number[];
+	notes?: string | null;
+}
+
+export interface ProjectPermitLinkDto {
+	id: number;
+	permit_id: number;
+	project_id: number;
+	task_id?: number | null;
+	linked_by_user_id?: number | null;
+	linked_at?: string | null;
+	notes?: string | null;
+	is_active: boolean;
+	
+	permit?: {
+		id: number;
+		external_form_id: string;
+		external_permit_id?: string | null;
+		normalized_status: string;
+		company_name?: string | null;
+		exact_location?: string | null;
+		work_start_date?: string | null;
+		work_end_date?: string | null;
+	};
+	
+	project?: {
+		id: number;
+		code: string;
+		name: string;
+	};
+	
+	task?: {
+		id: number;
+		project_id: number;
+		milestone_id?: number | null;
+		name: string;
+	};
+	
+	linked_by?: {
+		id: number;
+		name: string;
+		email: string;
+	};
+	
+	created_at?: string | null;
+	updated_at?: string | null;
+}

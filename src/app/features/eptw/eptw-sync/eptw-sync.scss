@@ -1,0 +1,93 @@
+.eptw-wrap {
+	min-height: 100%;
+}
+
+.table td,
+.table th {
+	vertical-align: middle;
+}
+
+.detail-box {
+	height: 100%;
+	padding: 0.85rem;
+	border: 1px solid #e9ecef;
+	border-radius: 0.75rem;
+	background: #f8f9fa;
+}
+
+.pre-line {
+	white-space: pre-line;
+}
+
+.linked-row {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 0.75rem 0;
+	border-top: 1px solid #e9ecef;
+}
+
+.linked-row:first-of-type {
+	border-top: 0;
+}
+
+.badge-eptw-active {
+	background: #198754;
+	color: #ffffff;
+}
+
+.badge-eptw-pending {
+	background: #0dcaf0;
+	color: #000000;
+}
+
+.badge-eptw-suspended {
+	background: #ffc107;
+	color: #000000;
+}
+
+.badge-eptw-completed {
+	background: #6c757d;
+	color: #ffffff;
+}
+
+.badge-eptw-cancelled {
+	background: #dc3545;
+	color: #ffffff;
+}
+
+.badge-eptw-unknown {
+	background: #adb5bd;
+	color: #000000;
+}
+
+.badge-eptw-deleted {
+	background: #212529;
+	color: #ffffff;
+}
+
+.badge-run-completed {
+	background: #198754;
+	color: #ffffff;
+}
+
+.badge-run-partial {
+	background: #ffc107;
+	color: #000000;
+}
+
+.badge-run-failed {
+	background: #dc3545;
+	color: #ffffff;
+}
+
+.badge-run-running {
+	background: #0d6efd;
+	color: #ffffff;
+}
+
+.badge-run-unknown {
+	background: #6c757d;
+	color: #ffffff;
+}
