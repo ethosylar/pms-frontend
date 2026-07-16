@@ -1033,6 +1033,11 @@ export class ApiService {
 				return;
 			}
 			
+			if (typeof value === 'boolean') {
+				httpParams = httpParams.set(key, value ? '1' : '0');
+				return;
+			}
+			
 			httpParams = httpParams.set(key, String(value));
 		});
 		
