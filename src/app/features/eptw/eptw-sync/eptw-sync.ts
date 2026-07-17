@@ -49,8 +49,10 @@ export class EptwSyncComponent implements OnInit {
 	runs: IntegrationSyncRunDto[] = [];
 	
 	selectedPermit: ExternalPermitDto | null = null;
+	permitDetailOpen = false;
 	
-	runAsync = true;
+	//runAsync = true;
+	runAsync = false;
 	singleRunAsync = false;
 	singleExternalFormId = '';
 	
@@ -267,7 +269,8 @@ export class EptwSyncComponent implements OnInit {
 		
 		this.api.startEptwSync({
 			mode,
-			run_async: this.runAsync,
+			//run_async: this.runAsync,
+			run_async: false,
 		})
 		.pipe(
 			finalize(() => {
@@ -319,7 +322,8 @@ export class EptwSyncComponent implements OnInit {
 		
 		this.api.syncOneEptwPermit({
 			external_form_id: externalFormId,
-			run_async: this.singleRunAsync,
+			//run_async: this.singleRunAsync,
+			run_async: false,
 		})
 		.pipe(
 			finalize(() => {
@@ -357,6 +361,7 @@ export class EptwSyncComponent implements OnInit {
 	}
 	
 	viewPermit(permit: ExternalPermitDto): void {
+		this.permitDetailOpen = true;
 		this.loadingDetail = true;
 		this.selectedPermit = null;
 		
@@ -369,10 +374,16 @@ export class EptwSyncComponent implements OnInit {
 		)
 		.subscribe({
 			next: (res: ApiResource<ExternalPermitDto>) => {
-				this.selectedPermit = res.data;
+				// Prevent a completed request from showing after the modal was closed.
+				if (this.permitDetailOpen) {
+					this.selectedPermit = res.data;
+				}
 			},
 			error: (err: any) => {
 				console.error(err);
+				
+				this.permitDetailOpen = false;
+				
 				this.toast.error(
 					this.apiErrorMessage(
 						err,
@@ -384,6 +395,7 @@ export class EptwSyncComponent implements OnInit {
 	}
 	
 	closePermitDetail(): void {
+		this.permitDetailOpen = false;
 		this.selectedPermit = null;
 	}
 	
