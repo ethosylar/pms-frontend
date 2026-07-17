@@ -75,8 +75,8 @@
 							</span>
 						</button>
 					</div>
-					
-					<div class="form-check mt-2">
+					<!--
+						<div class="form-check mt-2">
 						<input
 						class="form-check-input"
 						type="checkbox"
@@ -84,8 +84,24 @@
 						[(ngModel)]="runAsync">
 						
 						<label class="form-check-label small" for="runAsync">
-							Queue sync in background
+						Queue sync in background
 						</label>
+					</div>!-->
+					<div class="form-check mt-2">
+						<input
+						class="form-check-input"
+						type="checkbox"
+						id="runAsync"
+						[checked]="false"
+						disabled>
+						
+						<label class="form-check-label small text-muted" for="runAsync">
+							Background queue is unavailable on this server
+						</label>
+					</div>
+					
+					<div class="form-text">
+						Sync will run immediately. Keep this page open until it finishes.
 					</div>
 				</div>
 				
@@ -103,17 +119,31 @@
 							placeholder="Example: 00411">
 						</div>
 						
+						<!--<div class="col-12 col-md-3">
+							<div class="form-check mb-2">
+							<input
+							class="form-check-input"
+							type="checkbox"
+							id="singleRunAsync"
+							name="singleRunAsync"
+							[(ngModel)]="singleRunAsync">
+							
+							<label class="form-check-label small" for="singleRunAsync">
+							Queue
+							</label>
+							</div>
+						</div>-->
 						<div class="col-12 col-md-3">
 							<div class="form-check mb-2">
 								<input
 								class="form-check-input"
 								type="checkbox"
 								id="singleRunAsync"
-								name="singleRunAsync"
-								[(ngModel)]="singleRunAsync">
+								[checked]="false"
+								disabled>
 								
-								<label class="form-check-label small" for="singleRunAsync">
-									Queue
+								<label class="form-check-label small text-muted" for="singleRunAsync">
+									Queue unavailable
 								</label>
 							</div>
 						</div>
@@ -341,8 +371,8 @@
 							
 							<td class="text-end">
 								<button
-								class="btn btn-outline-primary btn-sm"
 								type="button"
+								class="btn btn-sm btn-outline-primary"
 								(click)="viewPermit(permit)">
 									View
 								</button>
@@ -386,198 +416,250 @@
 				</div>
 			</div>
 			
-			<!-- Permit detail -->
-			<div class="card border-0 shadow-sm mt-4" *ngIf="loadingDetail || selectedPermit">
-				<div class="card-header bg-white d-flex justify-content-between align-items-center">
-					<div class="fw-semibold">
-						Permit Detail
+			<!-- Permit Detail Modal -->
+			<div *ngIf="permitDetailOpen" class="permit-modal-backdrop" (click)="closePermitDetail()">
+				<section class="permit-modal-panel" role="dialog" aria-modal="true" aria-labelledby="permit-detail-title" (click)="$event.stopPropagation()">
+					<div class="permit-modal-header">
+						<div>
+							<h2 id="permit-detail-title" class="h5 mb-0">
+								Permit Detail
+							</h2>
+							<div
+							*ngIf="selectedPermit"
+							class="small text-muted mt-1">
+								Form ID: {{ selectedPermit.external_form_id }}
+							</div>
+						</div>
+						<button class="btn btn-outline-secondary btn-sm" type="button" (click)="closePermitDetail()">
+							Close
+						</button>
 					</div>
 					
-					<button
-					class="btn btn-outline-secondary btn-sm"
-					type="button"
-					(click)="closePermitDetail()">
-						Close
-					</button>
-				</div>
-				
-				<div class="card-body" *ngIf="loadingDetail">
-					<div class="text-center py-3">
-						<div class="spinner-border"></div>
-						<div class="text-muted mt-2">Loading permit detail…</div>
-					</div>
-				</div>
-				
-				<div class="card-body" *ngIf="!loadingDetail && selectedPermit as p">
-					<div class="row g-3">
-						<div class="col-12 col-xl-4">
-							<div class="detail-box">
-								<div class="text-muted small">Form ID</div>
-								<div class="fw-bold">{{ p.external_form_id }}</div>
+					<div class="permit-modal-body">
+						<div *ngIf="loadingDetail" class="text-center py-5">
+							<div class="spinner-border"></div>
+							<div class="text-muted mt-2">
+								Loading permit detail…
 							</div>
 						</div>
 						
-						<div class="col-12 col-xl-4">
-							<div class="detail-box">
-								<div class="text-muted small">Status</div>
-								<span class="badge" [ngClass]="deletedBadgeClass(p)">
-									{{
-									p.is_source_deleted
-									? 'SOURCE DELETED'
-									: p.normalized_status
-									}}
-								</span>
-							</div>
-						</div>
-						
-						<div class="col-12 col-xl-4">
-							<div class="detail-box">
-								<div class="text-muted small">Source</div>
-								<a
-								*ngIf="p.source_url"
-								[href]="p.source_url"
-								target="_blank"
-								rel="noopener">
-									{{ sourceLinkLabel(p) }}
-								</a>
-								<span *ngIf="!p.source_url">-</span>
-							</div>
-						</div>
-						
-						<div class="col-12 col-xl-6">
-							<div class="detail-box">
-								<div class="text-muted small">Company</div>
-								<div>{{ p.company_name || '-' }}</div>
-							</div>
-						</div>
-						
-						<div class="col-12 col-xl-6">
-							<div class="detail-box">
-								<div class="text-muted small">Service</div>
-								<div>{{ p.service_name || '-' }}</div>
-							</div>
-						</div>
-						
-						<div class="col-12 col-xl-6">
-							<div class="detail-box">
-								<div class="text-muted small">Applicant</div>
-								<div>{{ p.applicant_name || '-' }}</div>
-							</div>
-						</div>
-						
-						<div class="col-12 col-xl-6">
-							<div class="detail-box">
-								<div class="text-muted small">Supervisor</div>
-								<div>{{ p.supervisor_name || '-' }}</div>
-							</div>
-						</div>
-						
-						<div class="col-12">
-							<div class="detail-box">
-								<div class="text-muted small">Exact Location</div>
-								<div>{{ p.exact_location || '-' }}</div>
-							</div>
-						</div>
-						
-						<div class="col-12 col-xl-6">
-							<div class="detail-box">
-								<div class="text-muted small">Work Period</div>
-								<div>{{ workPeriod(p) }}</div>
-								<div class="small text-muted">{{ workTime(p) }}</div>
-							</div>
-						</div>
-						
-						<div class="col-12 col-xl-6">
-							<div class="detail-box">
-								<div class="text-muted small">Safety Briefing</div>
-								<div>{{ p.brief_date || '-' }} {{ p.brief_time || '' }}</div>
-								<div class="small text-muted">
-									{{ p.brief_conducted_by || '-' }}
-								</div>
-							</div>
-						</div>
-						
-						<div class="col-12 col-xl-6">
-							<div class="detail-box">
-								<div class="text-muted small">Work Type</div>
-								<div class="pre-line">{{ p.work_type || '-' }}</div>
-							</div>
-						</div>
-						
-						<div class="col-12 col-xl-6">
-							<div class="detail-box">
-								<div class="text-muted small">Hazards</div>
-								<div class="pre-line">{{ p.hazards || '-' }}</div>
-							</div>
-						</div>
-						
-						<div class="col-12 col-xl-6">
-							<div class="detail-box">
-								<div class="text-muted small">PPE</div>
-								<div class="pre-line">{{ p.ppe || '-' }}</div>
-							</div>
-						</div>
-						
-						<div class="col-12 col-xl-6">
-							<div class="detail-box">
-								<div class="text-muted small">Worksite Controls</div>
-								<div class="pre-line">{{ p.worksite_controls || '-' }}</div>
-							</div>
-						</div>
-						
-						<div class="col-12">
-							<div class="detail-box">
-								<div class="text-muted small">Remark</div>
-								<div class="pre-line">{{ p.remark || '-' }}</div>
-							</div>
-						</div>
-						
-						<div class="col-12">
-							<div class="detail-box">
-								<div class="d-flex justify-content-between align-items-center mb-2">
-									<div class="fw-semibold">Linked Projects / Tasks</div>
-									<div class="small text-muted">
-										{{ p.links?.length ?? 0 }} active link(s)
+						<ng-container *ngIf="!loadingDetail && selectedPermit as p">
+							<div class="row g-3">
+								
+								<div class="col-12 col-xl-4">
+									<div class="detail-box">
+										<div class="text-muted small">Form ID</div>
+										<div class="fw-bold">
+											{{ p.external_form_id }}
+										</div>
 									</div>
 								</div>
 								
-								<div *ngIf="!(p.links?.length)" class="text-muted small">
-									This permit is not linked to any project yet.
+								<div class="col-12 col-xl-4">
+									<div class="detail-box">
+										<div class="text-muted small">Status</div>
+										
+										<span
+										class="badge"
+										[ngClass]="deletedBadgeClass(p)">
+											{{
+											p.is_source_deleted
+											? 'SOURCE DELETED'
+											: p.normalized_status
+											}}
+										</span>
+									</div>
 								</div>
 								
-								<div
-								class="linked-row"
-								*ngFor="let link of p.links">
-									<div>
+								<div class="col-12 col-xl-4">
+									<div class="detail-box">
+										<div class="text-muted small">Source</div>
+										
 										<a
-										*ngIf="link.project"
-										[routerLink]="['/projects', link.project.id]"
-										class="fw-semibold">
-											{{ link.project.code }}
+										*ngIf="p.source_url"
+										[href]="p.source_url"
+										target="_blank"
+										rel="noopener">
+											{{ sourceLinkLabel(p) }}
 										</a>
-										<span *ngIf="!link.project">Project #{{ link.project_id }}</span>
 										
-										<div class="small text-muted" *ngIf="link.project">
-											{{ link.project.name }}
-										</div>
-										
-										<div class="small" *ngIf="link.task">
-											Task: {{ link.task.name }}
-										</div>
+										<span *ngIf="!p.source_url">-</span>
 									</div>
-									
-									<div class="text-end small text-muted">
-										<div>{{ link.linked_at | date:'yyyy-MM-dd HH:mm' }}</div>
-										<div *ngIf="link.linked_by">
-											{{ link.linked_by.name }}
+								</div>
+								
+								<div class="col-12 col-xl-6">
+									<div class="detail-box">
+										<div class="text-muted small">Company</div>
+										<div>{{ p.company_name || '-' }}</div>
+									</div>
+								</div>
+								
+								<div class="col-12 col-xl-6">
+									<div class="detail-box">
+										<div class="text-muted small">Service</div>
+										<div>{{ p.service_name || '-' }}</div>
+									</div>
+								</div>
+								
+								<div class="col-12 col-xl-6">
+									<div class="detail-box">
+										<div class="text-muted small">Applicant</div>
+										<div>{{ p.applicant_name || '-' }}</div>
+									</div>
+								</div>
+								
+								<div class="col-12 col-xl-6">
+									<div class="detail-box">
+										<div class="text-muted small">Supervisor</div>
+										<div>{{ p.supervisor_name || '-' }}</div>
+									</div>
+								</div>
+								
+								<div class="col-12">
+									<div class="detail-box">
+										<div class="text-muted small">Exact Location</div>
+										<div>{{ p.exact_location || '-' }}</div>
+									</div>
+								</div>
+								
+								<div class="col-12 col-xl-6">
+									<div class="detail-box">
+										<div class="text-muted small">Work Period</div>
+										<div>{{ workPeriod(p) }}</div>
+										<div class="small text-muted">
+											{{ workTime(p) }}
 										</div>
 									</div>
 								</div>
+								
+								<div class="col-12 col-xl-6">
+									<div class="detail-box">
+										<div class="text-muted small">Safety Briefing</div>
+										
+										<div>
+											{{ p.brief_date || '-' }}
+											{{ p.brief_time || '' }}
+										</div>
+										
+										<div class="small text-muted">
+											{{ p.brief_conducted_by || '-' }}
+										</div>
+									</div>
+								</div>
+								
+								<div class="col-12 col-xl-6">
+									<div class="detail-box">
+										<div class="text-muted small">Work Type</div>
+										<div class="pre-line">
+											{{ p.work_type || '-' }}
+										</div>
+									</div>
+								</div>
+								
+								<div class="col-12 col-xl-6">
+									<div class="detail-box">
+										<div class="text-muted small">Hazards</div>
+										<div class="pre-line">
+											{{ p.hazards || '-' }}
+										</div>
+									</div>
+								</div>
+								
+								<div class="col-12 col-xl-6">
+									<div class="detail-box">
+										<div class="text-muted small">PPE</div>
+										<div class="pre-line">
+											{{ p.ppe || '-' }}
+										</div>
+									</div>
+								</div>
+								
+								<div class="col-12 col-xl-6">
+									<div class="detail-box">
+										<div class="text-muted small">Worksite Controls</div>
+										<div class="pre-line">
+											{{ p.worksite_controls || '-' }}
+										</div>
+									</div>
+								</div>
+								
+								<div class="col-12">
+									<div class="detail-box">
+										<div class="text-muted small">Remark</div>
+										<div class="pre-line">
+											{{ p.remark || '-' }}
+										</div>
+									</div>
+								</div>
+								
+								<div class="col-12">
+									<div class="detail-box">
+										
+										<div class="d-flex justify-content-between align-items-center mb-2">
+											<div class="fw-semibold">
+												Linked Projects / Tasks
+											</div>
+											
+											<div class="small text-muted">
+												{{ p.links?.length ?? 0 }} active link(s)
+											</div>
+										</div>
+										
+										<div
+										*ngIf="!(p.links?.length)"
+										class="text-muted small">
+											This permit is not linked to any project yet.
+										</div>
+										
+										<div
+										class="linked-row"
+										*ngFor="let link of p.links">
+											
+											<div>
+												<a
+												*ngIf="link.project"
+												[routerLink]="['/projects', link.project.id]"
+												(click)="closePermitDetail()"
+												class="fw-semibold">
+													{{ link.project.code }}
+												</a>
+												
+												<span *ngIf="!link.project">
+													Project #{{ link.project_id }}
+												</span>
+												
+												<div
+												class="small text-muted"
+												*ngIf="link.project">
+													{{ link.project.name }}
+												</div>
+												
+												<div
+												class="small"
+												*ngIf="link.task">
+													Task: {{ link.task.name }}
+												</div>
+											</div>
+											
+											<div class="text-end small text-muted">
+												<div>
+													{{ link.linked_at | date:'yyyy-MM-dd HH:mm' }}
+												</div>
+												
+												<div *ngIf="link.linked_by">
+													{{ link.linked_by.name }}
+												</div>
+											</div>
+											
+										</div>
+									</div>
+								</div>
+								
 							</div>
-						</div>
+						</ng-container>
 						
 					</div>
-				</div>
+				</section>
 			</div>
 			
 		</div>
