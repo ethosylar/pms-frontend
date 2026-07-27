@@ -219,11 +219,19 @@ export const routes: Routes = [
 						title: 'User Management',
 					},
 					{
-						path: 'users/:id',
+						path: 'users/:id/edit',
 						canActivate: [permissionGuard(['users.manage'])],
 						loadComponent: () =>
 						import('./features/admin/users/user-form/user-form')
 						.then(m => m.UserFormComponent),
+						title: 'User Management',
+					},
+					{
+						path: 'users/:id',
+						canActivate: [permissionGuard(['users.manage'])],
+						loadComponent: () =>
+						import('./features/admin/users/user-detail/user-detail')
+						.then(m => m.UserDetailComponent),
 						title: 'User Management',
 					},
 					

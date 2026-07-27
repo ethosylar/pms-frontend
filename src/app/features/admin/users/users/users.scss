@@ -1,14 +1,19 @@
 .admin-users-wrap {
-  min-height: 60vh;
+	min-height: 60vh;
 }
 
 .loading-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(248, 249, 252, 0.92);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  border-radius: 12px;
+	position: absolute;
+	inset: 0;
+	z-index: 10;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 12px;
+	background: rgba(248, 249, 252, 0.92);
+}
+
+.table td,
+.table th {
+	vertical-align: middle;
 }
