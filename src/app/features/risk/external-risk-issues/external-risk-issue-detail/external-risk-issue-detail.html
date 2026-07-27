@@ -1,99 +1,669 @@
-<div class="position-relative">
+<div class="position-relative external-risk-detail-wrap">
+	
 	<div *ngIf="loading" class="loading-overlay">
 		<div class="text-center">
 			<div class="spinner-border" role="status"></div>
-			<div class="mt-2 fw-semibold">Loading…</div>
+			<div class="mt-2 fw-semibold">
+				Loading external risk issue…
+			</div>
 		</div>
 	</div>
 	
-	<div class="d-flex align-items-center justify-content-between mb-3">
+	<div
+	class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
 		<div>
-			<h1 class="h4 mb-0">External Risk Issue Detail</h1>
-			<div class="text-muted small">ID: {{ id }}</div>
+			<div class="d-flex align-items-center flex-wrap gap-2">
+				<h1 class="h4 mb-0">
+					{{ row?.external_id || 'External Risk Issue' }}
+				</h1>
+				
+				<span
+				*ngIf="row?.active_link_count !== undefined"
+				class="badge bg-light text-dark border">
+					{{ row?.active_link_count ?? 0 }}
+					active link(s)
+				</span>
+			</div>
+			
+			<div class="text-muted small mt-1">
+				{{ row?.title || ('Record #' + id) }}
+			</div>
 		</div>
 		
 		<div class="d-flex gap-2">
-			<button class="btn btn-outline-secondary" (click)="back()">
-				<i class="bi bi-arrow-left"></i><span class="ms-2">Back</span>
+			<button
+			type="button"
+			class="btn btn-outline-secondary"
+			(click)="back()">
+				<i class="bi bi-arrow-left"></i>
+				<span class="ms-2">Back</span>
 			</button>
 			
-			<button *ngIf="canWrite" class="btn btn-outline-primary" (click)="edit()">
-				<i class="bi bi-pencil-square"></i><span class="ms-2">Edit</span>
+			<button
+			*ngIf="canWrite && row"
+			type="button"
+			class="btn btn-outline-primary"
+			(click)="edit()">
+				<i class="bi bi-pencil-square"></i>
+				<span class="ms-2">Edit</span>
 			</button>
 		</div>
 	</div>
 	
-	<div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+	<div *ngIf="error" class="alert alert-danger">
+		{{ error }}
+	</div>
 	
-	<div *ngIf="row" class="card shadow-sm border-0">
-		<div class="card-body">
+	<div
+	*ngIf="row"
+	class="card shadow-sm border-0">
+		
+		<div class="card-header bg-white p-0">
+			<div class="detail-tabs">
+				<button
+				type="button"
+				class="detail-tab"
+				[class.active]="activeTab === 'overview'"
+				(click)="setTab('overview')">
+					<i class="bi bi-card-text"></i>
+					<span>Overview</span>
+				</button>
+				
+				<button
+				type="button"
+				class="detail-tab"
+				[class.active]="activeTab === 'links'"
+				(click)="setTab('links')">
+					<i class="bi bi-link-45deg"></i>
+					<span>
+						Links
+						({{ activeLinks().length }})
+					</span>
+				</button>
+				
+				<button
+				type="button"
+				class="detail-tab"
+				[class.active]="activeTab === 'payload'"
+				(click)="setTab('payload')">
+					<i class="bi bi-braces"></i>
+					<span>Raw Payload</span>
+				</button>
+			</div>
+		</div>
+		
+		<!-- Overview -->
+		<div
+		class="card-body"
+		*ngIf="activeTab === 'overview'">
 			
 			<div class="row g-3">
-				<div class="col-12 col-md-4">
-					<div class="text-muted small">External ID</div>
-					<div class="fw-semibold">{{ row.external_id }}</div>
+				
+				<div class="col-12 col-xl-8">
+					<div class="detail-section h-100">
+						<div class="section-title">
+							Risk / Issue Information
+						</div>
+						
+						<div class="row g-3">
+							<div class="col-12 col-md-4">
+								<div class="detail-label">
+									External ID
+								</div>
+								
+								<div class="detail-value">
+									{{ row.external_id }}
+								</div>
+							</div>
+							
+							<div class="col-12 col-md-8">
+								<div class="detail-label">
+									Title
+								</div>
+								
+								<div class="detail-value">
+									{{ row.title }}
+								</div>
+							</div>
+							
+							<div class="col-12">
+								<div class="detail-label">
+									Description
+								</div>
+								
+								<div class="detail-value pre-line">
+									{{ row.description || '-' }}
+								</div>
+							</div>
+							
+							<div class="col-12 col-md-4">
+								<div class="detail-label">
+									Type
+								</div>
+								
+								<div class="detail-value">
+									{{ typeLabel() }}
+								</div>
+							</div>
+							
+							<div class="col-12 col-md-4">
+								<div class="detail-label">
+									Severity
+								</div>
+								
+								<div class="detail-value">
+									{{ severityLabel() }}
+								</div>
+							</div>
+							
+							<div class="col-12 col-md-4">
+								<div class="detail-label">
+									Status
+								</div>
+								
+								<div class="detail-value">
+									{{ statusLabel() }}
+								</div>
+							</div>
+							
+							<div class="col-12 col-md-6">
+								<div class="detail-label">
+									Owner
+								</div>
+								
+								<div class="detail-value">
+									{{ row.owner || '-' }}
+								</div>
+							</div>
+							
+							<div class="col-12 col-md-6">
+								<div class="detail-label">
+									Primary Project
+								</div>
+								
+								<div class="detail-value">
+									<a
+									*ngIf="row.project_id"
+									[routerLink]="['/projects', row.project_id]">
+										{{ projectLabel() }}
+									</a>
+									
+									<span *ngIf="!row.project_id">
+										-
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 				
-				<div class="col-12 col-md-8">
-					<div class="text-muted small">Title</div>
-					<div class="fw-semibold">{{ row.title }}</div>
+				<div class="col-12 col-xl-4">
+					<div class="detail-section h-100">
+						<div class="section-title">
+							External Source
+						</div>
+						
+						<div class="info-row">
+							<div class="detail-label">
+								Source
+							</div>
+							
+							<div class="detail-value">
+								{{ sourceLabel() }}
+							</div>
+						</div>
+						
+						<div class="info-row">
+							<div class="detail-label">
+								Source Created
+							</div>
+							
+							<div class="detail-value">
+								<span *ngIf="row.source_created_at">
+									{{ row.source_created_at | date:'yyyy-MM-dd HH:mm' }}
+								</span>
+								
+								<span *ngIf="!row.source_created_at">
+									-
+								</span>
+							</div>
+						</div>
+						
+						<div class="info-row">
+							<div class="detail-label">
+								Source Updated
+							</div>
+							
+							<div class="detail-value">
+								<span *ngIf="row.source_updated_at">
+									{{ row.source_updated_at | date:'yyyy-MM-dd HH:mm' }}
+								</span>
+								
+								<span *ngIf="!row.source_updated_at">
+									-
+								</span>
+							</div>
+						</div>
+						
+						<div class="info-row">
+							<div class="detail-label">
+								Last Synced
+							</div>
+							
+							<div class="detail-value">
+								<span *ngIf="row.last_synced_at">
+									{{ row.last_synced_at | date:'yyyy-MM-dd HH:mm' }}
+								</span>
+								
+								<span *ngIf="!row.last_synced_at">
+									-
+								</span>
+							</div>
+						</div>
+						
+						<div class="info-row">
+							<div class="detail-label">
+								Created in HPMS
+							</div>
+							
+							<div class="detail-value">
+								<span *ngIf="row.created_at">
+									{{ row.created_at | date:'yyyy-MM-dd HH:mm' }}
+								</span>
+								
+								<span *ngIf="!row.created_at">
+									-
+								</span>
+							</div>
+						</div>
+						
+						<div class="info-row mb-0">
+							<div class="detail-label">
+								Last Updated in HPMS
+							</div>
+							
+							<div class="detail-value">
+								<span *ngIf="row.updated_at">
+									{{ row.updated_at | date:'yyyy-MM-dd HH:mm' }}
+								</span>
+								
+								<span *ngIf="!row.updated_at">
+									-
+								</span>
+							</div>
+						</div>
+					</div>
 				</div>
 				
-				<div class="col-12 col-md-3">
-					<div class="text-muted small">Type</div>
-					<div>{{ row.type?.code }} - {{ row.type?.name }}</div>
+				<div class="col-12">
+					<div class="alert alert-info mb-0">
+						<div class="fw-semibold mb-1">
+							Primary project versus active links
+						</div>
+						
+						<div class="small">
+							The Primary Project is stored directly on the issue.
+							The Links tab stores operational relationships to a
+							Project, Task, Milestone and/or ePTW Permit. A linked
+							Task or Milestone must belong to the same project
+							context, and an ePTW Permit already linked to a project
+							cannot be connected to a different project.
+						</div>
+					</div>
 				</div>
 				
-				<div class="col-12 col-md-3">
-					<div class="text-muted small">Severity</div>
-					<div>{{ row.severity?.code }} - {{ row.severity?.name }}</div>
-				</div>
+			</div>
+		</div>
+		
+		<!-- Links -->
+		<div
+		class="card-body"
+		*ngIf="activeTab === 'links'">
+			
+			<div *ngIf="linkError" class="alert alert-danger">
+				{{ linkError }}
+			</div>
+			
+			<div
+			*ngIf="canWrite"
+			class="link-form-card mb-4">
 				
-				<div class="col-12 col-md-3">
-					<div class="text-muted small">Status</div>
-					<div>{{ row.status?.code }} - {{ row.status?.name }}</div>
-				</div>
-				
-				<div class="col-12 col-md-3">
-					<div class="text-muted small">Owner</div>
-					<div>{{ row.owner ?? '-' }}</div>
-				</div>
-				
-				<div class="col-12 col-md-6">
-					<div class="text-muted small">External Source</div>
-					<div>{{ row.externalSource?.code }} - {{ row.externalSource?.name }}</div>
-				</div>
-				
-				<div class="col-12 col-md-6">
-					<div class="text-muted small">Project</div>
-					<div>{{ row.project?.code }} - {{ row.project?.name }}</div>
-				</div>
-				
-				<div class="col-12 col-md-4">
-					<div class="text-muted small">Source Created</div>
-					<div>{{ row.source_created_at ?? '-' }}</div>
-				</div>
-				
-				<div class="col-12 col-md-4">
-					<div class="text-muted small">Source Updated</div>
-					<div>{{ row.source_updated_at ?? '-' }}</div>
-				</div>
-				
-				<div class="col-12 col-md-4">
-					<div class="text-muted small">Last Synced</div>
-					<div>{{ row.last_synced_at ?? '-' }}</div>
-				</div>
-				
-				<div class="col-12 mt-2">
-					<button class="btn btn-outline-secondary btn-sm" (click)="togglePayload()">
-						<i class="bi" [class.bi-chevron-down]="!showPayload" [class.bi-chevron-up]="showPayload"></i>
-						<span class="ms-2">{{ showPayload ? 'Hide' : 'Show' }} Raw Payload</span>
-					</button>
+				<div
+				class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+					<div>
+						<div class="section-title mb-1">
+							Add Relationship
+						</div>
+						
+						<div class="small text-muted">
+							Select at least one target. Multiple targets can
+							be stored in a single relationship.
+						</div>
+					</div>
 					
-					<pre *ngIf="showPayload" class="payload-box mt-2">{{ payloadText }}</pre>
+					<button
+					type="button"
+					class="btn btn-link btn-sm text-decoration-none"
+					[disabled]="linking"
+					(click)="resetLinkForm()">
+						Reset
+					</button>
+				</div>
+				
+				<div class="row g-3">
+					<div class="col-12 col-xl-6">
+						<label class="form-label">
+							Project
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="linkForm.project_id"
+						(change)="onLinkProjectChange()"
+						[disabled]="linking">
+							<option [ngValue]="null">
+								No Project
+							</option>
+							
+							<option
+							*ngFor="let project of projects"
+							[ngValue]="project.id">
+								{{ project.code }}
+								-
+								{{ project.name }}
+							</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-6 col-xl-3">
+						<label class="form-label">
+							Task
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="linkForm.task_id"
+						[disabled]="
+						!linkForm.project_id ||
+						loadingProjectTargets ||
+						linking
+						">
+							<option [ngValue]="null">
+								No Task
+							</option>
+							
+							<option
+							*ngFor="let task of tasks"
+							[ngValue]="task.id">
+								{{ task.name }}
+							</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-6 col-xl-3">
+						<label class="form-label">
+							Milestone
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="linkForm.milestone_id"
+						[disabled]="
+						!linkForm.project_id ||
+						loadingProjectTargets ||
+						linking
+						">
+							<option [ngValue]="null">
+								No Milestone
+							</option>
+							
+							<option
+							*ngFor="let milestone of milestones"
+							[ngValue]="milestone.id">
+								{{ milestone.name }}
+							</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-xl-6">
+						<label class="form-label">
+							Search ePTW Permit
+						</label>
+						
+						<div class="input-group">
+							<input
+							class="form-control"
+							[(ngModel)]="permitSearch"
+							[disabled]="linking"
+							placeholder="Form ID, company, service or location"
+							(keydown.enter)="loadPermits()">
+							
+							<button
+							type="button"
+							class="btn btn-outline-secondary"
+							[disabled]="loadingProjectTargets || linking"
+							(click)="loadPermits()">
+								Search
+							</button>
+						</div>
+						
+						<div class="form-text">
+							When a Project is selected, the permit list is
+							limited to permits linked to that project.
+						</div>
+					</div>
+					
+					<div class="col-12 col-xl-6">
+						<label class="form-label">
+							ePTW Permit
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="linkForm.permit_id"
+						[disabled]="loadingProjectTargets || linking">
+							<option [ngValue]="null">
+								No Permit
+							</option>
+							
+							<option
+							*ngFor="let permit of permits"
+							[ngValue]="permit.id">
+								{{ permit.external_form_id }}
+								-
+								{{ permit.company_name || permit.service_name || permit.normalized_status }}
+							</option>
+						</select>
+					</div>
+					
+					<div class="col-12">
+						<label class="form-label">
+							Notes
+						</label>
+						
+						<textarea
+						rows="3"
+						maxlength="2000"
+						class="form-control"
+						[(ngModel)]="linkForm.notes"
+						[disabled]="linking"
+						placeholder="Explain why this external risk or issue is related to the selected records.">
+						</textarea>
+						
+						<div class="form-text">
+							{{ linkForm.notes.length }} / 2000
+						</div>
+					</div>
+					
+					<div class="col-12 d-flex justify-content-end">
+						<button
+						type="button"
+						class="btn btn-primary"
+						[disabled]="linking || loadingProjectTargets"
+						(click)="addLink()">
+							<span
+							*ngIf="linking"
+							class="spinner-border spinner-border-sm me-2">
+							</span>
+							
+							{{
+							linking
+							? 'Linking…'
+							: 'Add Relationship'
+							}}
+						</button>
+					</div>
+				</div>
+			</div>
+			
+			<div
+			*ngIf="!activeLinks().length"
+			class="empty-state">
+				<i class="bi bi-link-45deg fs-2"></i>
+				
+				<div class="fw-semibold mt-2">
+					No active relationships
+				</div>
+				
+				<div class="small text-muted">
+					This external risk issue is not linked to a Project,
+					Task, Milestone or ePTW Permit.
+				</div>
+			</div>
+			
+			<div
+			class="link-record"
+			*ngFor="let link of activeLinks()">
+				
+				<div
+				class="d-flex align-items-start justify-content-between gap-3">
+					
+					<div class="flex-grow-1">
+						<div class="row g-3">
+							<div class="col-12 col-md-6 col-xl-3">
+								<div class="detail-label">
+									Project
+								</div>
+								
+								<a
+								*ngIf="link.project_id"
+								[routerLink]="['/projects', link.project_id]"
+								class="fw-semibold">
+									{{ linkProjectLabel(link) }}
+								</a>
+								
+								<span *ngIf="!link.project_id">
+									-
+								</span>
+							</div>
+							
+							<div class="col-12 col-md-6 col-xl-3">
+								<div class="detail-label">
+									Task
+								</div>
+								
+								<div class="detail-value">
+									{{ linkTaskLabel(link) }}
+								</div>
+							</div>
+							
+							<div class="col-12 col-md-6 col-xl-3">
+								<div class="detail-label">
+									Milestone
+								</div>
+								
+								<div class="detail-value">
+									{{ linkMilestoneLabel(link) }}
+								</div>
+								
+								<div
+								*ngIf="link.milestone_date"
+								class="small text-muted">
+									{{ link.milestone_date | date:'yyyy-MM-dd' }}
+								</div>
+							</div>
+							
+							<div class="col-12 col-md-6 col-xl-3">
+								<div class="detail-label">
+									ePTW Permit
+								</div>
+								
+								<div class="detail-value">
+									{{ linkPermitLabel(link) }}
+								</div>
+								
+								<div
+								*ngIf="link.permit_status"
+								class="small text-muted">
+									{{ link.permit_status }}
+								</div>
+							</div>
+							
+							<div class="col-12">
+								<div class="detail-label">
+									Notes
+								</div>
+								
+								<div class="detail-value pre-line">
+									{{ link.notes || '-' }}
+								</div>
+							</div>
+							
+							<div class="col-12">
+								<div class="small text-muted">
+									Linked by
+									{{ link.linked_by_name || ('User #' + (link.linked_by_user_id || '-')) }}
+									on
+									<span *ngIf="link.linked_at">
+										{{ link.linked_at | date:'yyyy-MM-dd HH:mm' }}
+									</span>
+									<span *ngIf="!link.linked_at">
+										-
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<button
+					*ngIf="canWrite"
+					type="button"
+					class="btn btn-sm btn-outline-danger"
+					[disabled]="unlinkingId === link.id"
+					(click)="unlink(link)"
+					title="Remove relationship">
+						<span
+						*ngIf="unlinkingId === link.id"
+						class="spinner-border spinner-border-sm">
+						</span>
+						
+						<i
+						*ngIf="unlinkingId !== link.id"
+						class="bi bi-link-45deg">
+						</i>
+						
+						<span class="ms-1">
+							Unlink
+						</span>
+					</button>
 				</div>
 			</div>
 			
 		</div>
+		
+		<!-- Raw payload -->
+		<div
+		class="card-body"
+		*ngIf="activeTab === 'payload'">
+			
+			<div class="alert alert-secondary">
+				This is the source payload retained for traceability.
+				Editing should normally be performed from the Edit page
+				only when correcting or testing an imported record.
+			</div>
+			
+			<pre class="payload-box">{{ payloadText() }}</pre>
+		</div>
+		
 	</div>
 </div>
