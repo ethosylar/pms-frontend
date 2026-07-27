@@ -207,7 +207,7 @@ export class UserFormComponent implements OnInit {
 					this.originalRoleIds = roleIds.slice().sort((a: number, b: number) => a - b);
 					this.form.patchValue({ password: '' });
 					this.cdr.detectChanges();
-					this.router.navigateByUrl('/admin/users');
+					this.router.navigateByUrl(`/admin/users/${id}`);
 				},
 				error: (err) => {
 					console.error(err);
@@ -217,7 +217,12 @@ export class UserFormComponent implements OnInit {
 	}
 	
 	cancel(): void {
-		this.router.navigateByUrl('/admin/users');
+		if (this.isCreate || !this.userId) {
+			this.router.navigateByUrl('/admin/users');
+			return;
+		}
+		
+		this.router.navigateByUrl(`/admin/users/${this.userId}`);
 	}
 	
 	rolePermissionCount(role: RoleDto): number {

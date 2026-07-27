@@ -1167,6 +1167,16 @@ export interface AuditLogDto {
 	[key: string]: unknown;
 }
 
+export interface AuditLogQueryParams {
+	performed_by_user_id?: number;
+	action?: string;
+	entity_type?: string;
+	date_from?: string;
+	date_to?: string;
+	page?: number;
+	per_page?: number;
+}
+
 export interface AuditLogListResponse {
 	ok: boolean;
 	data: AuditLogDto[] | { data: AuditLogDto[] }; // backend might wrap
