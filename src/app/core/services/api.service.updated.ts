@@ -542,21 +542,21 @@ export class ApiService {
 	// ******************************************************************************************************************************
 	// External Risk Issues's Section
 	// ******************************************************************************************************************************
-	
+
 	getExternalRiskIssues(
 		params: ExternalRiskIssueListParams = {}
-		) {
+	) {
 		let httpParams =
-		new HttpParams();
-		
+			new HttpParams();
+
 		if (params.search) {
 			httpParams =
-			httpParams.set(
-				'search',
-				params.search
-			);
+				httpParams.set(
+					'search',
+					params.search
+				);
 		}
-		
+
 		const intKeys = [
 			'project_id',
 			'task_id',
@@ -567,162 +567,162 @@ export class ApiService {
 			'severity_id',
 			'risk_issue_status_id',
 		] as const satisfies ReadonlyArray<
-		keyof ExternalRiskIssueListParams
+			keyof ExternalRiskIssueListParams
 		>;
-		
+
 		for (const key of intKeys) {
 			const value = params[key];
-			
+
 			if (value != null) {
 				httpParams =
-				httpParams.set(
-					String(key),
-					String(value)
-				);
+					httpParams.set(
+						String(key),
+						String(value)
+					);
 			}
 		}
-		
+
 		if (
 			params.source_updated_from
-			) {
+		) {
 			httpParams =
-			httpParams.set(
-				'source_updated_from',
-				params.source_updated_from
-			);
+				httpParams.set(
+					'source_updated_from',
+					params.source_updated_from
+				);
 		}
-		
+
 		if (
 			params.source_updated_to
-			) {
+		) {
 			httpParams =
-			httpParams.set(
-				'source_updated_to',
-				params.source_updated_to
-			);
+				httpParams.set(
+					'source_updated_to',
+					params.source_updated_to
+				);
 		}
-		
+
 		if (
 			params.include_links !==
 			undefined
-			) {
+		) {
 			httpParams =
-			httpParams.set(
-				'include_links',
-				params.include_links
-				? '1'
-				: '0'
-			);
+				httpParams.set(
+					'include_links',
+					params.include_links
+						? '1'
+						: '0'
+				);
 		}
-		
+
 		if (params.page) {
 			httpParams =
-			httpParams.set(
-				'page',
-				String(params.page)
-			);
+				httpParams.set(
+					'page',
+					String(params.page)
+				);
 		}
-		
+
 		if (params.per_page) {
 			httpParams =
-			httpParams.set(
-				'per_page',
-				String(params.per_page)
-			);
+				httpParams.set(
+					'per_page',
+					String(params.per_page)
+				);
 		}
-		
+
 		return this.http.get<
-		ApiCollection<ExternalRiskIssueDto>
+			ApiCollection<ExternalRiskIssueDto>
 		>(
 			`${environment.apiBaseUrl}/external-risk-issues`,
 			{ params: httpParams }
 		);
 	}
-	
+
 	getExternalRiskIssue(
 		id: number,
 		includePayload = false
-		) {
+	) {
 		let httpParams =
-		new HttpParams();
-		
+			new HttpParams();
+
 		if (includePayload) {
 			httpParams =
-			httpParams.set(
-				'include_payload',
-				'1'
-			);
+				httpParams.set(
+					'include_payload',
+					'1'
+				);
 		}
-		
+
 		return this.http.get<
-		ApiResource<ExternalRiskIssueDto>
+			ApiResource<ExternalRiskIssueDto>
 		>(
 			`${environment.apiBaseUrl}/external-risk-issues/${id}`,
 			{ params: httpParams }
 		);
 	}
-	
+
 	createExternalRiskIssue(
 		payload:
-		ExternalRiskIssueUpsertPayload
-		) {
+			ExternalRiskIssueUpsertPayload
+	) {
 		return this.http.post<
-		ApiResource<ExternalRiskIssueDto>
+			ApiResource<ExternalRiskIssueDto>
 		>(
 			`${environment.apiBaseUrl}/external-risk-issues`,
 			payload
 		);
 	}
-	
+
 	updateExternalRiskIssue(
 		id: number,
 		payload:
-		ExternalRiskIssueUpsertPayload
-		) {
+			ExternalRiskIssueUpsertPayload
+	) {
 		return this.http.put<
-		ApiResource<ExternalRiskIssueDto>
+			ApiResource<ExternalRiskIssueDto>
 		>(
 			`${environment.apiBaseUrl}/external-risk-issues/${id}`,
 			payload
 		);
 	}
-	
+
 	deleteExternalRiskIssue(
 		id: number
-		) {
+	) {
 		return this.http.delete<{
 			ok: boolean;
 			mode: 'HARD';
-			}>(
+		}>(
 			`${environment.apiBaseUrl}/external-risk-issues/${id}`
 		);
 	}
-	
+
 	linkExternalRiskIssue(
 		issueId: number,
 		payload:
-		ExternalRiskIssueLinkPayload
-		) {
+			ExternalRiskIssueLinkPayload
+	) {
 		return this.http.post<
-		ApiResource<ExternalRiskIssueDto>
+			ApiResource<ExternalRiskIssueDto>
 		>(
 			`${environment.apiBaseUrl}/external-risk-issues/${issueId}/links`,
 			payload
 		);
 	}
-	
+
 	unlinkExternalRiskIssue(
 		issueId: number,
 		linkId: number
-		) {
+	) {
 		return this.http.delete<{
 			ok: boolean;
 			message?: string;
-			}>(
+		}>(
 			`${environment.apiBaseUrl}/external-risk-issues/${issueId}/links/${linkId}`
 		);
 	}
-	
+
 	// ******************************************************************************************************************************
 	// Project's Section
 	// ******************************************************************************************************************************
@@ -1389,75 +1389,75 @@ export interface LookupMiniDto {
 export interface ExternalRiskIssueLinkDto {
 	id: number;
 	external_risk_issue_id: number;
-	
+
 	project_id?: number | null;
 	project_code?: string | null;
 	project_name?: string | null;
-	
+
 	task_id?: number | null;
 	task_title?: string | null;
 	task_name?: string | null;
-	
+
 	milestone_id?: number | null;
 	milestone_name?: string | null;
 	milestone_date?: string | null;
-	
+
 	permit_id?: number | null;
 	permit_external_form_id?: string | null;
 	permit_external_permit_id?: string | null;
 	permit_status?: string | null;
-	
+
 	linked_by_user_id?: number | null;
 	linked_by_name?: string | null;
 	linked_at?: string | null;
-	
+
 	notes?: string | null;
 	is_active: boolean;
-	
+
 	created_at?: string | null;
 	updated_at?: string | null;
 }
 
 export interface ExternalRiskIssueDto {
 	id: number;
-	
+
 	external_source_id?: number | null;
 	external_source_code?: string | null;
 	external_source_name?: string | null;
-	
+
 	external_id: string;
-	
+
 	project_id?: number | null;
 	project_code?: string | null;
 	project_name?: string | null;
-	
+
 	type_id?: number | null;
 	type_code?: string | null;
 	type_name?: string | null;
-	
+
 	title: string;
 	description?: string | null;
-	
+
 	severity_id?: number | null;
 	severity_code?: string | null;
 	severity_name?: string | null;
-	
+
 	risk_issue_status_id?: number | null;
 	risk_issue_status_code?: string | null;
 	risk_issue_status_name?: string | null;
-	
+
 	owner?: string | null;
-	
+
 	source_created_at?: string | null;
 	source_updated_at?: string | null;
 	last_synced_at?: string | null;
-	
+
 	active_links?: ExternalRiskIssueLinkDto[];
 	links?: ExternalRiskIssueLinkDto[];
 	active_link_count?: number;
-	
+
 	raw_payload?: unknown;
-	
+
 	created_at?: string | null;
 	updated_at?: string | null;
 }
@@ -1465,25 +1465,25 @@ export interface ExternalRiskIssueDto {
 export type ExternalRiskIssueUpsertPayload = {
 	external_source_id?: number | null;
 	external_id?: string;
-	
+
 	project_id?: number | null;
 	type_id?: number | null;
 	severity_id?: number | null;
 	risk_issue_status_id?: number | null;
-	
+
 	title?: string;
 	description?: string | null;
 	owner?: string | null;
-	
+
 	source_created_at?: string | null;
 	source_updated_at?: string | null;
 	last_synced_at?: string | null;
-	
+
 	raw_payload?:
-	| string
-	| Record<string, unknown>
-	| unknown[]
-	| null;
+		| string
+		| Record<string, unknown>
+		| unknown[]
+		| null;
 };
 
 export type ExternalRiskIssueLinkPayload = {
@@ -1588,22 +1588,22 @@ export type ProjectBudgetLineType = 'COST' | 'FUND';
 
 export type ExternalRiskIssueListParams = {
 	search?: string;
-	
+
 	project_id?: number;
 	task_id?: number;
 	milestone_id?: number;
 	permit_id?: number;
-	
+
 	external_source_id?: number;
 	type_id?: number;
 	severity_id?: number;
 	risk_issue_status_id?: number;
-	
+
 	source_updated_from?: string;
 	source_updated_to?: string;
-	
+
 	include_links?: boolean;
-	
+
 	page?: number;
 	per_page?: number;
 };
