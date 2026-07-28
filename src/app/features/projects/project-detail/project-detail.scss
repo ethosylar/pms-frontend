@@ -1,24 +1,123 @@
+.project-detail-wrap {
+	min-height: 60vh;
+}
+
 .loading-overlay {
 	position: absolute;
 	inset: 0;
-	background: rgba(255, 255, 255, 0.65);
+	z-index: 20;
 	display: grid;
 	place-items: center;
-	z-index: 10;
 	border-radius: 12px;
-}
-.gantt-track {
-	position: relative;
-	height: 14px;
-	border-radius: 999px;
-	background: rgba(0, 0, 0, 0.06);
-	overflow: hidden;
+	background: rgba(255, 255, 255, 0.72);
+	backdrop-filter: blur(2px);
 }
 
-.gantt-bar {
-	position: absolute;
-	top: 2px;
-	height: 10px;
-	border-radius: 999px;
-	background: rgba(13, 110, 253, 0.85);
+.project-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	overflow-x: auto;
+}
+
+.project-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.9rem 1.1rem;
+	border: 0;
+	border-bottom: 3px solid transparent;
+	background: transparent;
+	color: #6c757d;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.project-tab:hover {
+	background: #f8f9fa;
+	color: #0d6efd;
+}
+
+.project-tab.active {
+	border-bottom-color: #0d6efd;
+	background: #f8fbff;
+	color: #0d6efd;
+}
+
+.section-card,
+.summary-card {
+	padding: 1rem;
+	border: 1px solid #e7e9ec;
+	border-radius: 0.75rem;
+	background: #ffffff;
+}
+
+.summary-card {
+	background: #f8f9fa;
+}
+
+.section-title {
+	font-weight: 700;
+}
+
+.detail-label {
+	margin-bottom: 0.25rem;
+	color: #6c757d;
+	font-size: 0.78rem;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+.detail-value {
+	font-weight: 500;
+}
+
+.summary-value {
+	margin-top: 0.25rem;
+	font-size: 1.1rem;
+	font-weight: 700;
+}
+
+.info-row {
+	padding: 0.75rem 0;
+	border-bottom: 1px solid #eef0f2;
+}
+
+.info-row:last-child {
+	border-bottom: 0;
+}
+
+.pre-line {
+	white-space: pre-line;
+}
+
+.empty-state {
+	padding: 3rem 1rem;
+	border: 1px dashed #ced4da;
+	border-radius: 0.75rem;
+	text-align: center;
+	color: #6c757d;
+}
+
+.table td,
+.table th {
+	vertical-align: middle;
+}
+
+
+.task-table {
+	min-width: 1400px;
+}
+
+.task-description {
+	max-width: 320px;
+	white-space: normal;
+}
+
+.task-progress {
+	min-width: 110px;
+}
+
+.task-progress .progress {
+	height: 8px;
 }

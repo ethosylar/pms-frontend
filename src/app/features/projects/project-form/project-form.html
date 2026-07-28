@@ -1,197 +1,1149 @@
-<div class="position-relative">
+<div class="position-relative project-form-wrap">
 	
 	<div *ngIf="loading" class="loading-overlay">
 		<div class="text-center">
 			<div class="spinner-border" role="status"></div>
-			<div class="mt-2 fw-semibold">Loading…</div>
+			<div class="mt-2 fw-semibold">
+				Loading project form…
+			</div>
 		</div>
 	</div>
 	
-	<div class="d-flex align-items-center justify-content-between mb-3">
+	<div
+	class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+		
 		<div>
-			<h1 class="h4 mb-0">{{ isCreate ? 'New Project' : 'Edit Project' }}</h1>
-			<div class="text-muted small">Project setup</div>
+			<h1 class="h4 mb-1">
+				{{
+				isCreate
+				? 'New Project'
+				: 'Edit Project'
+				}}
+			</h1>
+			
+			<div class="text-muted small">
+				<span *ngIf="isCreate">
+					Create the project first, then configure its budget structure.
+				</span>
+				
+				<span *ngIf="!isCreate">
+					{{ project?.code }} • {{ project?.name }}
+				</span>
+			</div>
 		</div>
 		
-		<button class="btn btn-outline-secondary" (click)="cancel()">
-			<i class="bi bi-arrow-left"></i><span class="ms-2">Back</span>
+		<button
+		type="button"
+		class="btn btn-outline-secondary"
+		(click)="cancel()">
+			<i class="bi bi-arrow-left"></i>
+			<span class="ms-2">Back</span>
 		</button>
 	</div>
 	
-	<div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+	<div *ngIf="error" class="alert alert-danger">
+		{{ error }}
+	</div>
 	
 	<div class="card shadow-sm border-0">
-		<div class="card-body">
-			<form [formGroup]="form" (ngSubmit)="save()">
-				<div class="row g-3">
-					
-					<div class="col-12 col-md-3">
-						<label class="form-label">Code</label>
-						<input class="form-control" formControlName="code"
-						[class.is-invalid]="form.get('code')?.touched && form.get('code')?.invalid">
-						<div class="invalid-feedback">Code is required.</div>
+		
+		<div class="card-header bg-white p-0">
+			<div class="form-tabs">
+				
+				<button
+				type="button"
+				class="form-tab"
+				[class.active]="activeTab === 'project'"
+				(click)="setTab('project')">
+					<i class="bi bi-pencil-square"></i>
+					<span>Project Information</span>
+				</button>
+				
+				<button
+				type="button"
+				class="form-tab"
+				[class.active]="activeTab === 'budget-lines'"
+				[class.disabled]="isCreate"
+				[disabled]="isCreate"
+				(click)="setTab('budget-lines')">
+					<i class="bi bi-list-columns"></i>
+					<span>Budget Lines</span>
+				</button>
+				
+				<button
+				type="button"
+				class="form-tab"
+				[class.active]="activeTab === 'budget-allocations'"
+				[class.disabled]="isCreate"
+				[disabled]="isCreate"
+				(click)="setTab('budget-allocations')">
+					<i class="bi bi-diagram-2"></i>
+					<span>Budget Allocations</span>
+				</button>
+				
+			</div>
+		</div>
+		
+		<!-- Project Information -->
+		<div
+		class="card-body"
+		*ngIf="activeTab === 'project'">
+			
+			<form
+			[formGroup]="form"
+			(ngSubmit)="saveProject()">
+				
+				<div class="form-section">
+					<div class="section-title">
+						Basic Information
 					</div>
 					
-					<div class="col-12 col-md-9">
-						<label class="form-label">Name</label>
-						<input class="form-control" formControlName="name"
-						[class.is-invalid]="form.get('name')?.touched && form.get('name')?.invalid">
-						<div class="invalid-feedback">Name is required.</div>
-					</div>
-					
-					<div class="col-12 col-md-6">
-						<label class="form-label">Department</label>
-						<select class="form-select" formControlName="department_id">
-							<option [ngValue]="null">—</option>
-							<option *ngFor="let d of departments" [ngValue]="d.id">{{ d.code }} - {{ d.name }}</option>
-						</select>
-					</div>
-					
-					<div class="col-12">
-						<label class="form-label">Description</label>
-						<textarea class="form-control" rows="3" formControlName="description"></textarea>
-					</div>
-					
-					<div class="col-12 col-md-6">
-						<label class="form-label">Project Category</label>
-						<select class="form-select" formControlName="project_category_id">
-							<option [ngValue]="null">—</option>
-							<option *ngFor="let c of categories" [ngValue]="c.id">
-								{{ c.code }} - {{ c.name }}
-							</option>
-						</select>
-					</div>
-					
-					<div class="col-12 col-md-6">
-						<label class="form-label">Owner</label>
-						<select class="form-select" formControlName="owner_user_id">
-							<option [ngValue]="null">—</option>
-							<option *ngFor="let u of owners" [ngValue]="u.id">{{ u.name }}</option>
-						</select>
-						<div class="text-muted small mt-1" *ngIf="owners.length === 0">
-							Owner list unavailable (might be restricted).
+					<div class="row g-3">
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								Code
+							</label>
+							
+							<input
+							class="form-control"
+							formControlName="code"
+							[class.is-invalid]="
+							form.get('code')?.touched &&
+							form.get('code')?.invalid
+							">
+							
+							<div class="invalid-feedback">
+								Code is required.
+							</div>
+						</div>
+						
+						<div class="col-12 col-md-9">
+							<label class="form-label">
+								Name
+							</label>
+							
+							<input
+							class="form-control"
+							formControlName="name"
+							[class.is-invalid]="
+							form.get('name')?.touched &&
+							form.get('name')?.invalid
+							">
+							
+							<div class="invalid-feedback">
+								Name is required.
+							</div>
+						</div>
+						
+						<div class="col-12">
+							<label class="form-label">
+								Description
+							</label>
+							
+							<textarea
+							class="form-control"
+							rows="4"
+							formControlName="description">
+							</textarea>
+						</div>
+						
+						<div class="col-12 col-md-6">
+							<label class="form-label">
+								Department
+							</label>
+							
+							<select
+							class="form-select"
+							formControlName="department_id">
+								<option [ngValue]="null">
+									—
+								</option>
+								
+								<option
+								*ngFor="let department of departments"
+								[ngValue]="department.id">
+									{{ department.code }}
+									-
+									{{ department.name }}
+								</option>
+							</select>
+						</div>
+						
+						<div class="col-12 col-md-6">
+							<label class="form-label">
+								Project Category
+							</label>
+							
+							<select
+							class="form-select"
+							formControlName="project_category_id">
+								<option [ngValue]="null">
+									—
+								</option>
+								
+								<option
+								*ngFor="let category of categories"
+								[ngValue]="category.id">
+									{{ category.code }}
+									-
+									{{ category.name }}
+								</option>
+							</select>
+						</div>
+						
+						<div class="col-12 col-md-6">
+							<label class="form-label">
+								Owner
+							</label>
+							
+							<select
+							class="form-select"
+							formControlName="owner_user_id">
+								<option [ngValue]="null">
+									—
+								</option>
+								
+								<option
+								*ngFor="let owner of owners"
+								[ngValue]="owner.id">
+									{{ owner.name }}
+								</option>
+							</select>
+							
+							<div
+							*ngIf="owners.length === 0"
+							class="text-muted small mt-1">
+								Owner list unavailable or restricted.
+							</div>
+						</div>
+						
+						<div class="col-12 col-md-6">
+							<label class="form-label">
+								Sponsor
+							</label>
+							
+							<input
+							class="form-control"
+							formControlName="sponsor"
+							placeholder="Optional">
+						</div>
+						
+						<div class="col-12 col-md-4">
+							<label class="form-label">
+								Status
+							</label>
+							
+							<select
+							class="form-select"
+							formControlName="project_status_id">
+								<option [ngValue]="null">
+									—
+								</option>
+								
+								<option
+								*ngFor="let status of statuses"
+								[ngValue]="status.id">
+									{{ status.code }}
+									-
+									{{ status.name }}
+								</option>
+							</select>
+						</div>
+						
+						<div class="col-12 col-md-4">
+							<label class="form-label">
+								Priority
+							</label>
+							
+							<select
+							class="form-select"
+							formControlName="priority_id">
+								<option [ngValue]="null">
+									—
+								</option>
+								
+								<option
+								*ngFor="let priority of priorities"
+								[ngValue]="priority.id">
+									{{ priority.code }}
+									-
+									{{ priority.name }}
+								</option>
+							</select>
 						</div>
 					</div>
-					
-					<div class="col-12 col-md-4">
-						<label class="form-label">Status</label>
-						<select class="form-select" formControlName="project_status_id">
-							<option [ngValue]="null">—</option>
-							<option *ngFor="let s of statuses" [ngValue]="s.id">{{ s.code }} - {{ s.name }}</option>
-						</select>
-					</div>
-					
-					<div class="col-12 col-md-4">
-						<label class="form-label">Priority</label>
-						<select class="form-select" formControlName="priority_id">
-							<option [ngValue]="null">—</option>
-							<option *ngFor="let p of priorities" [ngValue]="p.id">{{ p.code }} - {{ p.name }}</option>
-						</select>
-					</div>
-					
-					<div class="col-12 col-md-3">
-						<label class="form-label">Planned Progress (%)</label>
-						<input type="number" class="form-control" formControlName="planned_progress" min="0" max="100">
-					</div>
-					
-					<div class="col-12 col-md-3">
-						<label class="form-label">Actual Progress (%)</label>
-						<input type="number" class="form-control" formControlName="progress" min="0" max="100">
-					</div>
-					
-					<div class="col-12 col-md-6">
-						<label class="form-label">Sponsor</label>
-						<input class="form-control" formControlName="sponsor" placeholder="Optional">
-					</div>
-					
-					<div class="col-12 col-md-3">
-						<label class="form-label">Start Date</label>
-						<input type="date" class="form-control" formControlName="start_date">
-					</div>
-					
-					<div class="col-12 col-md-3">
-						<label class="form-label">Actual Start</label>
-						<input type="date" class="form-control" formControlName="target_start_date">
-					</div>
-					
-					<div class="col-12 col-md-3">
-						<label class="form-label">Target End</label>
-						<input type="date" class="form-control" formControlName="target_end_date">
-					</div>
-					
-					<div class="col-12 col-md-3">
-						<label class="form-label">Actual End</label>
-						<input type="date" class="form-control" formControlName="actual_end_date">
-					</div>
-					
-					<div class="col-12">
-						<label class="form-label">Project Notes</label>
-						<textarea class="form-control" rows="3" formControlName="notes"></textarea>
-					</div>
-					
 				</div>
 				
-				<hr class="my-4">
-				
-				<div class="row g-3">
-					<div class="col-12">
-						<h2 class="h6 mb-0">Budget Summary</h2>
-						<div class="text-muted small">Project-level cost and funding totals</div>
+				<div class="form-section">
+					<div class="section-title">
+						Progress and Schedule
 					</div>
 					
-					<div class="col-12 col-md-3">
-						<label class="form-label">Currency</label>
-						<input class="form-control" formControlName="currency_code" maxlength="3">
-					</div>
-					
-					<div class="col-12 col-md-3">
-						<label class="form-label">Planned Cost</label>
-						<input type="number" min="0" step="0.01" class="form-control" formControlName="planned_cost_total">
-					</div>
-					
-					<div class="col-12 col-md-3">
-						<label class="form-label">Actual Cost</label>
-						<input type="number" min="0" step="0.01" class="form-control" formControlName="actual_cost_total">
-					</div>
-					
-					<div class="col-12 col-md-3">
-						<label class="form-label">Committed Cost</label>
-						<input type="number" min="0" step="0.01" class="form-control" formControlName="committed_cost_total">
-					</div>
-					
-					<div class="col-12 col-md-3">
-						<label class="form-label">Planned Funding</label>
-						<input type="number" min="0" step="0.01" class="form-control" formControlName="planned_funding_total">
-					</div>
-					
-					<div class="col-12 col-md-3">
-						<label class="form-label">Actual Funding</label>
-						<input type="number" min="0" step="0.01" class="form-control" formControlName="actual_funding_total">
-					</div>
-					
-					<div class="col-12 col-md-3">
-						<label class="form-label">Budget Updated At</label>
-						<input type="date" class="form-control" formControlName="budget_updated_at">
-					</div>
-					
-					<div class="col-12">
-						<label class="form-label">Budget Notes</label>
-						<textarea class="form-control" rows="3" formControlName="budget_notes"></textarea>
+					<div class="row g-3">
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								Planned Progress (%)
+							</label>
+							
+							<input
+							type="number"
+							min="0"
+							max="100"
+							class="form-control"
+							formControlName="planned_progress">
+						</div>
+						
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								Actual Progress (%)
+							</label>
+							
+							<input
+							type="number"
+							min="0"
+							max="100"
+							class="form-control"
+							formControlName="progress">
+						</div>
+						
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								Start Date
+							</label>
+							
+							<input
+							type="date"
+							class="form-control"
+							formControlName="start_date">
+						</div>
+						
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								Actual Start
+							</label>
+							
+							<input
+							type="date"
+							class="form-control"
+							formControlName="actual_start_date">
+						</div>
+						
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								Target End
+							</label>
+							
+							<input
+							type="date"
+							class="form-control"
+							formControlName="target_end_date">
+						</div>
+						
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								Actual End
+							</label>
+							
+							<input
+							type="date"
+							class="form-control"
+							formControlName="actual_end_date">
+						</div>
+						
+						<div class="col-12">
+							<label class="form-label">
+								Project Notes
+							</label>
+							
+							<textarea
+							class="form-control"
+							rows="3"
+							formControlName="notes">
+							</textarea>
+						</div>
 					</div>
 				</div>
 				
-				<div class="d-flex gap-2 justify-content-end mt-4">
-					<button type="button" class="btn btn-outline-secondary" (click)="cancel()" [disabled]="saving">
+				<div class="form-section mb-0">
+					<div class="section-title">
+						Project-Level Budget Summary
+					</div>
+					
+					<div class="alert alert-light border">
+						These fields are project-level financial totals.
+						Detailed Cost/Funding categories and Task/Milestone
+						allocations are managed in the next two tabs.
+					</div>
+					
+					<div class="row g-3">
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								Currency
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="3"
+							formControlName="currency_code">
+						</div>
+						
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								Planned Cost
+							</label>
+							
+							<input
+							type="number"
+							min="0"
+							step="0.01"
+							class="form-control"
+							formControlName="planned_cost_total">
+						</div>
+						
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								Actual Cost
+							</label>
+							
+							<input
+							type="number"
+							min="0"
+							step="0.01"
+							class="form-control"
+							formControlName="actual_cost_total">
+						</div>
+						
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								Committed Cost
+							</label>
+							
+							<input
+							type="number"
+							min="0"
+							step="0.01"
+							class="form-control"
+							formControlName="committed_cost_total">
+						</div>
+						
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								Planned Funding
+							</label>
+							
+							<input
+							type="number"
+							min="0"
+							step="0.01"
+							class="form-control"
+							formControlName="planned_funding_total">
+						</div>
+						
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								Actual Funding
+							</label>
+							
+							<input
+							type="number"
+							min="0"
+							step="0.01"
+							class="form-control"
+							formControlName="actual_funding_total">
+						</div>
+						
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								Budget Updated At
+							</label>
+							
+							<input
+							type="date"
+							class="form-control"
+							formControlName="budget_updated_at">
+						</div>
+						
+						<div class="col-12">
+							<label class="form-label">
+								Budget Notes
+							</label>
+							
+							<textarea
+							class="form-control"
+							rows="3"
+							formControlName="budget_notes">
+							</textarea>
+						</div>
+					</div>
+				</div>
+				
+				<div
+				class="d-flex gap-2 justify-content-end mt-4">
+					<button
+					type="button"
+					class="btn btn-outline-secondary"
+					(click)="cancel()"
+					[disabled]="saving">
 						Cancel
 					</button>
-					<button type="submit" class="btn btn-primary" [disabled]="saving">
-						<span *ngIf="!saving">{{ isCreate ? 'Create' : 'Save Changes' }}</span>
-						<span *ngIf="saving">Saving…</span>
+					
+					<button
+					type="submit"
+					class="btn btn-primary"
+					[disabled]="saving">
+						<span
+						*ngIf="saving"
+						class="spinner-border spinner-border-sm me-2">
+						</span>
+						
+						{{
+						saving
+						? 'Saving…'
+						: (
+						isCreate
+						? 'Create Project'
+						: 'Save Project Changes'
+						)
+						}}
 					</button>
 				</div>
 				
 			</form>
 		</div>
+		
+		<!-- Budget Lines -->
+		<div
+		class="card-body"
+		*ngIf="activeTab === 'budget-lines'">
+			
+			<div *ngIf="isCreate" class="alert alert-warning">
+				Save the new project before adding budget lines.
+			</div>
+			
+			<ng-container *ngIf="!isCreate">
+				
+				<div
+				class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+					
+					<div>
+						<div class="section-title mb-1">
+							Budget Lines
+						</div>
+						
+						<div class="small text-muted">
+							Create and maintain project Cost and Funding categories.
+						</div>
+					</div>
+					
+					<button
+					type="button"
+					class="btn btn-outline-secondary btn-sm"
+					(click)="newBudgetLine()">
+						New / Reset
+					</button>
+				</div>
+				
+				<div *ngIf="budgetError" class="alert alert-danger">
+					{{ budgetError }}
+				</div>
+				
+				<div *ngIf="budgetLineError" class="alert alert-danger">
+					{{ budgetLineError }}
+				</div>
+				
+				<div
+				*ngIf="budgetLoading"
+				class="text-center text-muted py-5">
+					<div class="spinner-border"></div>
+					<div class="mt-2">
+						Loading budget lines…
+					</div>
+				</div>
+				
+				<ng-container *ngIf="!budgetLoading">
+					
+					<div class="editor-card mb-4">
+						<div class="row g-3 align-items-end">
+							<div class="col-12 col-md-2">
+								<label class="form-label">
+									Type
+								</label>
+								
+								<select
+								class="form-select"
+								[(ngModel)]="budgetLineForm.line_type">
+									<option value="COST">
+										Cost
+									</option>
+									<option value="FUND">
+										Fund
+									</option>
+								</select>
+							</div>
+							
+							<div class="col-12 col-md-2">
+								<label class="form-label">
+									Code *
+								</label>
+								
+								<input
+								class="form-control"
+								[(ngModel)]="budgetLineForm.code"
+								placeholder="DEV">
+							</div>
+							
+							<div class="col-12 col-md-4">
+								<label class="form-label">
+									Name *
+								</label>
+								
+								<input
+								class="form-control"
+								[(ngModel)]="budgetLineForm.name"
+								placeholder="Software Development">
+							</div>
+							
+							<div class="col-12 col-md-2">
+								<label class="form-label">
+									Sort Order
+								</label>
+								
+								<input
+								type="number"
+								min="0"
+								class="form-control"
+								[(ngModel)]="budgetLineForm.sort_order">
+							</div>
+							
+							<div class="col-12 col-md-2">
+								<label class="form-label">
+									Active
+								</label>
+								
+								<select
+								class="form-select"
+								[(ngModel)]="budgetLineForm.is_active">
+									<option [ngValue]="true">
+										Yes
+									</option>
+									<option [ngValue]="false">
+										No
+									</option>
+								</select>
+							</div>
+							
+							<div class="col-12 col-md-4">
+								<label class="form-label">
+									Planned
+								</label>
+								
+								<input
+								type="number"
+								min="0"
+								step="0.01"
+								class="form-control"
+								[(ngModel)]="budgetLineForm.planned_amount">
+							</div>
+							
+							<div class="col-12 col-md-4">
+								<label class="form-label">
+									Actual
+								</label>
+								
+								<input
+								type="number"
+								min="0"
+								step="0.01"
+								class="form-control"
+								[(ngModel)]="budgetLineForm.actual_amount">
+							</div>
+							
+							<div class="col-12 col-md-4">
+								<label class="form-label">
+									Committed
+								</label>
+								
+								<input
+								type="number"
+								min="0"
+								step="0.01"
+								class="form-control"
+								[(ngModel)]="budgetLineForm.committed_amount">
+							</div>
+							
+							<div class="col-12">
+								<label class="form-label">
+									Notes
+								</label>
+								
+								<textarea
+								rows="3"
+								class="form-control"
+								[(ngModel)]="budgetLineForm.notes">
+								</textarea>
+							</div>
+							
+							<div class="col-12 d-flex justify-content-end gap-2">
+								<button
+								type="button"
+								class="btn btn-outline-secondary"
+								[disabled]="savingBudgetLine"
+								(click)="newBudgetLine()">
+									Reset
+								</button>
+								
+								<button
+								type="button"
+								class="btn btn-primary"
+								[disabled]="savingBudgetLine"
+								(click)="saveBudgetLine()">
+									<span
+									*ngIf="savingBudgetLine"
+									class="spinner-border spinner-border-sm me-2">
+									</span>
+									
+									{{
+									editingBudgetLineId
+									? 'Save Budget Line Changes'
+									: 'Create Budget Line'
+									}}
+								</button>
+							</div>
+						</div>
+					</div>
+					
+					<div class="table-responsive">
+						<table class="table table-hover align-middle mb-0">
+							<thead class="table-light">
+								<tr>
+									<th>Type</th>
+									<th>Code</th>
+									<th>Name</th>
+									<th class="text-end">
+										Planned
+									</th>
+									<th class="text-end">
+										Actual
+									</th>
+									<th class="text-end">
+										Committed
+									</th>
+									<th>Active</th>
+									<th class="text-end">
+										Actions
+									</th>
+								</tr>
+							</thead>
+							
+							<tbody>
+								<tr *ngFor="let line of budgetLines">
+									<td>
+										<span
+										class="badge"
+										[ngClass]="
+										line.line_type === 'COST'
+										? 'bg-danger'
+										: 'bg-success'
+										">
+											{{ line.line_type }}
+										</span>
+									</td>
+									
+									<td>
+										{{ line.code }}
+									</td>
+									
+									<td>
+										<div class="fw-semibold">
+											{{ line.name }}
+										</div>
+										
+										<div
+										*ngIf="line.notes"
+										class="small text-muted">
+											{{ line.notes }}
+										</div>
+									</td>
+									
+									<td class="text-end">
+										{{ moneyLabel(line.planned_amount) }}
+									</td>
+									
+									<td class="text-end">
+										{{ moneyLabel(line.actual_amount) }}
+									</td>
+									
+									<td class="text-end">
+										{{ moneyLabel(line.committed_amount) }}
+									</td>
+									
+									<td>
+										{{ line.is_active ? 'Yes' : 'No' }}
+									</td>
+									
+									<td class="text-end">
+										<button
+										type="button"
+										class="btn btn-sm btn-outline-primary me-2"
+										(click)="editBudgetLine(line)">
+											<i class="bi bi-pencil"></i>
+										</button>
+										
+										<button
+										type="button"
+										class="btn btn-sm btn-outline-danger"
+										(click)="deleteBudgetLine(line)">
+											<i class="bi bi-trash"></i>
+										</button>
+									</td>
+								</tr>
+								
+								<tr *ngIf="!budgetLines.length">
+									<td
+									colspan="8"
+									class="text-center text-muted py-4">
+										No budget lines yet.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+				</ng-container>
+			</ng-container>
+		</div>
+		
+		<!-- Budget Allocations -->
+		<div
+		class="card-body"
+		*ngIf="activeTab === 'budget-allocations'">
+			
+			<div *ngIf="isCreate" class="alert alert-warning">
+				Save the new project before adding budget allocations.
+			</div>
+			
+			<ng-container *ngIf="!isCreate">
+				
+				<div
+				class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+					
+					<div>
+						<div class="section-title mb-1">
+							Budget Allocations
+						</div>
+						
+						<div class="small text-muted">
+							Allocate a budget line at Project, Task or Milestone level.
+						</div>
+					</div>
+					
+					<button
+					type="button"
+					class="btn btn-outline-secondary btn-sm"
+					(click)="newAllocation()">
+						New / Reset
+					</button>
+				</div>
+				
+				<div *ngIf="budgetError" class="alert alert-danger">
+					{{ budgetError }}
+				</div>
+				
+				<div *ngIf="allocationError" class="alert alert-danger">
+					{{ allocationError }}
+				</div>
+				
+				<div
+				*ngIf="budgetLoading"
+				class="text-center text-muted py-5">
+					<div class="spinner-border"></div>
+					<div class="mt-2">
+						Loading budget allocations…
+					</div>
+				</div>
+				
+				<ng-container *ngIf="!budgetLoading">
+					
+					<div
+					*ngIf="!budgetLines.length"
+					class="alert alert-warning">
+						Create at least one Budget Line before adding an allocation.
+					</div>
+					
+					<div class="editor-card mb-4">
+						<div class="row g-3 align-items-end">
+							<div class="col-12 col-xl-4">
+								<label class="form-label">
+									Budget Line *
+								</label>
+								
+								<select
+								class="form-select"
+								[(ngModel)]="allocationForm.budget_line_id">
+									<option [ngValue]="null">
+										— Select line —
+									</option>
+									
+									<option
+									*ngFor="let line of budgetLines"
+									[ngValue]="line.id">
+										{{ line.line_type }}
+										•
+										{{ line.code }}
+										-
+										{{ line.name }}
+									</option>
+								</select>
+							</div>
+							
+							<div class="col-12 col-md-6 col-xl-4">
+								<label class="form-label">
+									Task
+								</label>
+								
+								<select
+								class="form-select"
+								[(ngModel)]="allocationForm.task_id"
+								(ngModelChange)="onAllocationTaskChange()">
+									<option [ngValue]="null">
+										— Project Level / No Task —
+									</option>
+									
+									<option
+									*ngFor="let task of taskOptions"
+									[ngValue]="task.id">
+										#{{ task.id }}
+										-
+										{{ task.name }}
+									</option>
+								</select>
+							</div>
+							
+							<div class="col-12 col-md-6 col-xl-4">
+								<label class="form-label">
+									Milestone
+								</label>
+								
+								<select
+								class="form-select"
+								[(ngModel)]="allocationForm.milestone_id"
+								(ngModelChange)="onAllocationMilestoneChange()">
+									<option [ngValue]="null">
+										— Project Level / No Milestone —
+									</option>
+									
+									<option
+									*ngFor="let milestone of milestones"
+									[ngValue]="milestone.id">
+										{{ milestone.name }}
+									</option>
+								</select>
+							</div>
+							
+							<div class="col-12">
+								<div class="form-text">
+									Leave both Task and Milestone empty for a project-level allocation.
+									Only one of Task or Milestone can be selected at a time.
+								</div>
+							</div>
+							
+							<div class="col-12 col-md-4">
+								<label class="form-label">
+									Planned
+								</label>
+								
+								<input
+								type="number"
+								min="0"
+								step="0.01"
+								class="form-control"
+								[(ngModel)]="allocationForm.planned_amount">
+							</div>
+							
+							<div class="col-12 col-md-4">
+								<label class="form-label">
+									Actual
+								</label>
+								
+								<input
+								type="number"
+								min="0"
+								step="0.01"
+								class="form-control"
+								[(ngModel)]="allocationForm.actual_amount">
+							</div>
+							
+							<div class="col-12 col-md-4">
+								<label class="form-label">
+									Committed
+								</label>
+								
+								<input
+								type="number"
+								min="0"
+								step="0.01"
+								class="form-control"
+								[(ngModel)]="allocationForm.committed_amount">
+							</div>
+							
+							<div class="col-12 col-md-3">
+								<label class="form-label">
+									Sort Order
+								</label>
+								
+								<input
+								type="number"
+								min="0"
+								class="form-control"
+								[(ngModel)]="allocationForm.sort_order">
+							</div>
+							
+							<div class="col-12 col-md-3">
+								<label class="form-label">
+									Active
+								</label>
+								
+								<select
+								class="form-select"
+								[(ngModel)]="allocationForm.is_active">
+									<option [ngValue]="true">
+										Yes
+									</option>
+									<option [ngValue]="false">
+										No
+									</option>
+								</select>
+							</div>
+							
+							<div class="col-12 col-md-6">
+								<label class="form-label">
+									Notes
+								</label>
+								
+								<input
+								class="form-control"
+								[(ngModel)]="allocationForm.notes">
+							</div>
+							
+							<div class="col-12 d-flex justify-content-end gap-2">
+								<button
+								type="button"
+								class="btn btn-outline-secondary"
+								[disabled]="savingAllocation"
+								(click)="newAllocation()">
+									Reset
+								</button>
+								
+								<button
+								type="button"
+								class="btn btn-primary"
+								[disabled]="
+								savingAllocation ||
+								!budgetLines.length
+								"
+								(click)="saveAllocation()">
+									<span
+									*ngIf="savingAllocation"
+									class="spinner-border spinner-border-sm me-2">
+									</span>
+									
+									{{
+									editingAllocationId
+									? 'Save Allocation Changes'
+									: 'Create Allocation'
+									}}
+								</button>
+							</div>
+						</div>
+					</div>
+					
+					<div class="table-responsive">
+						<table class="table table-hover align-middle mb-0">
+							<thead class="table-light">
+								<tr>
+									<th>Budget Line</th>
+									<th>Target</th>
+									<th class="text-end">
+										Planned
+									</th>
+									<th class="text-end">
+										Actual
+									</th>
+									<th class="text-end">
+										Committed
+									</th>
+									<th>Active</th>
+									<th class="text-end">
+										Actions
+									</th>
+								</tr>
+							</thead>
+							
+							<tbody>
+								<tr *ngFor="let allocation of budgetAllocations">
+									<td>
+										<div class="fw-semibold">
+											{{ budgetLineLabel(allocation.budget_line_id) }}
+										</div>
+										
+										<div
+										*ngIf="allocation.notes"
+										class="small text-muted">
+											{{ allocation.notes }}
+										</div>
+									</td>
+									
+									<td>
+										{{ allocationTargetLabel(allocation) }}
+									</td>
+									
+									<td class="text-end">
+										{{ moneyLabel(allocation.planned_amount) }}
+									</td>
+									
+									<td class="text-end">
+										{{ moneyLabel(allocation.actual_amount) }}
+									</td>
+									
+									<td class="text-end">
+										{{ moneyLabel(allocation.committed_amount) }}
+									</td>
+									
+									<td>
+										{{ allocation.is_active ? 'Yes' : 'No' }}
+									</td>
+									
+									<td class="text-end">
+										<button
+										type="button"
+										class="btn btn-sm btn-outline-primary me-2"
+										(click)="editAllocation(allocation)">
+											<i class="bi bi-pencil"></i>
+										</button>
+										
+										<button
+										type="button"
+										class="btn btn-sm btn-outline-danger"
+										(click)="deleteAllocation(allocation)">
+											<i class="bi bi-trash"></i>
+										</button>
+									</td>
+								</tr>
+								
+								<tr *ngIf="!budgetAllocations.length">
+									<td
+									colspan="7"
+									class="text-center text-muted py-4">
+										No budget allocations yet.
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+				</ng-container>
+			</ng-container>
+		</div>
+		
 	</div>
-	
 </div>
