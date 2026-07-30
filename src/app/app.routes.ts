@@ -4,6 +4,22 @@ import { LoginComponent } from './features/auth/login/login';
 import { DashboardComponent } from './features/dashboard/dashboard/dashboard';
 import { authGuard } from './core/guards/auth-guard';
 import { permissionGuard } from './core/guards/permission-guard';
+import { agreementStatusManageGuard } from './core/guards/agreement-status-manage-guard';
+
+export const agreementStatusRoute = {
+	path: 'agreements/statuses',
+	canActivate: [
+		agreementStatusManageGuard,
+	],
+	loadComponent: () =>
+	import(
+		'./features/agreements/agreement-statuses/agreement-statuses'
+	)
+	.then(
+		module =>
+		module.AgreementStatusesComponent
+	),
+};
 
 export const routes: Routes = [
 	{
@@ -495,6 +511,18 @@ export const routes: Routes = [
 						title: 'Task Statuses Management',
 					},
 				],
+			},
+			{
+				path: 'agreements/statuses',
+				canActivate: [agreementStatusManageGuard],
+				loadComponent: () =>
+				import(
+					'./features/agreements/agreement-statuses/agreement-statuses'
+				)
+				.then(
+					module => module.AgreementStatusesComponent
+				),
+				title: 'Agreement Statuses Management',
 			},
 		],
 	},

@@ -1162,6 +1162,71 @@ export class ApiService {
 		return httpParams;
 	}
 	
+	// ******************************************************************************************************************************
+	// Agreemet Status Section (Agreement Module)
+	// ******************************************************************************************************************************
+	
+	getAgreementStatuses(params:AgreementStatusListParams = {}) {
+		let httpParams =
+		new HttpParams();
+		
+		if (params.search) {
+			httpParams = httpParams.set('search',params.search);
+		}
+		
+		if (params.is_active !== undefined) {
+			httpParams = httpParams.set('is_active',params.is_active ? '1' : '0');
+		}
+		
+		if (params.is_terminal !== undefined) {
+			httpParams = httpParams.set('is_terminal', params.is_terminal ? '1' : '0');
+		}
+		
+		if (params.is_system_status !== undefined) {
+			httpParams = httpParams.set('is_system_status', params.is_system_status ? '1' : '0');
+		}
+		
+		if (params.page) {
+			httpParams = httpParams.set('page', String(params.page));
+		}
+		
+		if (params.per_page) {
+			httpParams = httpParams.set('per_page', String(params.per_page));
+		}
+		
+		return this.http.get<ApiCollection<AgreementStatusDto>>(
+		`${environment.apiBaseUrl}/agreement-statuses`,
+			{ params: httpParams }
+		);
+	}
+	
+	getAgreementStatus(id: number) {
+		return this.http.get<ApiResource<AgreementStatusDto>>(
+			`${environment.apiBaseUrl}/agreement-statuses/${id}`
+		);
+	}
+	
+	createAgreementStatus(payload:AgreementStatusUpsertPayload) {
+		return this.http.post<ApiResource<AgreementStatusDto>>(
+			`${environment.apiBaseUrl}/agreement-statuses`,
+			payload
+		);
+	}
+	
+	updateAgreementStatus(id: number,payload:AgreementStatusUpsertPayload) {
+		return this.http.put<ApiResource<AgreementStatusDto>>(
+			`${environment.apiBaseUrl}/agreement-statuses/${id}`,
+			payload
+		);
+	}
+	
+	deactivateAgreementStatus(id: number) {
+		return this.http.delete<{ok: boolean; mode: 'SOFT'; message?: string;}>(
+			`${environment.apiBaseUrl}/agreement-statuses/${id}`
+		);
+	}
+	
+	
 }
 
 export interface LaravelPaginated<T> {
@@ -2086,3 +2151,35 @@ export interface ProjectPermitLinkDto {
 	created_at?: string | null;
 	updated_at?: string | null;
 }
+
+export interface AgreementStatusDto {
+	id: number;
+	code: string;
+	name: string;
+	description?: string | null;
+	sort_order: number;
+	is_terminal: boolean;
+	is_system_status: boolean;
+	is_active: boolean;
+	created_at?: string | null;
+	updated_at?: string | null;
+}
+
+export type AgreementStatusListParams = {
+	search?: string;
+	is_active?: boolean;
+	is_terminal?: boolean;
+	is_system_status?: boolean;
+	page?: number;
+	per_page?: number;
+};
+
+export type AgreementStatusUpsertPayload = {
+	code?: string;
+	name?: string;
+	description?: string | null;
+	sort_order?: number;
+	is_terminal?: boolean;
+	is_active?: boolean;
+};
+

@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, } from '@angular/router';
 import { Observable } from 'rxjs';
+
 import { AuthService } from '../../../core/auth/auth';
 import { AuthUser } from '../../../core/auth/auth.models';
 import { ToastContainerComponent } from '../../ui/toast/toast-container';
@@ -48,7 +49,7 @@ export class ShellComponent {
 			label: 'Risk Issues',
 			route: '/external-risk-issues',
 			icon: 'bi-exclamation-triangle',
-			permissions: ['projects.read'],
+			permissions: ['risks.read'],
 		},
 		{
 			label: 'ePTW Sync',
@@ -61,6 +62,18 @@ export class ShellComponent {
 			route: '/audit-logs',
 			icon: 'bi-clipboard-data',
 			permissions: ['audit.view'],
+		},
+	];
+	
+	agreementItems: SidebarItem[] = [
+		{
+			label: 'Agreement Statuses',
+			route: '/agreements/statuses',
+			icon: 'bi-list-check',
+			permissions: [
+				'system.all',
+				'agreements.status.manage',
+			],
 		},
 	];
 	
@@ -136,10 +149,7 @@ export class ShellComponent {
 		},
 	];
 	
-	constructor(
-		private auth: AuthService,
-		private router: Router
-		) {
+	constructor(private auth: AuthService, private router: Router,) {
 		this.user$ = this.auth.user$;
 	}
 	
@@ -155,9 +165,12 @@ export class ShellComponent {
 		return items.some(item => this.canAny(item.permissions));
 	}
 	
+	showAgreementSection(): boolean {
+		return this.showGroup(this.agreementItems);
+	}
+	
 	showAdminSection(): boolean {
-		return this.showGroup(this.accessControlItems) ||
-		this.showGroup(this.masterDataItems);
+		return (this.showGroup(this.accessControlItems) || this.showGroup(this.masterDataItems));
 	}
 	
 	toggleSidebar(): void {
@@ -169,19 +182,26 @@ export class ShellComponent {
 		
 		const allItems = [
 			...this.mainItems,
+			...this.agreementItems,
 			...this.accessControlItems,
 			...this.masterDataItems,
 		];
 		
-		const matched = allItems
-		.filter(item =>
-			url === item.route ||
-			url.startsWith(item.route + '/')
+		const matched = allItems.filter(item => 
+			url === item.route || url.startsWith(item.route + '/')
 		)
-		.sort((a, b) => b.route.length - a.route.length)[0];
+		.sort(
+			(a, b) =>
+			b.route.length -
+			a.route.length
+		)[0];
 		
 		if (matched) {
 			return matched.label;
+		}
+		
+		if (url.startsWith('/agreements')) {
+			return 'Agreements';
 		}
 		
 		if (url.startsWith('/admin')) {
