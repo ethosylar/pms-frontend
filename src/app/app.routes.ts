@@ -5,6 +5,8 @@ import { DashboardComponent } from './features/dashboard/dashboard/dashboard';
 import { authGuard } from './core/guards/auth-guard';
 import { permissionGuard } from './core/guards/permission-guard';
 import { agreementStatusManageGuard } from './core/guards/agreement-status-manage-guard';
+import { counterpartyManageGuard } from './core/guards/counterparty-manage-guard';
+import { agreementCategoryTypeManageGuard } from './core/guards/agreement-category-type-manage-guard';
 
 export const agreementStatusRoute = {
 	path: 'agreements/statuses',
@@ -516,13 +518,25 @@ export const routes: Routes = [
 				path: 'agreements/statuses',
 				canActivate: [agreementStatusManageGuard],
 				loadComponent: () =>
-				import(
-					'./features/agreements/agreement-statuses/agreement-statuses'
-				)
-				.then(
-					module => module.AgreementStatusesComponent
-				),
+				import('./features/agreements/agreement-statuses/agreement-statuses')
+				.then(module => module.AgreementStatusesComponent),
 				title: 'Agreement Statuses Management',
+			},
+			{
+				path: 'agreements/counterparties',
+				canActivate: [counterpartyManageGuard,],
+				loadComponent: () =>
+				import('./features/agreements/counterparties/counterparties')
+				.then(m => m.CounterpartiesComponent),
+				title: 'Counterparties Management',
+			},
+			{
+				path: 'agreements/category-types',
+				canActivate: [agreementCategoryTypeManageGuard,],
+				loadComponent: () =>
+				import('./features/agreements/agreement-category-types/agreement-category-types')
+				.then(m => m.AgreementCategoryTypesComponent),
+				title: 'Agreement Category & Types Management',
 			},
 		],
 	},

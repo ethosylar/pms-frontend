@@ -1195,7 +1195,7 @@ export class ApiService {
 		}
 		
 		return this.http.get<ApiCollection<AgreementStatusDto>>(
-		`${environment.apiBaseUrl}/agreement-statuses`,
+			`${environment.apiBaseUrl}/agreement-statuses`,
 			{ params: httpParams }
 		);
 	}
@@ -1223,6 +1223,178 @@ export class ApiService {
 	deactivateAgreementStatus(id: number) {
 		return this.http.delete<{ok: boolean; mode: 'SOFT'; message?: string;}>(
 			`${environment.apiBaseUrl}/agreement-statuses/${id}`
+		);
+	}
+	
+	
+	// ******************************************************************************************************************************
+	// Agreement Counterparty Section
+	// ******************************************************************************************************************************
+	
+	getCounterparties(params: CounterpartyQueryParams = {}) {
+		let httpParams = new HttpParams();
+		
+		if (params.search) {
+			httpParams = httpParams.set('search',params.search);
+		}
+		
+		if (params.counterparty_type) {
+			httpParams = httpParams.set('counterparty_type',params.counterparty_type);
+		}
+		
+		if (params.is_active !== undefined) {
+			httpParams = httpParams.set('is_active',params.is_active ? '1' : '0');
+		}
+		
+		if (params.page) {
+			httpParams = httpParams.set('page',String(params.page));
+		}
+		
+		if (params.per_page) {
+			httpParams = httpParams.set('per_page',String(params.per_page));
+		}
+		
+		return this.http.get<ApiCollection<CounterpartyDto>>(
+			`${environment.apiBaseUrl}/counterparties`,{params: httpParams,}
+		);
+	}
+	
+	getCounterparty(id: number) {
+		return this.http.get<ApiResource<CounterpartyDto>>(
+			`${environment.apiBaseUrl}/counterparties/${id}`
+		);
+	}
+	
+	createCounterparty(payload: CounterpartyUpsertPayload) {
+		return this.http.post<ApiResource<CounterpartyDto>>(
+			`${environment.apiBaseUrl}/counterparties`,
+			payload
+		);
+	}
+	
+	updateCounterparty(id: number,payload: CounterpartyUpsertPayload) {
+		return this.http.put<ApiResource<CounterpartyDto>>(
+			`${environment.apiBaseUrl}/counterparties/${id}`,payload
+		);
+	}
+	
+	deactivateCounterparty(id: number) {
+		return this.http.delete<{ ok: boolean; mode: 'SOFT'; message?: string; }>(
+			`${environment.apiBaseUrl}/counterparties/${id}`
+		);
+	}
+	
+	// ******************************************************************************************************************************
+	// Agreement Category Section
+	// ******************************************************************************************************************************
+	
+	getAgreementCategories( params: AgreementCategoryQueryParams = {} ) {
+		let httpParams = new HttpParams();
+		
+		if (params.search) {
+			httpParams = httpParams.set('search', params.search);
+		}
+		
+		if (params.is_active !== undefined) {
+			httpParams = httpParams.set('is_active', params.is_active ? '1' : '0');
+		}
+		
+		if (params.page) {
+			httpParams = httpParams.set('page', String(params.page));
+		}
+		
+		if (params.per_page) {
+			httpParams = httpParams.set('per_page', String(params.per_page));
+		}
+		
+		return this.http.get<ApiCollection<AgreementCategoryDto>>(
+			`${environment.apiBaseUrl}/agreement-categories`,
+			{params: httpParams,}
+		);
+	}
+	
+	getAgreementCategory(id: number) {
+		return this.http.get<ApiResource<AgreementCategoryDto>>(
+			`${environment.apiBaseUrl}/agreement-categories/${id}`
+		);
+	}
+	
+	createAgreementCategory(payload: AgreementCategoryUpsertPayload) {
+		return this.http.post<ApiResource<AgreementCategoryDto>>(
+			`${environment.apiBaseUrl}/agreement-categories`,
+			payload
+		);
+	}
+	
+	updateAgreementCategory(id: number,payload: AgreementCategoryUpsertPayload) {
+		return this.http.put<ApiResource<AgreementCategoryDto>>(
+			`${environment.apiBaseUrl}/agreement-categories/${id}`,
+			payload
+		);
+	}
+	
+	deactivateAgreementCategory(id: number) {
+		return this.http.delete<{ ok: boolean; mode: 'SOFT'; message?: string; }>(
+			`${environment.apiBaseUrl}/agreement-categories/${id}`
+		);
+	}
+	
+	// ******************************************************************************************************************************
+	// Agreement Type Section
+	// ******************************************************************************************************************************
+	
+	getAgreementTypes(params: AgreementTypeQueryParams = {}) {
+		let httpParams = new HttpParams();
+		
+		if (params.search) {
+			httpParams = httpParams.set('search', params.search);
+		}
+		
+		if (params.agreement_category_id != null) {
+			httpParams = httpParams.set('agreement_category_id', String(params.agreement_category_id));
+		}
+		
+		if (params.is_active !== undefined) {
+			httpParams = httpParams.set('is_active', params.is_active ? '1' : '0');
+		}
+		
+		if (params.page) {
+			httpParams = httpParams.set('page', String(params.page));
+		}
+		
+		if (params.per_page) {
+			httpParams = httpParams.set('per_page', String(params.per_page));
+		}
+		
+		return this.http.get<ApiCollection<AgreementTypeDto>>(
+			`${environment.apiBaseUrl}/agreement-types`,
+			{ params: httpParams, }
+		);
+	}
+	
+	getAgreementType(id: number) {
+		return this.http.get<ApiResource<AgreementTypeDto>>(
+			`${environment.apiBaseUrl}/agreement-types/${id}`
+		);
+	}
+	
+	createAgreementType(payload: AgreementTypeUpsertPayload) {
+		return this.http.post<ApiResource<AgreementTypeDto>>(
+			`${environment.apiBaseUrl}/agreement-types`,
+			payload
+		);
+	}
+	
+	updateAgreementType(id: number, payload: AgreementTypeUpsertPayload) {
+		return this.http.put<ApiResource<AgreementTypeDto>>(
+			`${environment.apiBaseUrl}/agreement-types/${id}`,
+			payload
+		);
+	}
+	
+	deactivateAgreementType(id: number) {
+		return this.http.delete<{ ok: boolean; mode: 'SOFT'; message?: string; }>(
+			`${environment.apiBaseUrl}/agreement-types/${id}`
 		);
 	}
 	
@@ -2183,3 +2355,156 @@ export type AgreementStatusUpsertPayload = {
 	is_active?: boolean;
 };
 
+export type CounterpartyType =
+| 'COMPANY'
+| 'VENDOR'
+| 'GOVERNMENT_AGENCY'
+| 'INDIVIDUAL'
+| 'OTHER';
+
+export interface CounterpartyDto {
+	id: number;
+	
+	code?: string | null;
+	counterparty_type: CounterpartyType;
+	
+	legal_name: string;
+	trading_name?: string | null;
+	
+	registration_no?: string | null;
+	tax_no?: string | null;
+	vendor_no?: string | null;
+	
+	contact_person?: string | null;
+	contact_position?: string | null;
+	email?: string | null;
+	phone?: string | null;
+	alternate_phone?: string | null;
+	
+	address_line_1?: string | null;
+	address_line_2?: string | null;
+	city?: string | null;
+	state?: string | null;
+	postcode?: string | null;
+	country?: string | null;
+	
+	notes?: string | null;
+	is_active: boolean;
+	
+	created_at?: string | null;
+	updated_at?: string | null;
+}
+
+export interface CounterpartyQueryParams {
+	search?: string;
+	counterparty_type?: CounterpartyType;
+	is_active?: boolean;
+	page?: number;
+	per_page?: number;
+}
+
+export interface CounterpartyUpsertPayload {
+	code?: string;
+	
+	counterparty_type?: CounterpartyType;
+	
+	legal_name?: string;
+	trading_name?: string | null;
+	
+	registration_no?: string | null;
+	tax_no?: string | null;
+	vendor_no?: string | null;
+	
+	contact_person?: string | null;
+	contact_position?: string | null;
+	email?: string | null;
+	phone?: string | null;
+	alternate_phone?: string | null;
+	
+	address_line_1?: string | null;
+	address_line_2?: string | null;
+	city?: string | null;
+	state?: string | null;
+	postcode?: string | null;
+	country?: string | null;
+	
+	notes?: string | null;
+	is_active?: boolean;
+}
+
+export interface AgreementCategoryDto {
+	id: number;
+	
+	code: string;
+	name: string;
+	description?: string | null;
+	
+	sort_order: number;
+	
+	is_system_category: boolean;
+	is_active: boolean;
+	
+	types_count?: number;
+	
+	created_at?: string | null;
+	updated_at?: string | null;
+}
+
+export interface AgreementCategoryQueryParams {
+	search?: string;
+	is_active?: boolean;
+	page?: number;
+	per_page?: number;
+}
+
+export interface AgreementCategoryUpsertPayload {
+	code?: string;
+	name?: string;
+	description?: string | null;
+	sort_order?: number;
+	is_active?: boolean;
+}
+
+export interface AgreementTypeCategoryMiniDto {
+	id: number;
+	code: string;
+	name: string;
+}
+
+export interface AgreementTypeDto {
+	id: number;
+	
+	agreement_category_id?: number | null;
+	category?: AgreementTypeCategoryMiniDto | null;
+	
+	code: string;
+	name: string;
+	description?: string | null;
+	
+	sort_order: number;
+	
+	is_system_type: boolean;
+	is_active: boolean;
+	
+	created_at?: string | null;
+	updated_at?: string | null;
+}
+
+export interface AgreementTypeQueryParams {
+	search?: string;
+	agreement_category_id?: number;
+	is_active?: boolean;
+	page?: number;
+	per_page?: number;
+}
+
+export interface AgreementTypeUpsertPayload {
+	agreement_category_id?: number | null;
+	
+	code?: string;
+	name?: string;
+	description?: string | null;
+	
+	sort_order?: number;
+	is_active?: boolean;
+}

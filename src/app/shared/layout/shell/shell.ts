@@ -67,6 +67,25 @@ export class ShellComponent {
 	
 	agreementItems: SidebarItem[] = [
 		{
+			label: 'Counterparties',
+			route: '/agreements/counterparties',
+			icon: 'bi-building',
+			permissions: [
+				'system.all',
+				'agreements.counterparties.manage',
+			],
+		},
+		{
+			label: 'Categories & Types',
+			route: '/agreements/category-types',
+			icon: 'bi-tags',
+			permissions: [
+				'system.all',
+				'agreements.categories.manage',
+				'agreements.types.manage',
+			],
+		},
+		{
 			label: 'Agreement Statuses',
 			route: '/agreements/statuses',
 			icon: 'bi-list-check',
