@@ -1,0 +1,283 @@
+.agreement-detail-wrap {
+	min-height: 60vh;
+}
+
+.loading-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 30;
+	display: grid;
+	place-items: center;
+	min-height: 320px;
+	background: rgba(255, 255, 255, 0.76);
+	backdrop-filter: blur(2px);
+}
+
+.lifecycle-stepper {
+	display: flex;
+	align-items: flex-start;
+	overflow-x: auto;
+	padding-bottom: 0.5rem;
+}
+
+.lifecycle-step {
+	position: relative;
+	display: flex;
+	align-items: flex-start;
+	min-width: 190px;
+	flex: 1 0 190px;
+}
+
+.step-marker {
+	position: relative;
+	z-index: 2;
+	display: grid;
+	place-items: center;
+	width: 34px;
+	height: 34px;
+	flex: 0 0 34px;
+	border: 2px solid #ced4da;
+	border-radius: 50%;
+	background: #fff;
+	color: #adb5bd;
+}
+
+.step-content {
+	padding-left: 0.65rem;
+	padding-right: 1rem;
+}
+
+.step-content .small {
+	color: #6c757d;
+}
+
+.step-line {
+	position: absolute;
+	top: 16px;
+	left: 34px;
+	right: 0;
+	height: 2px;
+	background: #dee2e6;
+}
+
+.lifecycle-step.completed .step-marker {
+	border-color: #198754;
+	background: #198754;
+	color: #fff;
+}
+
+.lifecycle-step.completed .step-line {
+	background: #198754;
+}
+
+.lifecycle-step.current .step-marker {
+	border-color: #0d6efd;
+	background: #0d6efd;
+	color: #fff;
+	box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.14);
+}
+
+.lifecycle-step.current .step-content {
+	color: #0d6efd;
+}
+
+.agreement-tabs {
+	display: flex;
+	overflow-x: auto;
+}
+
+.agreement-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.9rem 1rem;
+	border: 0;
+	border-bottom: 3px solid transparent;
+	background: transparent;
+	color: #6c757d;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.agreement-tab.active {
+	border-bottom-color: #0d6efd;
+	background: #f8fbff;
+	color: #0d6efd;
+}
+
+.detail-section,
+.link-project-card,
+.version-card,
+.project-link-row {
+	padding: 1rem;
+	border: 1px solid #e5e7eb;
+	border-radius: 0.7rem;
+	background: #fff;
+}
+
+.section-title {
+	font-weight: 700;
+}
+
+.detail-label {
+	margin-bottom: 0.25rem;
+	color: #6c757d;
+	font-size: 0.76rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.detail-value {
+	font-weight: 500;
+}
+
+.info-row {
+	padding: 0.75rem 0;
+	border-bottom: 1px solid #eef0f2;
+}
+
+.info-row:last-child {
+	border-bottom: 0;
+}
+
+.pre-line {
+	white-space: pre-line;
+}
+
+.timeline-item {
+	position: relative;
+	display: flex;
+	gap: 1rem;
+	padding-bottom: 1.25rem;
+}
+
+.timeline-item::before {
+	position: absolute;
+	top: 22px;
+	bottom: 0;
+	left: 8px;
+	width: 2px;
+	background: #dee2e6;
+	content: "";
+}
+
+.timeline-marker {
+	position: relative;
+	z-index: 2;
+	color: #0d6efd;
+}
+
+.timeline-content {
+	width: 100%;
+	padding: 1rem;
+	border: 1px solid #e5e7eb;
+	border-radius: 0.7rem;
+}
+
+.metadata-box {
+	margin-top: 0.5rem;
+	padding: 0.75rem;
+	border-radius: 0.5rem;
+	background: #f8f9fa;
+	white-space: pre-wrap;
+}
+
+.document-table {
+	min-width: 1200px;
+}
+
+.document-actions {
+	min-width: 220px;
+	white-space: nowrap;
+}
+
+.project-link-row {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-bottom: 0.75rem;
+}
+
+.current-version-card {
+	border-color: #0d6efd;
+	background: #f8fbff;
+}
+
+.empty-state {
+	padding: 2.5rem 1rem;
+	border: 1px dashed #ced4da;
+	border-radius: 0.7rem;
+	text-align: center;
+	color: #6c757d;
+}
+
+.modal-backdrop-custom {
+	position: fixed;
+	inset: 0;
+	z-index: 2050;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1rem;
+	background: rgba(15, 23, 42, 0.6);
+}
+
+.modal-panel-custom {
+	display: flex;
+	flex-direction: column;
+	width: min(680px, 96vw);
+	max-height: 94vh;
+	overflow: hidden;
+	border-radius: 0.8rem;
+	background: #fff;
+	box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.3);
+}
+
+.modal-panel-large {
+	width: min(920px, 96vw);
+}
+
+.modal-header-custom,
+.modal-footer-custom {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 1rem 1.25rem;
+	background: #fff;
+}
+
+.modal-header-custom {
+	border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer-custom {
+	justify-content: flex-end;
+	border-top: 1px solid #dee2e6;
+}
+
+.modal-body-custom {
+	padding: 1.25rem;
+	overflow-y: auto;
+	background: #f8f9fa;
+}
+
+@media (max-width: 767.98px) {
+	.modal-backdrop-custom {
+		padding: 0;
+	}
+	
+	.modal-panel-custom {
+		width: 100%;
+		height: 100%;
+		max-height: none;
+		border-radius: 0;
+	}
+	
+	.lifecycle-step {
+		min-width: 165px;
+		flex-basis: 165px;
+	}
+}

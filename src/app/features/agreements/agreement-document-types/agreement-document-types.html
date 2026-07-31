@@ -1,0 +1,447 @@
+<div class="position-relative document-type-wrap">
+	
+	<div
+	*ngIf="loading"
+	class="loading-overlay">
+		
+		<div class="spinner-border"></div>
+	</div>
+	
+	<div
+	class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+		
+		<div>
+			<h1 class="h4 mb-0">
+				Agreement Document Types
+			</h1>
+			
+			<div class="text-muted small">
+				Manage document classification and OCR eligibility.
+			</div>
+		</div>
+		
+		<button
+		type="button"
+		class="btn btn-primary"
+		(click)="openCreate()">
+			
+			<i class="bi bi-plus-circle"></i>
+			<span class="ms-2">Add Document Type</span>
+		</button>
+	</div>
+	
+	<div
+	*ngIf="error"
+	class="alert alert-danger">
+		
+		{{ error }}
+	</div>
+	
+	<div class="card shadow-sm border-0 mb-3">
+		<div class="card-body">
+			
+			<div class="row g-3 align-items-end">
+				
+				<div class="col-12 col-xl-6">
+					<label class="form-label">
+						Search
+					</label>
+					
+					<input
+					class="form-control"
+					placeholder="Code, name or description"
+					[(ngModel)]="search"
+					(keydown.enter)="applyFilters()">
+				</div>
+				
+				<div class="col-6 col-xl-2">
+					<label class="form-label">
+						Status
+					</label>
+					
+					<select
+					class="form-select"
+					[(ngModel)]="activeFilter">
+						
+						<option value="">All</option>
+						<option value="1">Active</option>
+						<option value="0">Inactive</option>
+					</select>
+				</div>
+				
+				<div class="col-6 col-xl-2">
+					<label class="form-label">
+						OCR Eligible
+					</label>
+					
+					<select
+					class="form-select"
+					[(ngModel)]="ocrFilter">
+						
+						<option value="">All</option>
+						<option value="1">Eligible</option>
+						<option value="0">Not Eligible</option>
+					</select>
+				</div>
+				
+				<div class="col-12 col-xl-2">
+					<div class="d-flex gap-2">
+						
+						<button
+						type="button"
+						class="btn btn-primary flex-grow-1"
+						(click)="applyFilters()">
+							
+							Apply
+						</button>
+						
+						<button
+						type="button"
+						class="btn btn-outline-secondary"
+						(click)="resetFilters()">
+							
+							Reset
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="card shadow-sm border-0">
+		<div class="card-body">
+			
+			<div class="table-responsive">
+				<table class="table table-hover align-middle">
+					
+					<thead class="table-light">
+						<tr>
+							<th>Document Type</th>
+							<th>Description</th>
+							<th>OCR</th>
+							<th>Sort Order</th>
+							<th>Classification</th>
+							<th>Status</th>
+							<th class="text-end">Actions</th>
+						</tr>
+					</thead>
+					
+					<tbody>
+						<tr
+						*ngFor="let row of rows"
+						[class.table-light]="!row.is_active">
+							
+							<td>
+								<div class="fw-semibold">
+									{{ row.name }}
+								</div>
+								
+								<div class="small text-muted">
+									{{ row.code }}
+								</div>
+							</td>
+							
+							<td>
+								{{ row.description || '-' }}
+							</td>
+							
+							<td>
+								<span
+								class="badge"
+								[ngClass]="
+								row.ocr_eligible
+								? 'bg-info text-dark'
+								: 'bg-light text-dark border'
+								">
+									
+									{{
+									row.ocr_eligible
+									? 'Eligible'
+									: 'Not Eligible'
+									}}
+								</span>
+							</td>
+							
+							<td>
+								{{ row.sort_order }}
+							</td>
+							
+							<td>
+								<span
+								class="badge"
+								[ngClass]="
+								row.is_system_type
+								? 'bg-primary'
+								: 'bg-light text-dark border'
+								">
+									
+									{{
+									row.is_system_type
+									? 'System'
+									: 'Custom'
+									}}
+								</span>
+							</td>
+							
+							<td>
+								<span
+								class="badge"
+								[ngClass]="
+								row.is_active
+								? 'bg-success'
+								: 'bg-secondary'
+								">
+									
+									{{
+									row.is_active
+									? 'Active'
+									: 'Inactive'
+									}}
+								</span>
+							</td>
+							
+							<td class="text-end">
+								
+								<button
+								type="button"
+								class="btn btn-sm btn-outline-primary me-2"
+								(click)="openEdit(row)">
+									
+									<i class="bi bi-pencil-square"></i>
+								</button>
+								
+								<span
+								*ngIf="row.is_system_type"
+								class="badge bg-light text-dark border">
+									
+									<i class="bi bi-lock"></i>
+								</span>
+								
+								<button
+								*ngIf="
+								!row.is_system_type &&
+								row.is_active
+								"
+								type="button"
+								class="btn btn-sm btn-outline-danger"
+								(click)="deactivate(row)">
+									
+									<i class="bi bi-x-circle"></i>
+								</button>
+								
+								<button
+								*ngIf="
+								!row.is_system_type &&
+								!row.is_active
+								"
+								type="button"
+								class="btn btn-sm btn-outline-success"
+								(click)="reactivate(row)">
+									
+									<i class="bi bi-arrow-counterclockwise"></i>
+								</button>
+							</td>
+						</tr>
+						
+						<tr *ngIf="!rows.length">
+							<td
+							colspan="7"
+							class="text-center text-muted py-4">
+								
+								No document types found.
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			
+			<div
+			class="d-flex justify-content-between align-items-center mt-3">
+				
+				<div class="small text-muted">
+					Total: {{ total }}
+				</div>
+				
+				<div class="btn-group btn-group-sm">
+					
+					<button
+					class="btn btn-outline-secondary"
+					[disabled]="page <= 1"
+					(click)="changePage(page - 1)">
+						
+						Previous
+					</button>
+					
+					<button
+					class="btn btn-outline-secondary"
+					disabled>
+						
+						Page {{ page }} / {{ lastPage }}
+					</button>
+					
+					<button
+					class="btn btn-outline-secondary"
+					[disabled]="page >= lastPage"
+					(click)="changePage(page + 1)">
+						
+						Next
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div
+	*ngIf="modalOpen"
+	class="management-modal-backdrop"
+	(click)="closeModal()">
+		
+		<section
+		class="management-modal"
+		(click)="$event.stopPropagation()">
+			
+			<header class="management-modal-header">
+				<h2 class="h5 mb-0">
+					{{
+					editingId === null
+					? 'Add Document Type'
+					: 'Edit Document Type'
+					}}
+				</h2>
+				
+				<button
+				class="btn btn-sm btn-outline-secondary"
+				(click)="closeModal()">
+					
+					Close
+				</button>
+			</header>
+			
+			<div class="management-modal-body">
+				
+				<div
+				*ngIf="formError"
+				class="alert alert-danger">
+					
+					{{ formError }}
+				</div>
+				
+				<div
+				*ngIf="editingSystemType"
+				class="alert alert-info">
+					
+					System document types cannot have their code changed
+					or be deactivated.
+				</div>
+				
+				<div class="row g-3">
+					
+					<div class="col-12 col-md-6">
+						<label class="form-label">
+							Code
+						</label>
+						
+						<input
+						class="form-control"
+						maxlength="60"
+						[(ngModel)]="form.code"
+						[disabled]="editingSystemType"
+						(blur)="normaliseCode()">
+					</div>
+					
+					<div class="col-12 col-md-6">
+						<label class="form-label">
+							Name
+						</label>
+						
+						<input
+						class="form-control"
+						maxlength="150"
+						[(ngModel)]="form.name">
+					</div>
+					
+					<div class="col-12">
+						<label class="form-label">
+							Description
+						</label>
+						
+						<textarea
+						rows="4"
+						class="form-control"
+						[(ngModel)]="form.description">
+						</textarea>
+					</div>
+					
+					<div class="col-12 col-md-4">
+						<label class="form-label">
+							Sort Order
+						</label>
+						
+						<input
+						type="number"
+						min="0"
+						class="form-control"
+						[(ngModel)]="form.sort_order">
+					</div>
+					
+					<div class="col-12 col-md-4">
+						<label class="form-label">
+							OCR Eligibility
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="form.ocr_eligible">
+							
+							<option [ngValue]="true">
+								Eligible
+							</option>
+							
+							<option [ngValue]="false">
+								Not Eligible
+							</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-4">
+						<label class="form-label">
+							Status
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="form.is_active"
+						[disabled]="editingSystemType">
+							
+							<option [ngValue]="true">
+								Active
+							</option>
+							
+							<option [ngValue]="false">
+								Inactive
+							</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			
+			<footer class="management-modal-footer">
+				
+				<button
+				class="btn btn-outline-secondary"
+				(click)="closeModal()">
+					
+					Cancel
+				</button>
+				
+				<button
+				class="btn btn-primary"
+				[disabled]="saving"
+				(click)="save()">
+					
+					Save
+				</button>
+			</footer>
+		</section>
+	</div>
+</div>

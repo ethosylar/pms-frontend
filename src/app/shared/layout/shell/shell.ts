@@ -67,6 +67,18 @@ export class ShellComponent {
 	
 	agreementItems: SidebarItem[] = [
 		{
+			label: 'Agreements',
+			route: '/agreements',
+			icon: 'bi-file-earmark-text',
+			permissions: [
+				'system.all',
+				'agreements.view.own',
+				'agreements.view.department',
+				'agreements.view.all',
+			],
+			exact: true,
+		},
+		{
 			label: 'Counterparties',
 			route: '/agreements/counterparties',
 			icon: 'bi-building',
@@ -92,6 +104,15 @@ export class ShellComponent {
 			permissions: [
 				'system.all',
 				'agreements.status.manage',
+			],
+		},
+		{
+			label: 'Document Types',
+			route: '/agreements/document-types',
+			icon: 'bi-file-earmark-ruled',
+			permissions: [
+				'system.all',
+				'agreements.document-types.manage',
 			],
 		},
 	];
@@ -176,7 +197,6 @@ export class ShellComponent {
 		if (!permissions.length) {
 			return true;
 		}
-		
 		return this.auth.hasAnyPermission(permissions);
 	}
 	
@@ -209,11 +229,7 @@ export class ShellComponent {
 		const matched = allItems.filter(item => 
 			url === item.route || url.startsWith(item.route + '/')
 		)
-		.sort(
-			(a, b) =>
-			b.route.length -
-			a.route.length
-		)[0];
+		.sort((a, b) => b.route.length - a.route.length)[0];
 		
 		if (matched) {
 			return matched.label;
@@ -235,5 +251,26 @@ export class ShellComponent {
 			next: () => this.router.navigateByUrl('/login'),
 			error: () => this.router.navigateByUrl('/login'),
 		});
+	}
+	
+	isSidebarItemActive(item: SidebarItem): boolean {
+		const url = this.router.url.split('?')[0].split('#')[0];
+		
+		const allItems = [
+			...this.mainItems,
+			...this.agreementItems,
+			...this.accessControlItems,
+			...this.masterDataItems,
+		];
+		
+		const bestMatch = allItems
+		.filter(candidate =>
+			url === candidate.route ||
+			url.startsWith(
+				candidate.route + '/'
+			)
+		).sort((a, b) => b.route.length - a.route.length)[0];
+		
+		return bestMatch?.route === item.route;
 	}
 }

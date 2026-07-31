@@ -64,8 +64,8 @@ class="d-flex"
 					<a
 					*ngIf="canAny(item.permissions)"
 					class="list-group-item list-group-item-action sidebar-link"
-					[routerLink]="item.route"
-					routerLinkActive="active">
+					[class.active]="isSidebarItemActive(item)"
+					[routerLink]="item.route">
 						
 						<i
 						class="bi"
