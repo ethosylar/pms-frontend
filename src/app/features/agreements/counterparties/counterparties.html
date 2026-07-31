@@ -1,0 +1,784 @@
+<div class="position-relative counterparty-wrap">
+	
+	<div
+	*ngIf="loading"
+	class="loading-overlay">
+		
+		<div class="text-center">
+			<div
+			class="spinner-border"
+			role="status">
+			</div>
+			
+			<div class="mt-2 fw-semibold">
+				Loading counterparties…
+			</div>
+		</div>
+	</div>
+	
+	<div
+	class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+		
+		<div>
+			<h1 class="h4 mb-0">
+				Counterparty Management
+			</h1>
+			
+			<div class="text-muted small">
+				Manage companies, vendors, government agencies,
+				individuals and other agreement parties.
+			</div>
+		</div>
+		
+		<button
+		type="button"
+		class="btn btn-primary"
+		(click)="openCreate()">
+			
+			<i class="bi bi-plus-circle"></i>
+			
+			<span class="ms-2">
+				Add Counterparty
+			</span>
+		</button>
+	</div>
+	
+	<div
+	*ngIf="error"
+	class="alert alert-danger">
+		
+		{{ error }}
+	</div>
+	
+	<!-- Filters -->
+	<div class="card shadow-sm border-0 mb-3">
+		<div class="card-body">
+			
+			<div class="row g-3 align-items-end">
+				
+				<div class="col-12 col-xl-5">
+					<label class="form-label">
+						Search
+					</label>
+					
+					<div class="input-group">
+						<span class="input-group-text">
+							<i class="bi bi-search"></i>
+						</span>
+						
+						<input
+						class="form-control"
+						placeholder="Code, name, registration, vendor, contact, email or phone"
+						[(ngModel)]="search"
+						(keydown.enter)="applyFilters()">
+						
+						<button
+						type="button"
+						class="btn btn-outline-secondary"
+						(click)="applyFilters()">
+							Search
+						</button>
+					</div>
+				</div>
+				
+				<div class="col-12 col-md-4 col-xl-3">
+					<label class="form-label">
+						Counterparty Type
+					</label>
+					
+					<select
+					class="form-select"
+					[(ngModel)]="typeFilter">
+						
+						<option value="">
+							All Types
+						</option>
+						
+						<option
+						*ngFor="let type of counterpartyTypes"
+						[ngValue]="type.value">
+							
+							{{ type.label }}
+						</option>
+					</select>
+				</div>
+				
+				<div class="col-12 col-md-4 col-xl-2">
+					<label class="form-label">
+						Status
+					</label>
+					
+					<select
+					class="form-select"
+					[(ngModel)]="activeFilter">
+						
+						<option value="">
+							All
+						</option>
+						
+						<option value="1">
+							Active
+						</option>
+						
+						<option value="0">
+							Inactive
+						</option>
+					</select>
+				</div>
+				
+				<div class="col-12 col-md-4 col-xl-2">
+					<label class="form-label">
+						Per Page
+					</label>
+					
+					<select
+					class="form-select"
+					[(ngModel)]="perPage"
+					(change)="page = 1; fetch()">
+						
+						<option [ngValue]="10">
+							10
+						</option>
+						
+						<option [ngValue]="20">
+							20
+						</option>
+						
+						<option [ngValue]="50">
+							50
+						</option>
+						
+						<option [ngValue]="100">
+							100
+						</option>
+					</select>
+				</div>
+				
+				<div class="col-12 d-flex justify-content-end gap-2">
+					
+					<button
+					type="button"
+					class="btn btn-primary"
+					[disabled]="loading"
+					(click)="applyFilters()">
+						
+						Apply Filters
+					</button>
+					
+					<button
+					type="button"
+					class="btn btn-outline-secondary"
+					[disabled]="loading"
+					(click)="resetFilters()">
+						
+						Reset
+					</button>
+				</div>
+				
+			</div>
+		</div>
+	</div>
+	
+	<!-- Counterparty table -->
+	<div class="card shadow-sm border-0">
+		<div class="card-body">
+			
+			<div class="table-responsive">
+				<table class="table table-hover align-middle mb-0">
+					
+					<thead class="table-light">
+						<tr>
+							<th>Counterparty</th>
+							<th>Type</th>
+							<th>Registration / Vendor</th>
+							<th>Contact</th>
+							<th>Location</th>
+							<th>Status</th>
+							<th>Updated</th>
+							<th class="text-end">
+								Actions
+							</th>
+						</tr>
+					</thead>
+					
+					<tbody>
+						<tr
+						*ngFor="let row of rows"
+						[class.inactive-row]="!row.is_active">
+							
+							<td>
+								<div class="fw-semibold">
+									{{ row.legal_name }}
+								</div>
+								
+								<div class="small text-muted">
+									{{ row.code }}
+								</div>
+								
+								<div
+								*ngIf="row.trading_name"
+								class="small text-muted">
+									
+									Trading as:
+									{{ row.trading_name }}
+								</div>
+							</td>
+							
+							<td>
+								<span
+								class="badge"
+								[ngClass]="typeBadgeClass(row.counterparty_type)">
+									
+									{{ typeLabel(row.counterparty_type) }}
+								</span>
+							</td>
+							
+							<td>
+								<div>
+									<span class="text-muted small">
+										Reg:
+									</span>
+									
+									{{ row.registration_no || '-' }}
+								</div>
+								
+								<div class="small mt-1">
+									<span class="text-muted">
+										Vendor:
+									</span>
+									
+									{{ row.vendor_no || '-' }}
+								</div>
+							</td>
+							
+							<td>
+								<div>
+									{{ row.contact_person || '-' }}
+								</div>
+								
+								<div class="small text-muted">
+									{{ row.email || row.phone || '-' }}
+								</div>
+							</td>
+							
+							<td>
+								{{ locationLabel(row) }}
+							</td>
+							
+							<td>
+								<span
+								*ngIf="row.is_active"
+								class="badge bg-success">
+									
+									Active
+								</span>
+								
+								<span
+								*ngIf="!row.is_active"
+								class="badge bg-secondary">
+									
+									Inactive
+								</span>
+							</td>
+							
+							<td>
+								<span *ngIf="row.updated_at">
+									{{
+									row.updated_at
+									| date:'yyyy-MM-dd HH:mm'
+									}}
+								</span>
+								
+								<span *ngIf="!row.updated_at">
+									-
+								</span>
+							</td>
+							
+							<td class="text-end action-column">
+								
+								<button
+								type="button"
+								class="btn btn-sm btn-outline-primary me-2"
+								(click)="openEdit(row)"
+								title="Edit counterparty">
+									
+									<i class="bi bi-pencil-square"></i>
+								</button>
+								
+								<button
+								*ngIf="row.is_active"
+								type="button"
+								class="btn btn-sm btn-outline-danger"
+								[disabled]="deactivatingId === row.id"
+								(click)="deactivate(row)"
+								title="Deactivate counterparty">
+									
+									<span
+									*ngIf="deactivatingId === row.id"
+									class="spinner-border spinner-border-sm">
+									</span>
+									
+									<i
+									*ngIf="deactivatingId !== row.id"
+									class="bi bi-person-x">
+									</i>
+								</button>
+								
+								<button
+								*ngIf="!row.is_active"
+								type="button"
+								class="btn btn-sm btn-outline-success"
+								[disabled]="reactivatingId === row.id"
+								(click)="reactivate(row)"
+								title="Reactivate counterparty">
+									
+									<span
+									*ngIf="reactivatingId === row.id"
+									class="spinner-border spinner-border-sm">
+									</span>
+									
+									<i
+									*ngIf="reactivatingId !== row.id"
+									class="bi bi-arrow-counterclockwise">
+									</i>
+								</button>
+								
+							</td>
+						</tr>
+						
+						<tr *ngIf="!loading && !rows.length">
+							<td
+							colspan="8"
+							class="text-center text-muted py-4">
+								
+								No counterparties found.
+							</td>
+						</tr>
+					</tbody>
+					
+				</table>
+			</div>
+			
+			<!-- Pagination -->
+			<div
+			class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3">
+				
+				<div class="small text-muted">
+					Total: {{ total }}
+				</div>
+				
+				<div class="btn-group btn-group-sm">
+					
+					<button
+					type="button"
+					class="btn btn-outline-secondary"
+					[disabled]="page <= 1"
+					(click)="changePage(page - 1)">
+						
+						Previous
+					</button>
+					
+					<button
+					type="button"
+					class="btn btn-outline-secondary"
+					disabled>
+						
+						Page {{ page }} / {{ lastPage }}
+					</button>
+					
+					<button
+					type="button"
+					class="btn btn-outline-secondary"
+					[disabled]="page >= lastPage"
+					(click)="changePage(page + 1)">
+						
+						Next
+					</button>
+					
+				</div>
+			</div>
+			
+		</div>
+	</div>
+	
+	<!-- Add/Edit Modal -->
+	<div
+	*ngIf="modalOpen"
+	class="counterparty-modal-backdrop"
+	(click)="closeModal()">
+		
+		<section
+		class="counterparty-modal-panel"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="counterparty-modal-title"
+		(click)="$event.stopPropagation()">
+			
+			<header class="counterparty-modal-header">
+				
+				<div>
+					<h2
+					id="counterparty-modal-title"
+					class="h5 mb-1">
+						
+						{{ modalTitle }}
+					</h2>
+					
+					<div class="small text-muted">
+						Agreement counterparty information
+					</div>
+				</div>
+				
+				<button
+				type="button"
+				class="btn btn-sm btn-outline-secondary"
+				[disabled]="saving"
+				(click)="closeModal()">
+					
+					Close
+				</button>
+			</header>
+			
+			<div class="counterparty-modal-body">
+				
+				<div
+				*ngIf="formError"
+				class="alert alert-danger">
+					
+					{{ formError }}
+				</div>
+				
+				<!-- Identity -->
+				<div class="form-section">
+					<div class="section-title">
+						Identity
+					</div>
+					
+					<div class="row g-3">
+						
+						<div class="col-12 col-md-4">
+							<label class="form-label">
+								Code
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="50"
+							[(ngModel)]="form.code"
+							(blur)="normaliseCodeField()"
+							placeholder="Leave blank to auto-generate">
+							
+							<div class="form-text">
+								Uppercase letters, numbers, hyphens
+								and underscores only.
+							</div>
+						</div>
+						
+						<div class="col-12 col-md-4">
+							<label class="form-label">
+								Type
+								<span class="text-danger">*</span>
+							</label>
+							
+							<select
+							class="form-select"
+							[(ngModel)]="form.counterparty_type">
+								
+								<option
+								*ngFor="let type of counterpartyTypes"
+								[ngValue]="type.value">
+									
+									{{ type.label }}
+								</option>
+							</select>
+						</div>
+						
+						<div class="col-12 col-md-4">
+							<label class="form-label">
+								Status
+							</label>
+							
+							<select
+							class="form-select"
+							[(ngModel)]="form.is_active">
+								
+								<option [ngValue]="true">
+									Active
+								</option>
+								
+								<option [ngValue]="false">
+									Inactive
+								</option>
+							</select>
+						</div>
+						
+						<div class="col-12 col-md-6">
+							<label class="form-label">
+								Legal Name
+								<span class="text-danger">*</span>
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="255"
+							[(ngModel)]="form.legal_name"
+							placeholder="Registered legal name">
+						</div>
+						
+						<div class="col-12 col-md-6">
+							<label class="form-label">
+								Trading Name
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="255"
+							[(ngModel)]="form.trading_name"
+							placeholder="Optional trading or business name">
+						</div>
+						
+					</div>
+				</div>
+				
+				<!-- Registration -->
+				<div class="form-section">
+					<div class="section-title">
+						Registration and Vendor Information
+					</div>
+					
+					<div class="row g-3">
+						
+						<div class="col-12 col-md-4">
+							<label class="form-label">
+								Registration Number
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="100"
+							[(ngModel)]="form.registration_no">
+						</div>
+						
+						<div class="col-12 col-md-4">
+							<label class="form-label">
+								Tax Number
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="100"
+							[(ngModel)]="form.tax_no">
+						</div>
+						
+						<div class="col-12 col-md-4">
+							<label class="form-label">
+								Vendor Number
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="100"
+							[(ngModel)]="form.vendor_no">
+						</div>
+						
+					</div>
+				</div>
+				
+				<!-- Contact -->
+				<div class="form-section">
+					<div class="section-title">
+						Contact Information
+					</div>
+					
+					<div class="row g-3">
+						
+						<div class="col-12 col-md-6">
+							<label class="form-label">
+								Contact Person
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="255"
+							[(ngModel)]="form.contact_person">
+						</div>
+						
+						<div class="col-12 col-md-6">
+							<label class="form-label">
+								Contact Position
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="255"
+							[(ngModel)]="form.contact_position">
+						</div>
+						
+						<div class="col-12 col-md-4">
+							<label class="form-label">
+								Email
+							</label>
+							
+							<input
+							type="email"
+							class="form-control"
+							maxlength="255"
+							[(ngModel)]="form.email">
+						</div>
+						
+						<div class="col-12 col-md-4">
+							<label class="form-label">
+								Phone
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="50"
+							[(ngModel)]="form.phone">
+						</div>
+						
+						<div class="col-12 col-md-4">
+							<label class="form-label">
+								Alternate Phone
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="50"
+							[(ngModel)]="form.alternate_phone">
+						</div>
+						
+					</div>
+				</div>
+				
+				<!-- Address -->
+				<div class="form-section">
+					<div class="section-title">
+						Address
+					</div>
+					
+					<div class="row g-3">
+						
+						<div class="col-12">
+							<label class="form-label">
+								Address Line 1
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="255"
+							[(ngModel)]="form.address_line_1">
+						</div>
+						
+						<div class="col-12">
+							<label class="form-label">
+								Address Line 2
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="255"
+							[(ngModel)]="form.address_line_2">
+						</div>
+						
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								City
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="120"
+							[(ngModel)]="form.city">
+						</div>
+						
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								State
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="120"
+							[(ngModel)]="form.state">
+						</div>
+						
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								Postcode
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="30"
+							[(ngModel)]="form.postcode">
+						</div>
+						
+						<div class="col-12 col-md-3">
+							<label class="form-label">
+								Country
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="120"
+							[(ngModel)]="form.country">
+						</div>
+						
+					</div>
+				</div>
+				
+				<!-- Notes -->
+				<div class="form-section mb-0">
+					<div class="section-title">
+						Notes
+					</div>
+					
+					<textarea
+					rows="4"
+					class="form-control"
+					[(ngModel)]="form.notes"
+					placeholder="Additional counterparty information">
+					</textarea>
+				</div>
+				
+			</div>
+			
+			<footer class="counterparty-modal-footer">
+				
+				<button
+				type="button"
+				class="btn btn-outline-secondary"
+				[disabled]="saving"
+				(click)="closeModal()">
+					
+					Cancel
+				</button>
+				
+				<button
+				type="button"
+				class="btn btn-primary"
+				[disabled]="saving"
+				(click)="save()">
+					
+					<span
+					*ngIf="saving"
+					class="spinner-border spinner-border-sm me-2">
+					</span>
+					
+					{{
+					saving
+					? 'Saving…'
+					: (
+					isCreate
+					? 'Create Counterparty'
+					: 'Save Changes'
+					)
+					}}
+				</button>
+				
+			</footer>
+		</section>
+	</div>
+	
+</div>

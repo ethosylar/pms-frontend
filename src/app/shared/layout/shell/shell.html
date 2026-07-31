@@ -1,105 +1,171 @@
 <div
-class="d-flex"
 id="wrapper"
+class="d-flex"
 [class.sidebar-collapsed]="sidebarCollapsed">
-	
-	<!-- Sidebar -->
-	<aside class="border-end bg-dark text-white sidebar">
-		
-		<div
+	<aside class="sidebar border-end bg-dark text-white">
+		<button
+		type="button"
 		class="sidebar-header px-3 py-3"
 		(click)="toggleSidebar()"
-		role="button"
-		tabindex="0"
+		[attr.aria-expanded]="!sidebarCollapsed"
 		aria-label="Toggle sidebar">
 			
-			<div class="brand">
-				<div class="fw-bold">HPMS</div>
+			<div class="brand text-start">
+				<div class="fw-bold">
+					HPMS
+				</div>
+				
 				<div class="small text-white-50">
 					Hospital Project Management
 				</div>
 			</div>
 			
-			<i class="bi bi-list text-white-50 sidebar-toggle-icon"></i>
-		</div>
+			<i
+			class="bi bi-list text-white-50 sidebar-toggle-icon">
+			</i>
+		</button>
 		
-		<div class="list-group list-group-flush">
-			
+		<nav class="list-group list-group-flush" aria-label="Main navigation">
 			<!-- Main menu -->
-			<ng-container *ngFor="let item of mainItems">
+			<ng-container
+			*ngFor="let item of mainItems">
+				
 				<a
 				*ngIf="canAny(item.permissions)"
 				class="list-group-item list-group-item-action sidebar-link"
 				[routerLink]="item.route"
 				routerLinkActive="active"
-				[routerLinkActiveOptions]="{ exact: item.exact === true }">
+				[routerLinkActiveOptions]="{
+				exact: item.exact === true
+				}">
 					
-					<i class="bi" [ngClass]="item.icon"></i>
-					<span class="link-text ms-2">{{ item.label }}</span>
+					<i
+					class="bi"
+					[ngClass]="item.icon">
+					</i>
+					
+					<span class="link-text ms-2">
+						{{ item.label }}
+					</span>
 				</a>
 			</ng-container>
 			
-			<!-- Admin menu -->
-			<ng-container *ngIf="showAdminSection()">
+			<!-- Agreement module -->
+			<ng-container
+			*ngIf="showAgreementSection()">
+				
+				<div class="sidebar-section-title">
+					Agreements
+				</div>
+				
+				<ng-container
+				*ngFor="let item of agreementItems">
+					
+					<a
+					*ngIf="canAny(item.permissions)"
+					class="list-group-item list-group-item-action sidebar-link"
+					[class.active]="isSidebarItemActive(item)"
+					[routerLink]="item.route">
+						
+						<i
+						class="bi"
+						[ngClass]="item.icon">
+						</i>
+						
+						<span class="link-text ms-2">
+							{{ item.label }}
+						</span>
+					</a>
+				</ng-container>
+			</ng-container>
+			
+			<!-- Administration -->
+			<ng-container
+			*ngIf="showAdminSection()">
 				
 				<div class="sidebar-section-title">
 					Admin
 				</div>
 				
 				<!-- Access Control -->
-				<ng-container *ngIf="showGroup(accessControlItems)">
+				<ng-container
+				*ngIf="showGroup(accessControlItems)">
+					
 					<div class="sidebar-subsection-title">
 						Access Control
 					</div>
 					
-					<ng-container *ngFor="let item of accessControlItems">
+					<ng-container
+					*ngFor="let item of accessControlItems">
+						
 						<a
 						*ngIf="canAny(item.permissions)"
 						class="list-group-item list-group-item-action sidebar-link"
 						[routerLink]="item.route"
 						routerLinkActive="active">
 							
-							<i class="bi" [ngClass]="item.icon"></i>
-							<span class="link-text ms-2">{{ item.label }}</span>
+							<i
+							class="bi"
+							[ngClass]="item.icon">
+							</i>
+							
+							<span class="link-text ms-2">
+								{{ item.label }}
+							</span>
 						</a>
 					</ng-container>
 				</ng-container>
 				
 				<!-- Master Data -->
-				<ng-container *ngIf="showGroup(masterDataItems)">
+				<ng-container
+				*ngIf="showGroup(masterDataItems)">
+					
 					<div class="sidebar-subsection-title">
 						Master Data
 					</div>
 					
-					<ng-container *ngFor="let item of masterDataItems">
+					<ng-container
+					*ngFor="let item of masterDataItems">
+						
 						<a
 						*ngIf="canAny(item.permissions)"
 						class="list-group-item list-group-item-action sidebar-link"
 						[routerLink]="item.route"
 						routerLinkActive="active">
 							
-							<i class="bi" [ngClass]="item.icon"></i>
-							<span class="link-text ms-2">{{ item.label }}</span>
+							<i
+							class="bi"
+							[ngClass]="item.icon">
+							</i>
+							
+							<span class="link-text ms-2">
+								{{ item.label }}
+							</span>
 						</a>
 					</ng-container>
 				</ng-container>
 				
 			</ng-container>
 			
-		</div>
+		</nav>
 	</aside>
 	
-	<!-- Page content wrapper -->
-	<div id="page-content-wrapper" class="flex-grow-1">
+	<!-- Page content -->
+	<div
+	id="page-content-wrapper"
+	class="flex-grow-1">
 		
-		<!-- Top navbar -->
-		<nav class="navbar navbar-expand navbar-light bg-white border-bottom px-3">
+		<nav
+		class="navbar navbar-expand navbar-light bg-white border-bottom px-3">
+			
 			<div class="navbar-brand fw-bold">
 				{{ currentPageTitle() }}
 			</div>
 			
-			<div class="ms-auto d-flex align-items-center gap-3">
-				<div class="text-end">
+			<div
+			class="ms-auto d-flex align-items-center gap-3">
+				
+				<div class="text-end user-summary">
 					<div class="small fw-semibold">
 						{{ (user$ | async)?.name ?? 'User' }}
 					</div>
@@ -110,6 +176,7 @@ id="wrapper"
 				</div>
 				
 				<button
+				type="button"
 				class="btn btn-outline-danger btn-sm"
 				(click)="logout()">
 					Logout
@@ -117,11 +184,11 @@ id="wrapper"
 			</div>
 		</nav>
 		
-		<!-- Page content -->
 		<main class="container-fluid py-4">
 			<router-outlet></router-outlet>
 		</main>
 		
-		<app-toast-container></app-toast-container>
+		<app-toast-container>
+		</app-toast-container>
 	</div>
 </div>

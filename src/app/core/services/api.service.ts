@@ -1162,6 +1162,535 @@ export class ApiService {
 		return httpParams;
 	}
 	
+	// ******************************************************************************************************************************
+	// Agreemet Status Section (Agreement Module)
+	// ******************************************************************************************************************************
+	
+	getAgreementStatuses(params:AgreementStatusListParams = {}) {
+		let httpParams =
+		new HttpParams();
+		
+		if (params.search) {
+			httpParams = httpParams.set('search',params.search);
+		}
+		
+		if (params.is_active !== undefined) {
+			httpParams = httpParams.set('is_active',params.is_active ? '1' : '0');
+		}
+		
+		if (params.is_terminal !== undefined) {
+			httpParams = httpParams.set('is_terminal', params.is_terminal ? '1' : '0');
+		}
+		
+		if (params.is_system_status !== undefined) {
+			httpParams = httpParams.set('is_system_status', params.is_system_status ? '1' : '0');
+		}
+		
+		if (params.page) {
+			httpParams = httpParams.set('page', String(params.page));
+		}
+		
+		if (params.per_page) {
+			httpParams = httpParams.set('per_page', String(params.per_page));
+		}
+		
+		return this.http.get<ApiCollection<AgreementStatusDto>>(
+			`${environment.apiBaseUrl}/agreement-statuses`,
+			{ params: httpParams }
+		);
+	}
+	
+	getAgreementStatus(id: number) {
+		return this.http.get<ApiResource<AgreementStatusDto>>(
+			`${environment.apiBaseUrl}/agreement-statuses/${id}`
+		);
+	}
+	
+	createAgreementStatus(payload:AgreementStatusUpsertPayload) {
+		return this.http.post<ApiResource<AgreementStatusDto>>(
+			`${environment.apiBaseUrl}/agreement-statuses`,
+			payload
+		);
+	}
+	
+	updateAgreementStatus(id: number,payload:AgreementStatusUpsertPayload) {
+		return this.http.put<ApiResource<AgreementStatusDto>>(
+			`${environment.apiBaseUrl}/agreement-statuses/${id}`,
+			payload
+		);
+	}
+	
+	deactivateAgreementStatus(id: number) {
+		return this.http.delete<{ok: boolean; mode: 'SOFT'; message?: string;}>(
+			`${environment.apiBaseUrl}/agreement-statuses/${id}`
+		);
+	}
+	
+	
+	// ******************************************************************************************************************************
+	// Agreement Counterparty Section
+	// ******************************************************************************************************************************
+	
+	getCounterparties(params: CounterpartyQueryParams = {}) {
+		let httpParams = new HttpParams();
+		
+		if (params.search) {
+			httpParams = httpParams.set('search',params.search);
+		}
+		
+		if (params.counterparty_type) {
+			httpParams = httpParams.set('counterparty_type',params.counterparty_type);
+		}
+		
+		if (params.is_active !== undefined) {
+			httpParams = httpParams.set('is_active',params.is_active ? '1' : '0');
+		}
+		
+		if (params.page) {
+			httpParams = httpParams.set('page',String(params.page));
+		}
+		
+		if (params.per_page) {
+			httpParams = httpParams.set('per_page',String(params.per_page));
+		}
+		
+		return this.http.get<ApiCollection<CounterpartyDto>>(
+			`${environment.apiBaseUrl}/counterparties`,{params: httpParams,}
+		);
+	}
+	
+	getCounterparty(id: number) {
+		return this.http.get<ApiResource<CounterpartyDto>>(
+			`${environment.apiBaseUrl}/counterparties/${id}`
+		);
+	}
+	
+	createCounterparty(payload: CounterpartyUpsertPayload) {
+		return this.http.post<ApiResource<CounterpartyDto>>(
+			`${environment.apiBaseUrl}/counterparties`,
+			payload
+		);
+	}
+	
+	updateCounterparty(id: number,payload: CounterpartyUpsertPayload) {
+		return this.http.put<ApiResource<CounterpartyDto>>(
+			`${environment.apiBaseUrl}/counterparties/${id}`,payload
+		);
+	}
+	
+	deactivateCounterparty(id: number) {
+		return this.http.delete<{ ok: boolean; mode: 'SOFT'; message?: string; }>(
+			`${environment.apiBaseUrl}/counterparties/${id}`
+		);
+	}
+	
+	// ******************************************************************************************************************************
+	// Agreement Category Section
+	// ******************************************************************************************************************************
+	
+	getAgreementCategories( params: AgreementCategoryQueryParams = {} ) {
+		let httpParams = new HttpParams();
+		
+		if (params.search) {
+			httpParams = httpParams.set('search', params.search);
+		}
+		
+		if (params.is_active !== undefined) {
+			httpParams = httpParams.set('is_active', params.is_active ? '1' : '0');
+		}
+		
+		if (params.page) {
+			httpParams = httpParams.set('page', String(params.page));
+		}
+		
+		if (params.per_page) {
+			httpParams = httpParams.set('per_page', String(params.per_page));
+		}
+		
+		return this.http.get<ApiCollection<AgreementCategoryDto>>(
+			`${environment.apiBaseUrl}/agreement-categories`,
+			{params: httpParams,}
+		);
+	}
+	
+	getAgreementCategory(id: number) {
+		return this.http.get<ApiResource<AgreementCategoryDto>>(
+			`${environment.apiBaseUrl}/agreement-categories/${id}`
+		);
+	}
+	
+	createAgreementCategory(payload: AgreementCategoryUpsertPayload) {
+		return this.http.post<ApiResource<AgreementCategoryDto>>(
+			`${environment.apiBaseUrl}/agreement-categories`,
+			payload
+		);
+	}
+	
+	updateAgreementCategory(id: number,payload: AgreementCategoryUpsertPayload) {
+		return this.http.put<ApiResource<AgreementCategoryDto>>(
+			`${environment.apiBaseUrl}/agreement-categories/${id}`,
+			payload
+		);
+	}
+	
+	deactivateAgreementCategory(id: number) {
+		return this.http.delete<{ ok: boolean; mode: 'SOFT'; message?: string; }>(
+			`${environment.apiBaseUrl}/agreement-categories/${id}`
+		);
+	}
+	
+	// ******************************************************************************************************************************
+	// Agreement Type Section
+	// ******************************************************************************************************************************
+	
+	getAgreementTypes(params: AgreementTypeQueryParams = {}) {
+		let httpParams = new HttpParams();
+		
+		if (params.search) {
+			httpParams = httpParams.set('search', params.search);
+		}
+		
+		if (params.agreement_category_id != null) {
+			httpParams = httpParams.set('agreement_category_id', String(params.agreement_category_id));
+		}
+		
+		if (params.is_active !== undefined) {
+			httpParams = httpParams.set('is_active', params.is_active ? '1' : '0');
+		}
+		
+		if (params.page) {
+			httpParams = httpParams.set('page', String(params.page));
+		}
+		
+		if (params.per_page) {
+			httpParams = httpParams.set('per_page', String(params.per_page));
+		}
+		
+		return this.http.get<ApiCollection<AgreementTypeDto>>(
+			`${environment.apiBaseUrl}/agreement-types`,
+			{ params: httpParams, }
+		);
+	}
+	
+	getAgreementType(id: number) {
+		return this.http.get<ApiResource<AgreementTypeDto>>(
+			`${environment.apiBaseUrl}/agreement-types/${id}`
+		);
+	}
+	
+	createAgreementType(payload: AgreementTypeUpsertPayload) {
+		return this.http.post<ApiResource<AgreementTypeDto>>(
+			`${environment.apiBaseUrl}/agreement-types`,
+			payload
+		);
+	}
+	
+	updateAgreementType(id: number, payload: AgreementTypeUpsertPayload) {
+		return this.http.put<ApiResource<AgreementTypeDto>>(
+			`${environment.apiBaseUrl}/agreement-types/${id}`,
+			payload
+		);
+	}
+	
+	deactivateAgreementType(id: number) {
+		return this.http.delete<{ ok: boolean; mode: 'SOFT'; message?: string; }>(
+			`${environment.apiBaseUrl}/agreement-types/${id}`
+		);
+	}
+	
+	// ******************************************************************************************************************************
+	// Agreement Section
+	// ******************************************************************************************************************************
+	
+	getAgreements(params: AgreementQueryParams = {}) {
+		let httpParams = new HttpParams();
+		
+		const textKeys = [
+			'search',
+			'status_code',
+			'lifecycle_type',
+			'effective_from',
+			'effective_to',
+			'expiry_from',
+			'expiry_to',
+		] as const;
+		
+		for (const key of textKeys) {
+			const value = params[key];
+			if (value) {
+				httpParams = httpParams.set(key,String(value));
+			}
+		}
+		
+		const numberKeys = [
+			'department_id',
+			'owner_user_id',
+			'counterparty_id',
+			'agreement_category_id',
+			'agreement_type_id',
+			'agreement_status_id',
+		] as const;
+		
+		for (const key of numberKeys) {
+			const value = params[key];
+			if (value != null) {
+				httpParams = httpParams.set(key,String(value));
+			}
+		}
+		
+		if (params.is_current_version !== undefined) {
+			httpParams = httpParams.set('is_current_version', params.is_current_version ? '1' : '0');
+		}
+		
+		if (params.include_archived !== undefined) {
+			httpParams = httpParams.set('include_archived', params.include_archived ? '1' : '0');
+		}
+		
+		if (params.page) {
+			httpParams = httpParams.set('page',String(params.page));
+		}
+		
+		if (params.per_page) {
+			httpParams = httpParams.set('per_page', String(params.per_page));
+		}
+		
+		return this.http.get<ApiCollection<AgreementDto>>(
+			`${environment.apiBaseUrl}/agreements`, { params: httpParams, }
+		);
+	}
+	
+	getAgreement(id: number) {
+		return this.http.get<ApiResource<AgreementDto>>(
+			`${environment.apiBaseUrl}/agreements/${id}`
+		);
+	}
+	
+	createAgreement(payload: AgreementUpsertPayload) {
+		return this.http.post<ApiResource<AgreementDto>>(
+			`${environment.apiBaseUrl}/agreements`, payload
+		);
+	}
+	
+	updateAgreement(id: number, payload: AgreementUpsertPayload) {
+		return this.http.put<ApiResource<AgreementDto>>(
+			`${environment.apiBaseUrl}/agreements/${id}`, payload
+		);
+	}
+	
+	reviewAgreement(id: number, payload: AgreementNotesPayload) {
+		return this.http.post<ApiResource<AgreementDto>>(
+			`${environment.apiBaseUrl}/agreements/${id}/review`, payload
+		);
+	}
+	
+	submitAgreement(id: number, payload: AgreementNotesPayload) {
+		return this.http.post<ApiResource<AgreementDto>>(
+			`${environment.apiBaseUrl}/agreements/${id}/submit`, payload
+		);
+	}
+	
+	approveAgreement(id: number, payload: AgreementNotesPayload) {
+		return this.http.post<ApiResource<AgreementDto>>(
+			`${environment.apiBaseUrl}/agreements/${id}/approve`, payload
+		);
+	}
+	
+	activateAgreement(id: number, payload: AgreementNotesPayload) {
+		return this.http.post<ApiResource<AgreementDto>>(
+			`${environment.apiBaseUrl}/agreements/${id}/activate`, payload
+		);
+	}
+	
+	cancelAgreement(id: number, payload: AgreementNotesPayload) {
+		return this.http.post<ApiResource<AgreementDto>>(
+			`${environment.apiBaseUrl}/agreements/${id}/cancel`, payload
+		);
+	}
+	
+	archiveAgreement(id: number, payload: AgreementNotesPayload) {
+		return this.http.post<ApiResource<AgreementDto>>(
+			`${environment.apiBaseUrl}/agreements/${id}/archive`, payload
+		);
+	}
+	
+	amendAgreement(id: number, payload: AmendAgreementPayload) {
+		return this.http.post<ApiResource<AgreementDto>>(
+			`${environment.apiBaseUrl}/agreements/${id}/amend`, payload
+		);
+	}
+	
+	renewAgreement(id: number, payload: RenewAgreementPayload) {
+		return this.http.post<ApiResource<AgreementDto>>(
+			`${environment.apiBaseUrl}/agreements/${id}/renew`, payload
+		);
+	}
+	
+	terminateAgreement(id: number, payload: TerminateAgreementPayload) {
+		return this.http.post<ApiResource<AgreementDto>>(
+			`${environment.apiBaseUrl}/agreements/${id}/terminate`, payload
+		);
+	}
+	
+	linkProjectToAgreement(agreementId: number, payload: AgreementProjectLinkPayload) {
+		return this.http.post<{ ok: boolean; link_id: number; agreement_id: number; project_id: number; }>(
+			`${environment.apiBaseUrl}/agreements/${agreementId}/project-links`, payload
+		);
+	}
+	
+	unlinkProjectFromAgreement(agreementId: number, linkId: number) {
+		return this.http.delete<{ ok: boolean; }>(
+			`${environment.apiBaseUrl}/agreements/${agreementId}/project-links/${linkId}`
+		);
+	}
+	
+	// ******************************************************************************************************************************
+	// Agreement Document Type Section
+	// ******************************************************************************************************************************
+	
+	getAgreementDocumentTypes(params: AgreementDocumentTypeQueryParams = {}) {
+		let httpParams = new HttpParams();
+		
+		if (params.search) {
+			httpParams = httpParams.set('search', params.search);
+		}
+		
+		if (params.is_active !== undefined) {
+			httpParams = httpParams.set('is_active', params.is_active ? '1' : '0');
+		}
+		
+		if (params.ocr_eligible !== undefined) {
+			httpParams = httpParams.set('ocr_eligible', params.ocr_eligible ? '1' : '0');
+		}
+		
+		if (params.page) {
+			httpParams = httpParams.set('page', String(params.page));
+		}
+		
+		if (params.per_page) {
+			httpParams = httpParams.set('per_page', String(params.per_page));
+		}
+		
+		return this.http.get<ApiCollection<AgreementDocumentTypeDto>>(
+			`${environment.apiBaseUrl}/agreement-document-types`,{ params: httpParams, }
+		);
+	}
+	
+	getAgreementDocumentType(id: number) {
+		return this.http.get<ApiResource<AgreementDocumentTypeDto>>(
+			`${environment.apiBaseUrl}/agreement-document-types/${id}`
+		);
+	}
+	
+	createAgreementDocumentType(payload: AgreementDocumentTypeUpsertPayload) {
+		return this.http.post<ApiResource<AgreementDocumentTypeDto>>(
+			`${environment.apiBaseUrl}/agreement-document-types`, payload
+		);
+	}
+	
+	updateAgreementDocumentType(id: number, payload: AgreementDocumentTypeUpsertPayload) {
+		return this.http.put<ApiResource<AgreementDocumentTypeDto>>(
+			`${environment.apiBaseUrl}/agreement-document-types/${id}`, payload
+		);
+	}
+	
+	deactivateAgreementDocumentType(id: number) {
+		return this.http.delete<{ ok: boolean; mode: 'SOFT'; message?: string; }>(
+			`${environment.apiBaseUrl}/agreement-document-types/${id}`
+		);
+	}
+	
+	// ******************************************************************************************************************************
+	// Agreement Document Section
+	// ******************************************************************************************************************************
+	
+	getAgreementDocuments(agreementId: number, params: AgreementDocumentQueryParams = {}) {
+		let httpParams = new HttpParams();
+		
+		if (params.document_type_id != null) {
+			httpParams = httpParams.set('document_type_id', String(params.document_type_id));
+		}
+		
+		if (params.is_current !== undefined) {
+			httpParams = httpParams.set('is_current', params.is_current ? '1' : '0');
+		}
+		
+		if (params.is_executed_copy !== undefined) {
+			httpParams = httpParams.set('is_executed_copy', params.is_executed_copy ? '1' : '0');
+		}
+		
+		if (params.ocr_status) {
+			httpParams = httpParams.set('ocr_status', params.ocr_status);
+		}
+		
+		if (params.page) {
+			httpParams = httpParams.set('page', String(params.page));
+		}
+		
+		if (params.per_page) {
+			httpParams = httpParams.set('per_page', String(params.per_page));
+		}
+		
+		return this.http.get<ApiCollection<AgreementDocumentDto>>(
+			`${environment.apiBaseUrl}/agreements/${agreementId}/documents`, { params: httpParams, }
+		);
+	}
+	
+	uploadAgreementDocument(agreementId: number, payload: AgreementDocumentUploadPayload) {
+		const formData = new FormData();
+		
+		formData.append('file', payload.file);
+		
+		formData.append('document_type_id', String(payload.document_type_id));
+		
+		if (payload.document_version) {
+			formData.append('document_version', payload.document_version);
+		}
+		
+		if (payload.document_date) {
+			formData.append('document_date', payload.document_date);
+		}
+		
+		formData.append('is_current', payload.is_current ? '1' : '0');
+		
+		formData.append('is_executed_copy', payload.is_executed_copy ? '1' : '0');
+		
+		if (payload.supersedes_agreement_file_id != null) {
+			formData.append('supersedes_agreement_file_id', String(payload.supersedes_agreement_file_id));
+		}
+		
+		if (payload.notes) {
+			formData.append('notes', payload.notes);
+		}
+		
+		return this.http.post<ApiResource<AgreementDocumentDto>>(
+			`${environment.apiBaseUrl}/agreements/${agreementId}/documents`, formData
+		);
+	}
+	
+	updateAgreementDocument(agreementId: number, documentId: number, payload: AgreementDocumentUpdatePayload) {
+		return this.http.put<ApiResource<AgreementDocumentDto>>(
+			`${environment.apiBaseUrl}/agreements/${agreementId}/documents/${documentId}`, payload
+		);
+	}
+	
+	removeAgreementDocument(agreementId: number, documentId: number) {
+		return this.http.delete<{ ok: boolean; physical_deleted: boolean; }>(
+			`${environment.apiBaseUrl}/agreements/${agreementId}/documents/${documentId}`
+		);
+	}
+	
+	downloadAgreementDocument(agreementId: number, documentId: number) {
+		return this.http.get(
+			`${environment.apiBaseUrl}/agreements/${agreementId}/documents/${documentId}/download`, { responseType: 'blob', }
+		);
+	}
+	
+	requestAgreementDocumentOcr(agreementId: number, documentId: number) {
+		return this.http.post<ApiResource<AgreementDocumentDto>>(
+			`${environment.apiBaseUrl}/agreements/${agreementId}/documents/${documentId}/ocr/request`, {}
+		);
+	}
+	
 }
 
 export interface LaravelPaginated<T> {
@@ -2086,3 +2615,552 @@ export interface ProjectPermitLinkDto {
 	created_at?: string | null;
 	updated_at?: string | null;
 }
+
+export interface AgreementStatusDto {
+	id: number;
+	code: string;
+	name: string;
+	description?: string | null;
+	sort_order: number;
+	is_terminal: boolean;
+	is_system_status: boolean;
+	is_active: boolean;
+	created_at?: string | null;
+	updated_at?: string | null;
+}
+
+export type AgreementStatusListParams = {
+	search?: string;
+	is_active?: boolean;
+	is_terminal?: boolean;
+	is_system_status?: boolean;
+	page?: number;
+	per_page?: number;
+};
+
+export type AgreementStatusUpsertPayload = {
+	code?: string;
+	name?: string;
+	description?: string | null;
+	sort_order?: number;
+	is_terminal?: boolean;
+	is_active?: boolean;
+};
+
+export type CounterpartyType =
+| 'COMPANY'
+| 'VENDOR'
+| 'GOVERNMENT_AGENCY'
+| 'INDIVIDUAL'
+| 'OTHER';
+
+export interface CounterpartyDto {
+	id: number;
+	
+	code?: string | null;
+	counterparty_type: CounterpartyType;
+	
+	legal_name: string;
+	trading_name?: string | null;
+	
+	registration_no?: string | null;
+	tax_no?: string | null;
+	vendor_no?: string | null;
+	
+	contact_person?: string | null;
+	contact_position?: string | null;
+	email?: string | null;
+	phone?: string | null;
+	alternate_phone?: string | null;
+	
+	address_line_1?: string | null;
+	address_line_2?: string | null;
+	city?: string | null;
+	state?: string | null;
+	postcode?: string | null;
+	country?: string | null;
+	
+	notes?: string | null;
+	is_active: boolean;
+	
+	created_at?: string | null;
+	updated_at?: string | null;
+}
+
+export interface CounterpartyQueryParams {
+	search?: string;
+	counterparty_type?: CounterpartyType;
+	is_active?: boolean;
+	page?: number;
+	per_page?: number;
+}
+
+export interface CounterpartyUpsertPayload {
+	code?: string;
+	
+	counterparty_type?: CounterpartyType;
+	
+	legal_name?: string;
+	trading_name?: string | null;
+	
+	registration_no?: string | null;
+	tax_no?: string | null;
+	vendor_no?: string | null;
+	
+	contact_person?: string | null;
+	contact_position?: string | null;
+	email?: string | null;
+	phone?: string | null;
+	alternate_phone?: string | null;
+	
+	address_line_1?: string | null;
+	address_line_2?: string | null;
+	city?: string | null;
+	state?: string | null;
+	postcode?: string | null;
+	country?: string | null;
+	
+	notes?: string | null;
+	is_active?: boolean;
+}
+
+export interface AgreementCategoryDto {
+	id: number;
+	
+	code: string;
+	name: string;
+	description?: string | null;
+	
+	sort_order: number;
+	
+	is_system_category: boolean;
+	is_active: boolean;
+	
+	types_count?: number;
+	
+	created_at?: string | null;
+	updated_at?: string | null;
+}
+
+export interface AgreementCategoryQueryParams {
+	search?: string;
+	is_active?: boolean;
+	page?: number;
+	per_page?: number;
+}
+
+export interface AgreementCategoryUpsertPayload {
+	code?: string;
+	name?: string;
+	description?: string | null;
+	sort_order?: number;
+	is_active?: boolean;
+}
+
+export interface AgreementTypeCategoryMiniDto {
+	id: number;
+	code: string;
+	name: string;
+}
+
+export interface AgreementTypeDto {
+	id: number;
+	
+	agreement_category_id?: number | null;
+	category?: AgreementTypeCategoryMiniDto | null;
+	
+	code: string;
+	name: string;
+	description?: string | null;
+	
+	sort_order: number;
+	
+	is_system_type: boolean;
+	is_active: boolean;
+	
+	created_at?: string | null;
+	updated_at?: string | null;
+}
+
+export interface AgreementTypeQueryParams {
+	search?: string;
+	agreement_category_id?: number;
+	is_active?: boolean;
+	page?: number;
+	per_page?: number;
+}
+
+export interface AgreementTypeUpsertPayload {
+	agreement_category_id?: number | null;
+	
+	code?: string;
+	name?: string;
+	description?: string | null;
+	
+	sort_order?: number;
+	is_active?: boolean;
+}
+
+export type AgreementLifecycleType =
+| 'ORIGINAL'
+| 'AMENDMENT'
+| 'RENEWAL';
+
+export type AgreementOcrStatus =
+| 'NOT_REQUESTED'
+| 'PENDING'
+| 'PROCESSING'
+| 'COMPLETED'
+| 'FAILED';
+
+export interface AgreementMiniLookupDto {
+	id: number;
+	code: string;
+	name: string;
+}
+
+export interface AgreementUserMiniDto {
+	id: number;
+	name: string;
+	email?: string | null;
+}
+
+export interface AgreementCounterpartyMiniDto {
+	id: number;
+	code?: string | null;
+	counterparty_type?: string | null;
+	legal_name: string;
+	trading_name?: string | null;
+	registration_no?: string | null;
+}
+
+export interface AgreementStatusMiniDto {
+	id: number;
+	code: string;
+	name: string;
+	is_terminal?: boolean;
+}
+
+export interface AgreementLifecycleDto {
+	type: AgreementLifecycleType;
+	parent_agreement_id?: number | null;
+	root_agreement_id?: number | null;
+	revision_no: number;
+	renewal_sequence: number;
+	is_current_version: boolean;
+}
+
+export interface AgreementWorkflowDto {
+	submitted_at?: string | null;
+	submitted_by_user_id?: number | null;
+	
+	approved_at?: string | null;
+	approved_by_user_id?: number | null;
+	
+	terminated_on?: string | null;
+	termination_reason?: string | null;
+	terminated_by_user_id?: number | null;
+	
+	archived_at?: string | null;
+	archived_by_user_id?: number | null;
+}
+
+export interface AgreementRelatedVersionDto {
+	id: number;
+	agreement_no: string;
+	title: string;
+	lifecycle_type: AgreementLifecycleType;
+	revision_no: number;
+	renewal_sequence: number;
+	is_current_version: boolean;
+}
+
+export interface AgreementProjectDto {
+	link_id: number;
+	id: number;
+	code: string;
+	name: string;
+	notes?: string | null;
+	linked_by_user_id?: number | null;
+	linked_at?: string | null;
+}
+
+export interface AgreementLifecycleEventDto {
+	id: number;
+	agreement_id: number;
+	event_type: string;
+	
+	from_status?: AgreementStatusMiniDto | null;
+	to_status?: AgreementStatusMiniDto | null;
+	
+	related_agreement?: {
+		id: number;
+		agreement_no: string;
+		title: string;
+	} | null;
+	
+	performed_by?: AgreementUserMiniDto | null;
+	
+	reason?: string | null;
+	metadata?: unknown;
+	event_at?: string | null;
+	created_at?: string | null;
+}
+
+export interface AgreementDocumentTypeDto {
+	id: number;
+	code: string;
+	name: string;
+	description?: string | null;
+	ocr_eligible: boolean;
+	sort_order: number;
+	is_system_type: boolean;
+	is_active: boolean;
+	created_at?: string | null;
+	updated_at?: string | null;
+}
+
+export interface AgreementDocumentOcrDto {
+	feature_enabled: boolean;
+	eligible?: boolean | null;
+	status: AgreementOcrStatus;
+	engine?: string | null;
+	language?: string | null;
+	page_count?: number | null;
+	requested_by_user_id?: number | null;
+	requested_at?: string | null;
+	started_at?: string | null;
+	completed_at?: string | null;
+	error_message?: string | null;
+	has_extracted_text?: boolean;
+}
+
+export interface AgreementDocumentDto {
+	id: number;
+	agreement_id: number;
+	
+	document_type_id: number;
+	document_type?: AgreementDocumentTypeDto | null;
+	
+	document_version?: string | null;
+	document_date?: string | null;
+	
+	is_current: boolean;
+	is_executed_copy: boolean;
+	
+	supersedes_agreement_file_id?: number | null;
+	notes?: string | null;
+	
+	file?: {
+		id: number;
+		original_name: string;
+		mime_type?: string | null;
+		size: number;
+		checksum?: string | null;
+		uploaded_by_user_id?: number | null;
+		created_at?: string | null;
+	} | null;
+	
+	linked_by_user_id?: number | null;
+	linked_by?: AgreementUserMiniDto | null;
+	
+	ocr: AgreementDocumentOcrDto;
+	
+	created_at?: string | null;
+	updated_at?: string | null;
+}
+
+export interface AgreementDto {
+	id: number;
+	agreement_no: string;
+	title: string;
+	
+	department_id: number;
+	department?: AgreementMiniLookupDto | null;
+	
+	owner_user_id: number;
+	owner?: AgreementUserMiniDto | null;
+	
+	counterparty_id: number;
+	counterparty?: AgreementCounterpartyMiniDto | null;
+	
+	agreement_category_id: number;
+	category?: AgreementMiniLookupDto | null;
+	
+	agreement_type_id?: number | null;
+	type?: AgreementMiniLookupDto | null;
+	
+	agreement_status_id: number;
+	status?: AgreementStatusMiniDto | null;
+	
+	description?: string | null;
+	purpose?: string | null;
+	scope?: string | null;
+	
+	effective_date?: string | null;
+	expiry_date?: string | null;
+	signed_date?: string | null;
+	
+	notice_period_days?: number | null;
+	auto_renewal: boolean;
+	
+	contract_value?: number | string | null;
+	currency_code?: string | null;
+	
+	lifecycle: AgreementLifecycleDto;
+	
+	parent_agreement?: {
+		id: number;
+		agreement_no: string;
+		title: string;
+	} | null;
+	
+	child_agreements?: AgreementRelatedVersionDto[];
+	
+	workflow: AgreementWorkflowDto;
+	
+	projects?: AgreementProjectDto[];
+	documents?: AgreementDocumentDto[];
+	lifecycle_events?: AgreementLifecycleEventDto[];
+	
+	created_by_user_id: number;
+	updated_by_user_id?: number | null;
+	
+	created_at?: string | null;
+	updated_at?: string | null;
+}
+
+export interface AgreementQueryParams {
+	search?: string;
+	
+	department_id?: number;
+	owner_user_id?: number;
+	counterparty_id?: number;
+	agreement_category_id?: number;
+	agreement_type_id?: number;
+	agreement_status_id?: number;
+	
+	status_code?: string;
+	lifecycle_type?: AgreementLifecycleType | '';
+	
+	effective_from?: string;
+	effective_to?: string;
+	expiry_from?: string;
+	expiry_to?: string;
+	
+	is_current_version?: boolean;
+	include_archived?: boolean;
+	
+	page?: number;
+	per_page?: number;
+}
+
+export interface AgreementUpsertPayload {
+	agreement_no?: string | null;
+	title?: string;
+	
+	department_id?: number;
+	owner_user_id?: number;
+	counterparty_id?: number;
+	agreement_category_id?: number;
+	agreement_type_id?: number | null;
+	
+	description?: string | null;
+	purpose?: string | null;
+	scope?: string | null;
+	
+	effective_date?: string | null;
+	expiry_date?: string | null;
+	signed_date?: string | null;
+	
+	notice_period_days?: number | null;
+	auto_renewal?: boolean;
+	
+	contract_value?: number | null;
+	currency_code?: string;
+}
+
+export interface AgreementNotesPayload {
+	reason?: string | null;
+	notes?: string | null;
+}
+
+export interface AmendAgreementPayload {
+	title?: string | null;
+	amendment_reason: string;
+	effective_date?: string | null;
+	expiry_date?: string | null;
+	copy_project_links?: boolean;
+}
+
+export interface RenewAgreementPayload {
+	title?: string | null;
+	renewal_reason?: string | null;
+	
+	effective_date: string;
+	expiry_date: string;
+	
+	contract_value?: number | null;
+	currency_code?: string | null;
+	notice_period_days?: number | null;
+	auto_renewal?: boolean;
+	copy_project_links?: boolean;
+}
+
+export interface TerminateAgreementPayload {
+	termination_reason: string;
+	terminated_on?: string | null;
+}
+
+export interface AgreementProjectLinkPayload {
+	project_id: number;
+	notes?: string | null;
+}
+
+export interface AgreementDocumentTypeQueryParams {
+	search?: string;
+	is_active?: boolean;
+	ocr_eligible?: boolean;
+	page?: number;
+	per_page?: number;
+}
+
+export interface AgreementDocumentTypeUpsertPayload {
+	code?: string;
+	name?: string;
+	description?: string | null;
+	ocr_eligible?: boolean;
+	sort_order?: number;
+	is_active?: boolean;
+}
+
+export interface AgreementDocumentQueryParams {
+	document_type_id?: number;
+	is_current?: boolean;
+	is_executed_copy?: boolean;
+	ocr_status?: AgreementOcrStatus | '';
+	page?: number;
+	per_page?: number;
+}
+
+export interface AgreementDocumentUploadPayload {
+	file: File;
+	document_type_id: number;
+	document_version?: string | null;
+	document_date?: string | null;
+	is_current: boolean;
+	is_executed_copy: boolean;
+	supersedes_agreement_file_id?: number | null;
+	notes?: string | null;
+}
+
+export interface AgreementDocumentUpdatePayload {
+	document_type_id?: number;
+	document_version?: string | null;
+	document_date?: string | null;
+	is_current?: boolean;
+	is_executed_copy?: boolean;
+	supersedes_agreement_file_id?: number | null;
+	notes?: string | null;
+}
+
