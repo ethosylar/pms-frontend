@@ -1,18 +1,29 @@
 <div class="position-relative project-form-wrap">
 	
-	<div *ngIf="loading" class="loading-overlay">
+	<div
+	*ngIf="loading"
+	class="loading-overlay">
+		
 		<div class="text-center">
-			<div class="spinner-border" role="status"></div>
+			
+			<div
+			class="spinner-border"
+			role="status">
+			</div>
+			
 			<div class="mt-2 fw-semibold">
 				Loading project form…
 			</div>
+			
 		</div>
 	</div>
+	
 	
 	<div
 	class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
 		
 		<div>
+			
 			<h1 class="h4 mb-1">
 				{{
 				isCreate
@@ -22,32 +33,56 @@
 			</h1>
 			
 			<div class="text-muted small">
+				
 				<span *ngIf="isCreate">
 					Create the project first, then configure its budget structure.
 				</span>
 				
 				<span *ngIf="!isCreate">
-					{{ project?.code }} • {{ project?.name }}
+					{{ project?.code }}
+					•
+					{{ project?.name }}
 				</span>
+				
 			</div>
+			
 		</div>
+		
 		
 		<button
 		type="button"
 		class="btn btn-outline-secondary"
 		(click)="cancel()">
+			
 			<i class="bi bi-arrow-left"></i>
-			<span class="ms-2">Back</span>
+			
+			<span class="ms-2">
+				Back
+			</span>
+			
 		</button>
+		
 	</div>
 	
-	<div *ngIf="error" class="alert alert-danger">
+	
+	<div
+	*ngIf="error"
+	class="alert alert-danger">
+		
 		{{ error }}
+		
 	</div>
+	
 	
 	<div class="card shadow-sm border-0">
 		
+		
+		<!-- ===============================================================
+			Tabs
+		=============================================================== -->
+		
 		<div class="card-header bg-white p-0">
+			
 			<div class="form-tabs">
 				
 				<button
@@ -55,9 +90,15 @@
 				class="form-tab"
 				[class.active]="activeTab === 'project'"
 				(click)="setTab('project')">
+					
 					<i class="bi bi-pencil-square"></i>
-					<span>Project Information</span>
+					
+					<span>
+						Project Information
+					</span>
+					
 				</button>
+				
 				
 				<button
 				type="button"
@@ -66,9 +107,15 @@
 				[class.disabled]="isCreate"
 				[disabled]="isCreate"
 				(click)="setTab('budget-lines')">
+					
 					<i class="bi bi-list-columns"></i>
-					<span>Budget Lines</span>
+					
+					<span>
+						Budget Lines
+					</span>
+					
 				</button>
+				
 				
 				<button
 				type="button"
@@ -77,14 +124,24 @@
 				[class.disabled]="isCreate"
 				[disabled]="isCreate"
 				(click)="setTab('budget-allocations')">
+					
 					<i class="bi bi-diagram-2"></i>
-					<span>Budget Allocations</span>
+					
+					<span>
+						Budget Allocations
+					</span>
+					
 				</button>
 				
 			</div>
+			
 		</div>
 		
-		<!-- Project Information -->
+		
+		<!-- ===============================================================
+			Project Information
+		=============================================================== -->
+		
 		<div
 		class="card-body"
 		*ngIf="activeTab === 'project'">
@@ -93,49 +150,75 @@
 			[formGroup]="form"
 			(ngSubmit)="saveProject()">
 				
+				
+				<!-- Basic Information -->
+				
 				<div class="form-section">
+					
 					<div class="section-title">
 						Basic Information
 					</div>
 					
+					
 					<div class="row g-3">
+						
+						
+						<!-- Code -->
+						
 						<div class="col-12 col-md-3">
+							
 							<label class="form-label">
 								Code
+								
+								<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
 							</label>
 							
 							<input
 							class="form-control"
 							formControlName="code"
-							[class.is-invalid]="
-							form.get('code')?.touched &&
-							form.get('code')?.invalid
-							">
+							[class.is-invalid]="isInvalid('code')">
 							
 							<div class="invalid-feedback">
-								Code is required.
+								{{ fieldError('code', 'Code') }}
 							</div>
+							
 						</div>
 						
+						
+						<!-- Name -->
+						
 						<div class="col-12 col-md-9">
+							
 							<label class="form-label">
 								Name
+								
+								<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
 							</label>
 							
 							<input
 							class="form-control"
 							formControlName="name"
-							[class.is-invalid]="
-							form.get('name')?.touched &&
-							form.get('name')?.invalid
-							">
+							[class.is-invalid]="isInvalid('name')">
 							
 							<div class="invalid-feedback">
-								Name is required.
+								{{ fieldError('name', 'Name') }}
 							</div>
+							
 						</div>
 						
+						
+						<!-- Description -->
+						
 						<div class="col-12">
+							
 							<label class="form-label">
 								Description
 							</label>
@@ -143,18 +226,40 @@
 							<textarea
 							class="form-control"
 							rows="4"
-							formControlName="description">
+							formControlName="description"
+							[class.is-invalid]="isInvalid('description')">
 							</textarea>
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'description',
+								'Description'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Department -->
+						
 						<div class="col-12 col-md-6">
+							
 							<label class="form-label">
 								Department
+								<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
 							</label>
 							
 							<select
 							class="form-select"
-							formControlName="department_id">
+							formControlName="department_id"
+							[class.is-invalid]="isInvalid('department_id')">
+								
 								<option [ngValue]="null">
 									—
 								</option>
@@ -162,21 +267,40 @@
 								<option
 								*ngFor="let department of departments"
 								[ngValue]="department.id">
+									
 									{{ department.code }}
 									-
 									{{ department.name }}
+									
 								</option>
+								
 							</select>
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'department_id',
+								'Department'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Project Category -->
+						
 						<div class="col-12 col-md-6">
+							
 							<label class="form-label">
 								Project Category
 							</label>
 							
 							<select
 							class="form-select"
-							formControlName="project_category_id">
+							formControlName="project_category_id"
+							[class.is-invalid]="isInvalid('project_category_id')">
+								
 								<option [ngValue]="null">
 									—
 								</option>
@@ -184,21 +308,40 @@
 								<option
 								*ngFor="let category of categories"
 								[ngValue]="category.id">
+									
 									{{ category.code }}
 									-
 									{{ category.name }}
+									
 								</option>
+								
 							</select>
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'project_category_id',
+								'Project Category'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Owner -->
+						
 						<div class="col-12 col-md-6">
+							
 							<label class="form-label">
 								Owner
 							</label>
 							
 							<select
 							class="form-select"
-							formControlName="owner_user_id">
+							formControlName="owner_user_id"
+							[class.is-invalid]="isInvalid('owner_user_id')">
+								
 								<option [ngValue]="null">
 									—
 								</option>
@@ -206,18 +349,37 @@
 								<option
 								*ngFor="let owner of owners"
 								[ngValue]="owner.id">
+									
 									{{ owner.name }}
+									
 								</option>
+								
 							</select>
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'owner_user_id',
+								'Owner'
+								)
+								}}
+							</div>
 							
 							<div
 							*ngIf="owners.length === 0"
 							class="text-muted small mt-1">
+								
 								Owner list unavailable or restricted.
+								
 							</div>
+							
 						</div>
 						
+						
+						<!-- Sponsor -->
+						
 						<div class="col-12 col-md-6">
+							
 							<label class="form-label">
 								Sponsor
 							</label>
@@ -225,17 +387,39 @@
 							<input
 							class="form-control"
 							formControlName="sponsor"
-							placeholder="Optional">
+							placeholder="Optional"
+							[class.is-invalid]="isInvalid('sponsor')">
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'sponsor',
+								'Sponsor'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Status -->
+						
 						<div class="col-12 col-md-4">
+							
 							<label class="form-label">
 								Status
+								<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
 							</label>
 							
 							<select
 							class="form-select"
-							formControlName="project_status_id">
+							formControlName="project_status_id"
+							[class.is-invalid]="isInvalid('project_status_id')">
+								
 								<option [ngValue]="null">
 									—
 								</option>
@@ -243,21 +427,45 @@
 								<option
 								*ngFor="let status of statuses"
 								[ngValue]="status.id">
+									
 									{{ status.code }}
 									-
 									{{ status.name }}
+									
 								</option>
+								
 							</select>
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'project_status_id',
+								'Status'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Priority -->
+						
 						<div class="col-12 col-md-4">
+							
 							<label class="form-label">
 								Priority
+								<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
 							</label>
 							
 							<select
 							class="form-select"
-							formControlName="priority_id">
+							formControlName="priority_id"
+							[class.is-invalid]="isInvalid('priority_id')">
+								
 								<option [ngValue]="null">
 									—
 								</option>
@@ -265,22 +473,49 @@
 								<option
 								*ngFor="let priority of priorities"
 								[ngValue]="priority.id">
+									
 									{{ priority.code }}
 									-
 									{{ priority.name }}
+									
 								</option>
+								
 							</select>
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'priority_id',
+								'Priority'
+								)
+								}}
+							</div>
+							
 						</div>
+						
 					</div>
+					
 				</div>
 				
+				
+				<!-- =========================================================
+					Progress and Schedule
+				========================================================= -->
+				
 				<div class="form-section">
+					
 					<div class="section-title">
 						Progress and Schedule
 					</div>
 					
+					
 					<div class="row g-3">
+						
+						
+						<!-- Planned Progress -->
+						
 						<div class="col-12 col-md-3">
+							
 							<label class="form-label">
 								Planned Progress (%)
 							</label>
@@ -290,10 +525,25 @@
 							min="0"
 							max="100"
 							class="form-control"
-							formControlName="planned_progress">
+							formControlName="planned_progress"
+							[class.is-invalid]="isInvalid('planned_progress')">
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'planned_progress',
+								'Planned Progress'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Actual Progress -->
+						
 						<div class="col-12 col-md-3">
+							
 							<label class="form-label">
 								Actual Progress (%)
 							</label>
@@ -303,10 +553,25 @@
 							min="0"
 							max="100"
 							class="form-control"
-							formControlName="progress">
+							formControlName="progress"
+							[class.is-invalid]="isInvalid('progress')">
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'progress',
+								'Actual Progress'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Start Date -->
+						
 						<div class="col-12 col-md-3">
+							
 							<label class="form-label">
 								Start Date
 							</label>
@@ -314,10 +579,25 @@
 							<input
 							type="date"
 							class="form-control"
-							formControlName="start_date">
+							formControlName="start_date"
+							[class.is-invalid]="isInvalid('start_date')">
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'start_date',
+								'Start Date'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Actual Start -->
+						
 						<div class="col-12 col-md-3">
+							
 							<label class="form-label">
 								Actual Start
 							</label>
@@ -325,10 +605,25 @@
 							<input
 							type="date"
 							class="form-control"
-							formControlName="actual_start_date">
+							formControlName="actual_start_date"
+							[class.is-invalid]="isInvalid('actual_start_date')">
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'actual_start_date',
+								'Actual Start Date'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Target End -->
+						
 						<div class="col-12 col-md-3">
+							
 							<label class="form-label">
 								Target End
 							</label>
@@ -336,10 +631,25 @@
 							<input
 							type="date"
 							class="form-control"
-							formControlName="target_end_date">
+							formControlName="target_end_date"
+							[class.is-invalid]="isInvalid('target_end_date')">
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'target_end_date',
+								'Target End Date'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Actual End -->
+						
 						<div class="col-12 col-md-3">
+							
 							<label class="form-label">
 								Actual End
 							</label>
@@ -347,10 +657,25 @@
 							<input
 							type="date"
 							class="form-control"
-							formControlName="actual_end_date">
+							formControlName="actual_end_date"
+							[class.is-invalid]="isInvalid('actual_end_date')">
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'actual_end_date',
+								'Actual End Date'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Notes -->
+						
 						<div class="col-12">
+							
 							<label class="form-label">
 								Project Notes
 							</label>
@@ -358,36 +683,79 @@
 							<textarea
 							class="form-control"
 							rows="3"
-							formControlName="notes">
+							formControlName="notes"
+							[class.is-invalid]="isInvalid('notes')">
 							</textarea>
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'notes',
+								'Project Notes'
+								)
+								}}
+							</div>
+							
 						</div>
+						
 					</div>
+					
 				</div>
 				
+				
+				<!-- =========================================================
+					Project Budget Summary
+				========================================================= -->
+				
 				<div class="form-section mb-0">
+					
 					<div class="section-title">
 						Project-Level Budget Summary
 					</div>
 					
+					
 					<div class="alert alert-light border">
+						
 						These fields are project-level financial totals.
 						Detailed Cost/Funding categories and Task/Milestone
 						allocations are managed in the next two tabs.
+						
 					</div>
 					
+					
 					<div class="row g-3">
+						
+						
+						<!-- Currency -->
+						
 						<div class="col-12 col-md-3">
+							
 							<label class="form-label">
 								Currency
 							</label>
 							
 							<input
-							class="form-control"
+							class="form-control text-uppercase"
 							maxlength="3"
-							formControlName="currency_code">
+							formControlName="currency_code"
+							[class.is-invalid]="isInvalid('currency_code')">
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'currency_code',
+								'Currency'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Planned Cost -->
+						
 						<div class="col-12 col-md-3">
+							
 							<label class="form-label">
 								Planned Cost
 							</label>
@@ -397,10 +765,25 @@
 							min="0"
 							step="0.01"
 							class="form-control"
-							formControlName="planned_cost_total">
+							formControlName="planned_cost_total"
+							[class.is-invalid]="isInvalid('planned_cost_total')">
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'planned_cost_total',
+								'Planned Cost'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Actual Cost -->
+						
 						<div class="col-12 col-md-3">
+							
 							<label class="form-label">
 								Actual Cost
 							</label>
@@ -410,10 +793,25 @@
 							min="0"
 							step="0.01"
 							class="form-control"
-							formControlName="actual_cost_total">
+							formControlName="actual_cost_total"
+							[class.is-invalid]="isInvalid('actual_cost_total')">
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'actual_cost_total',
+								'Actual Cost'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Committed Cost -->
+						
 						<div class="col-12 col-md-3">
+							
 							<label class="form-label">
 								Committed Cost
 							</label>
@@ -423,10 +821,25 @@
 							min="0"
 							step="0.01"
 							class="form-control"
-							formControlName="committed_cost_total">
+							formControlName="committed_cost_total"
+							[class.is-invalid]="isInvalid('committed_cost_total')">
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'committed_cost_total',
+								'Committed Cost'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Planned Funding -->
+						
 						<div class="col-12 col-md-3">
+							
 							<label class="form-label">
 								Planned Funding
 							</label>
@@ -436,10 +849,25 @@
 							min="0"
 							step="0.01"
 							class="form-control"
-							formControlName="planned_funding_total">
+							formControlName="planned_funding_total"
+							[class.is-invalid]="isInvalid('planned_funding_total')">
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'planned_funding_total',
+								'Planned Funding'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Actual Funding -->
+						
 						<div class="col-12 col-md-3">
+							
 							<label class="form-label">
 								Actual Funding
 							</label>
@@ -449,10 +877,25 @@
 							min="0"
 							step="0.01"
 							class="form-control"
-							formControlName="actual_funding_total">
+							formControlName="actual_funding_total"
+							[class.is-invalid]="isInvalid('actual_funding_total')">
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'actual_funding_total',
+								'Actual Funding'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Budget Updated -->
+						
 						<div class="col-12 col-md-3">
+							
 							<label class="form-label">
 								Budget Updated At
 							</label>
@@ -460,10 +903,25 @@
 							<input
 							type="date"
 							class="form-control"
-							formControlName="budget_updated_at">
+							formControlName="budget_updated_at"
+							[class.is-invalid]="isInvalid('budget_updated_at')">
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'budget_updated_at',
+								'Budget Updated At'
+								)
+								}}
+							</div>
+							
 						</div>
 						
+						
+						<!-- Budget Notes -->
+						
 						<div class="col-12">
+							
 							<label class="form-label">
 								Budget Notes
 							</label>
@@ -471,26 +929,47 @@
 							<textarea
 							class="form-control"
 							rows="3"
-							formControlName="budget_notes">
+							formControlName="budget_notes"
+							[class.is-invalid]="isInvalid('budget_notes')">
 							</textarea>
+							
+							<div class="invalid-feedback">
+								{{
+								fieldError(
+								'budget_notes',
+								'Budget Notes'
+								)
+								}}
+							</div>
+							
 						</div>
+						
 					</div>
+					
 				</div>
+				
+				
+				<!-- Save buttons -->
 				
 				<div
 				class="d-flex gap-2 justify-content-end mt-4">
+					
 					<button
 					type="button"
 					class="btn btn-outline-secondary"
 					(click)="cancel()"
 					[disabled]="saving">
+						
 						Cancel
+						
 					</button>
+					
 					
 					<button
 					type="submit"
 					class="btn btn-primary"
 					[disabled]="saving">
+						
 						<span
 						*ngIf="saving"
 						class="spinner-border spinner-border-sm me-2">
@@ -505,27 +984,42 @@
 						: 'Save Project Changes'
 						)
 						}}
+						
 					</button>
+					
 				</div>
 				
 			</form>
+			
 		</div>
 		
-		<!-- Budget Lines -->
+		
+		<!-- ===============================================================
+			Budget Lines
+		=============================================================== -->
+		
 		<div
 		class="card-body"
 		*ngIf="activeTab === 'budget-lines'">
 			
-			<div *ngIf="isCreate" class="alert alert-warning">
+			
+			<div
+			*ngIf="isCreate"
+			class="alert alert-warning">
+				
 				Save the new project before adding budget lines.
+				
 			</div>
 			
+			
 			<ng-container *ngIf="!isCreate">
+				
 				
 				<div
 				class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
 					
 					<div>
+						
 						<div class="section-title mb-1">
 							Budget Lines
 						</div>
@@ -533,77 +1027,152 @@
 						<div class="small text-muted">
 							Create and maintain project Cost and Funding categories.
 						</div>
+						
 					</div>
+					
 					
 					<button
 					type="button"
 					class="btn btn-outline-secondary btn-sm"
 					(click)="newBudgetLine()">
+						
 						New / Reset
+						
 					</button>
+					
 				</div>
 				
-				<div *ngIf="budgetError" class="alert alert-danger">
+				
+				<div
+				*ngIf="budgetError"
+				class="alert alert-danger">
+					
 					{{ budgetError }}
+					
 				</div>
 				
-				<div *ngIf="budgetLineError" class="alert alert-danger">
+				
+				<div
+				*ngIf="budgetLineError"
+				class="alert alert-danger">
+					
 					{{ budgetLineError }}
+					
 				</div>
+				
 				
 				<div
 				*ngIf="budgetLoading"
 				class="text-center text-muted py-5">
+					
 					<div class="spinner-border"></div>
+					
 					<div class="mt-2">
 						Loading budget lines…
 					</div>
+					
 				</div>
+				
 				
 				<ng-container *ngIf="!budgetLoading">
 					
+					
 					<div class="editor-card mb-4">
+						
 						<div class="row g-3 align-items-end">
+							
+							
+							<!-- Type -->
+							
 							<div class="col-12 col-md-2">
+								
 								<label class="form-label">
 									Type
 								</label>
 								
 								<select
 								class="form-select"
-								[(ngModel)]="budgetLineForm.line_type">
+								[(ngModel)]="budgetLineForm.line_type"
+								(ngModelChange)="clearBudgetLineFieldError('line_type')"
+								[class.is-invalid]="budgetLineInvalid('line_type')">
+									
 									<option value="COST">
 										Cost
 									</option>
+									
 									<option value="FUND">
 										Fund
 									</option>
+									
 								</select>
+								
+								<div class="invalid-feedback">
+									{{ budgetLineFieldError('line_type') }}
+								</div>
+								
 							</div>
 							
+							
+							<!-- Code -->
+							
 							<div class="col-12 col-md-2">
+								
 								<label class="form-label">
-									Code *
+									Code
+									
+									<span
+									class="text-danger fw-bold"
+									aria-hidden="true">
+										*
+									</span>
 								</label>
 								
 								<input
 								class="form-control"
 								[(ngModel)]="budgetLineForm.code"
+								(ngModelChange)="clearBudgetLineFieldError('code')"
+								[class.is-invalid]="budgetLineInvalid('code')"
 								placeholder="DEV">
+								
+								<div class="invalid-feedback">
+									{{ budgetLineFieldError('code') }}
+								</div>
+								
 							</div>
 							
+							
+							<!-- Name -->
+							
 							<div class="col-12 col-md-4">
+								
 								<label class="form-label">
-									Name *
+									Name
+									
+									<span
+									class="text-danger fw-bold"
+									aria-hidden="true">
+										*
+									</span>
 								</label>
 								
 								<input
 								class="form-control"
 								[(ngModel)]="budgetLineForm.name"
+								(ngModelChange)="clearBudgetLineFieldError('name')"
+								[class.is-invalid]="budgetLineInvalid('name')"
 								placeholder="Software Development">
+								
+								<div class="invalid-feedback">
+									{{ budgetLineFieldError('name') }}
+								</div>
+								
 							</div>
 							
+							
+							<!-- Sort Order -->
+							
 							<div class="col-12 col-md-2">
+								
 								<label class="form-label">
 									Sort Order
 								</label>
@@ -612,27 +1181,52 @@
 								type="number"
 								min="0"
 								class="form-control"
-								[(ngModel)]="budgetLineForm.sort_order">
+								[(ngModel)]="budgetLineForm.sort_order"
+								(ngModelChange)="clearBudgetLineFieldError('sort_order')"
+								[class.is-invalid]="budgetLineInvalid('sort_order')">
+								
+								<div class="invalid-feedback">
+									{{ budgetLineFieldError('sort_order') }}
+								</div>
+								
 							</div>
 							
+							
+							<!-- Active -->
+							
 							<div class="col-12 col-md-2">
+								
 								<label class="form-label">
 									Active
 								</label>
 								
 								<select
 								class="form-select"
-								[(ngModel)]="budgetLineForm.is_active">
+								[(ngModel)]="budgetLineForm.is_active"
+								(ngModelChange)="clearBudgetLineFieldError('is_active')"
+								[class.is-invalid]="budgetLineInvalid('is_active')">
+									
 									<option [ngValue]="true">
 										Yes
 									</option>
+									
 									<option [ngValue]="false">
 										No
 									</option>
+									
 								</select>
+								
+								<div class="invalid-feedback">
+									{{ budgetLineFieldError('is_active') }}
+								</div>
+								
 							</div>
 							
+							
+							<!-- Planned -->
+							
 							<div class="col-12 col-md-4">
+								
 								<label class="form-label">
 									Planned
 								</label>
@@ -642,10 +1236,21 @@
 								min="0"
 								step="0.01"
 								class="form-control"
-								[(ngModel)]="budgetLineForm.planned_amount">
+								[(ngModel)]="budgetLineForm.planned_amount"
+								(ngModelChange)="clearBudgetLineFieldError('planned_amount')"
+								[class.is-invalid]="budgetLineInvalid('planned_amount')">
+								
+								<div class="invalid-feedback">
+									{{ budgetLineFieldError('planned_amount') }}
+								</div>
+								
 							</div>
 							
+							
+							<!-- Actual -->
+							
 							<div class="col-12 col-md-4">
+								
 								<label class="form-label">
 									Actual
 								</label>
@@ -655,10 +1260,21 @@
 								min="0"
 								step="0.01"
 								class="form-control"
-								[(ngModel)]="budgetLineForm.actual_amount">
+								[(ngModel)]="budgetLineForm.actual_amount"
+								(ngModelChange)="clearBudgetLineFieldError('actual_amount')"
+								[class.is-invalid]="budgetLineInvalid('actual_amount')">
+								
+								<div class="invalid-feedback">
+									{{ budgetLineFieldError('actual_amount') }}
+								</div>
+								
 							</div>
 							
+							
+							<!-- Committed -->
+							
 							<div class="col-12 col-md-4">
+								
 								<label class="form-label">
 									Committed
 								</label>
@@ -668,10 +1284,21 @@
 								min="0"
 								step="0.01"
 								class="form-control"
-								[(ngModel)]="budgetLineForm.committed_amount">
+								[(ngModel)]="budgetLineForm.committed_amount"
+								(ngModelChange)="clearBudgetLineFieldError('committed_amount')"
+								[class.is-invalid]="budgetLineInvalid('committed_amount')">
+								
+								<div class="invalid-feedback">
+									{{ budgetLineFieldError('committed_amount') }}
+								</div>
+								
 							</div>
 							
+							
+							<!-- Notes -->
+							
 							<div class="col-12">
+								
 								<label class="form-label">
 									Notes
 								</label>
@@ -679,17 +1306,29 @@
 								<textarea
 								rows="3"
 								class="form-control"
-								[(ngModel)]="budgetLineForm.notes">
+								[(ngModel)]="budgetLineForm.notes"
+								(ngModelChange)="clearBudgetLineFieldError('notes')"
+								[class.is-invalid]="budgetLineInvalid('notes')">
 								</textarea>
+								
+								<div class="invalid-feedback">
+									{{ budgetLineFieldError('notes') }}
+								</div>
+								
 							</div>
 							
-							<div class="col-12 d-flex justify-content-end gap-2">
+							
+							<div
+							class="col-12 d-flex justify-content-end gap-2">
+								
 								<button
 								type="button"
 								class="btn btn-outline-secondary"
 								[disabled]="savingBudgetLine"
 								(click)="newBudgetLine()">
+									
 									Reset
+									
 								</button>
 								
 								<button
@@ -697,6 +1336,7 @@
 								class="btn btn-primary"
 								[disabled]="savingBudgetLine"
 								(click)="saveBudgetLine()">
+									
 									<span
 									*ngIf="savingBudgetLine"
 									class="spinner-border spinner-border-sm me-2">
@@ -707,37 +1347,62 @@
 									? 'Save Budget Line Changes'
 									: 'Create Budget Line'
 									}}
+									
 								</button>
+								
 							</div>
+							
 						</div>
+						
 					</div>
 					
+					
 					<div class="table-responsive">
+						
 						<table class="table table-hover align-middle mb-0">
+							
 							<thead class="table-light">
+								
 								<tr>
+									
 									<th>Type</th>
+									
 									<th>Code</th>
+									
 									<th>Name</th>
+									
 									<th class="text-end">
 										Planned
 									</th>
+									
 									<th class="text-end">
 										Actual
 									</th>
+									
 									<th class="text-end">
 										Committed
 									</th>
-									<th>Active</th>
+									
+									<th>
+										Active
+									</th>
+									
 									<th class="text-end">
 										Actions
 									</th>
+									
 								</tr>
+								
 							</thead>
 							
+							
 							<tbody>
-								<tr *ngFor="let line of budgetLines">
+								
+								<tr
+								*ngFor="let line of budgetLines">
+									
 									<td>
+										
 										<span
 										class="badge"
 										[ngClass]="
@@ -745,15 +1410,21 @@
 										? 'bg-danger'
 										: 'bg-success'
 										">
+											
 											{{ line.line_type }}
+											
 										</span>
+										
 									</td>
+									
 									
 									<td>
 										{{ line.code }}
 									</td>
 									
+									
 									<td>
+										
 										<div class="fw-semibold">
 											{{ line.name }}
 										</div>
@@ -761,73 +1432,112 @@
 										<div
 										*ngIf="line.notes"
 										class="small text-muted">
+											
 											{{ line.notes }}
+											
 										</div>
+										
 									</td>
+									
 									
 									<td class="text-end">
 										{{ moneyLabel(line.planned_amount) }}
 									</td>
 									
+									
 									<td class="text-end">
 										{{ moneyLabel(line.actual_amount) }}
 									</td>
+									
 									
 									<td class="text-end">
 										{{ moneyLabel(line.committed_amount) }}
 									</td>
 									
+									
 									<td>
 										{{ line.is_active ? 'Yes' : 'No' }}
 									</td>
 									
+									
 									<td class="text-end">
+										
 										<button
 										type="button"
 										class="btn btn-sm btn-outline-primary me-2"
 										(click)="editBudgetLine(line)">
+											
 											<i class="bi bi-pencil"></i>
+											
 										</button>
+										
 										
 										<button
 										type="button"
 										class="btn btn-sm btn-outline-danger"
 										(click)="deleteBudgetLine(line)">
+											
 											<i class="bi bi-trash"></i>
+											
 										</button>
+										
 									</td>
+									
 								</tr>
 								
-								<tr *ngIf="!budgetLines.length">
+								
+								<tr
+								*ngIf="!budgetLines.length">
+									
 									<td
 									colspan="8"
 									class="text-center text-muted py-4">
+										
 										No budget lines yet.
+										
 									</td>
+									
 								</tr>
+								
 							</tbody>
+							
 						</table>
+						
 					</div>
 					
 				</ng-container>
+				
 			</ng-container>
+			
 		</div>
 		
-		<!-- Budget Allocations -->
+		
+		<!-- ===============================================================
+			Budget Allocations
+		=============================================================== -->
+		
 		<div
 		class="card-body"
 		*ngIf="activeTab === 'budget-allocations'">
 			
-			<div *ngIf="isCreate" class="alert alert-warning">
+			
+			<div
+			*ngIf="isCreate"
+			class="alert alert-warning">
+				
 				Save the new project before adding budget allocations.
+				
 			</div>
 			
+			
 			<ng-container *ngIf="!isCreate">
+				
 				
 				<div
 				class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
 					
 					<div>
+						
 						<div class="section-title mb-1">
 							Budget Allocations
 						</div>
@@ -835,51 +1545,90 @@
 						<div class="small text-muted">
 							Allocate a budget line at Project, Task or Milestone level.
 						</div>
+						
 					</div>
+					
 					
 					<button
 					type="button"
 					class="btn btn-outline-secondary btn-sm"
 					(click)="newAllocation()">
+						
 						New / Reset
+						
 					</button>
+					
 				</div>
 				
-				<div *ngIf="budgetError" class="alert alert-danger">
+				
+				<div
+				*ngIf="budgetError"
+				class="alert alert-danger">
+					
 					{{ budgetError }}
+					
 				</div>
 				
-				<div *ngIf="allocationError" class="alert alert-danger">
+				
+				<div
+				*ngIf="allocationError"
+				class="alert alert-danger">
+					
 					{{ allocationError }}
+					
 				</div>
+				
 				
 				<div
 				*ngIf="budgetLoading"
 				class="text-center text-muted py-5">
+					
 					<div class="spinner-border"></div>
+					
 					<div class="mt-2">
 						Loading budget allocations…
 					</div>
+					
 				</div>
 				
+				
 				<ng-container *ngIf="!budgetLoading">
+					
 					
 					<div
 					*ngIf="!budgetLines.length"
 					class="alert alert-warning">
+						
 						Create at least one Budget Line before adding an allocation.
+						
 					</div>
 					
+					
 					<div class="editor-card mb-4">
+						
 						<div class="row g-3 align-items-end">
+							
+							
+							<!-- Budget Line -->
+							
 							<div class="col-12 col-xl-4">
+								
 								<label class="form-label">
-									Budget Line *
+									Budget Line
+									
+									<span
+									class="text-danger fw-bold"
+									aria-hidden="true">
+										*
+									</span>
 								</label>
 								
 								<select
 								class="form-select"
-								[(ngModel)]="allocationForm.budget_line_id">
+								[(ngModel)]="allocationForm.budget_line_id"
+								(ngModelChange)="clearAllocationFieldError('budget_line_id')"
+								[class.is-invalid]="allocationInvalid('budget_line_id')">
+									
 									<option [ngValue]="null">
 										— Select line —
 									</option>
@@ -887,24 +1636,43 @@
 									<option
 									*ngFor="let line of budgetLines"
 									[ngValue]="line.id">
+										
 										{{ line.line_type }}
 										•
 										{{ line.code }}
 										-
 										{{ line.name }}
+										
 									</option>
+									
 								</select>
+								
+								<div class="invalid-feedback">
+									{{ allocationFieldError('budget_line_id') }}
+								</div>
+								
 							</div>
 							
+							
+							<!-- Task -->
+							
 							<div class="col-12 col-md-6 col-xl-4">
+								
 								<label class="form-label">
 									Task
+									<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
 								</label>
 								
 								<select
 								class="form-select"
 								[(ngModel)]="allocationForm.task_id"
-								(ngModelChange)="onAllocationTaskChange()">
+								(ngModelChange)="onAllocationTaskChange()"
+								[class.is-invalid]="allocationInvalid('task_id')">
+									
 									<option [ngValue]="null">
 										— Project Level / No Task —
 									</option>
@@ -912,22 +1680,41 @@
 									<option
 									*ngFor="let task of taskOptions"
 									[ngValue]="task.id">
+										
 										#{{ task.id }}
 										-
 										{{ task.name }}
+										
 									</option>
+									
 								</select>
+								
+								<div class="invalid-feedback">
+									{{ allocationFieldError('task_id') }}
+								</div>
+								
 							</div>
 							
+							
+							<!-- Milestone -->
+							
 							<div class="col-12 col-md-6 col-xl-4">
+								
 								<label class="form-label">
 									Milestone
+									<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
 								</label>
 								
 								<select
 								class="form-select"
 								[(ngModel)]="allocationForm.milestone_id"
-								(ngModelChange)="onAllocationMilestoneChange()">
+								(ngModelChange)="onAllocationMilestoneChange()"
+								[class.is-invalid]="allocationInvalid('milestone_id')">
+									
 									<option [ngValue]="null">
 										— Project Level / No Milestone —
 									</option>
@@ -935,19 +1722,36 @@
 									<option
 									*ngFor="let milestone of milestones"
 									[ngValue]="milestone.id">
+										
 										{{ milestone.name }}
+										
 									</option>
+									
 								</select>
+								
+								<div class="invalid-feedback">
+									{{ allocationFieldError('milestone_id') }}
+								</div>
+								
 							</div>
+							
 							
 							<div class="col-12">
+								
 								<div class="form-text">
+									
 									Leave both Task and Milestone empty for a project-level allocation.
 									Only one of Task or Milestone can be selected at a time.
+									
 								</div>
+								
 							</div>
 							
+							
+							<!-- Planned -->
+							
 							<div class="col-12 col-md-4">
+								
 								<label class="form-label">
 									Planned
 								</label>
@@ -957,10 +1761,21 @@
 								min="0"
 								step="0.01"
 								class="form-control"
-								[(ngModel)]="allocationForm.planned_amount">
+								[(ngModel)]="allocationForm.planned_amount"
+								(ngModelChange)="clearAllocationFieldError('planned_amount')"
+								[class.is-invalid]="allocationInvalid('planned_amount')">
+								
+								<div class="invalid-feedback">
+									{{ allocationFieldError('planned_amount') }}
+								</div>
+								
 							</div>
 							
+							
+							<!-- Actual -->
+							
 							<div class="col-12 col-md-4">
+								
 								<label class="form-label">
 									Actual
 								</label>
@@ -970,10 +1785,21 @@
 								min="0"
 								step="0.01"
 								class="form-control"
-								[(ngModel)]="allocationForm.actual_amount">
+								[(ngModel)]="allocationForm.actual_amount"
+								(ngModelChange)="clearAllocationFieldError('actual_amount')"
+								[class.is-invalid]="allocationInvalid('actual_amount')">
+								
+								<div class="invalid-feedback">
+									{{ allocationFieldError('actual_amount') }}
+								</div>
+								
 							</div>
 							
+							
+							<!-- Committed -->
+							
 							<div class="col-12 col-md-4">
+								
 								<label class="form-label">
 									Committed
 								</label>
@@ -983,10 +1809,21 @@
 								min="0"
 								step="0.01"
 								class="form-control"
-								[(ngModel)]="allocationForm.committed_amount">
+								[(ngModel)]="allocationForm.committed_amount"
+								(ngModelChange)="clearAllocationFieldError('committed_amount')"
+								[class.is-invalid]="allocationInvalid('committed_amount')">
+								
+								<div class="invalid-feedback">
+									{{ allocationFieldError('committed_amount') }}
+								</div>
+								
 							</div>
 							
+							
+							<!-- Sort Order -->
+							
 							<div class="col-12 col-md-3">
+								
 								<label class="form-label">
 									Sort Order
 								</label>
@@ -995,44 +1832,82 @@
 								type="number"
 								min="0"
 								class="form-control"
-								[(ngModel)]="allocationForm.sort_order">
+								[(ngModel)]="allocationForm.sort_order"
+								(ngModelChange)="clearAllocationFieldError('sort_order')"
+								[class.is-invalid]="allocationInvalid('sort_order')">
+								
+								<div class="invalid-feedback">
+									{{ allocationFieldError('sort_order') }}
+								</div>
+								
 							</div>
 							
+							
+							<!-- Active -->
+							
 							<div class="col-12 col-md-3">
+								
 								<label class="form-label">
 									Active
 								</label>
 								
 								<select
 								class="form-select"
-								[(ngModel)]="allocationForm.is_active">
+								[(ngModel)]="allocationForm.is_active"
+								(ngModelChange)="clearAllocationFieldError('is_active')"
+								[class.is-invalid]="allocationInvalid('is_active')">
+									
 									<option [ngValue]="true">
 										Yes
 									</option>
+									
 									<option [ngValue]="false">
 										No
 									</option>
+									
 								</select>
+								
+								<div class="invalid-feedback">
+									{{ allocationFieldError('is_active') }}
+								</div>
+								
 							</div>
 							
+							
+							<!-- Notes -->
+							
 							<div class="col-12 col-md-6">
+								
 								<label class="form-label">
 									Notes
 								</label>
 								
 								<input
 								class="form-control"
-								[(ngModel)]="allocationForm.notes">
+								[(ngModel)]="allocationForm.notes"
+								(ngModelChange)="clearAllocationFieldError('notes')"
+								[class.is-invalid]="allocationInvalid('notes')">
+								
+								<div class="invalid-feedback">
+									{{ allocationFieldError('notes') }}
+								</div>
+								
 							</div>
 							
-							<div class="col-12 d-flex justify-content-end gap-2">
+							
+							<div
+							class="col-12 d-flex justify-content-end gap-2">
+								
 								<button
 								type="button"
 								class="btn btn-outline-secondary"
 								[disabled]="savingAllocation"
 								(click)="newAllocation()">
+									
 									Reset
+									
 								</button>
+								
 								
 								<button
 								type="button"
@@ -1042,6 +1917,7 @@
 								!budgetLines.length
 								"
 								(click)="saveAllocation()">
+									
 									<span
 									*ngIf="savingAllocation"
 									class="spinner-border spinner-border-sm me-2">
@@ -1052,98 +1928,160 @@
 									? 'Save Allocation Changes'
 									: 'Create Allocation'
 									}}
+									
 								</button>
+								
 							</div>
+							
 						</div>
+						
 					</div>
 					
+					
 					<div class="table-responsive">
+						
 						<table class="table table-hover align-middle mb-0">
+							
 							<thead class="table-light">
+								
 								<tr>
-									<th>Budget Line</th>
-									<th>Target</th>
+									
+									<th>
+										Budget Line
+									</th>
+									
+									<th>
+										Target
+									</th>
+									
 									<th class="text-end">
 										Planned
 									</th>
+									
 									<th class="text-end">
 										Actual
 									</th>
+									
 									<th class="text-end">
 										Committed
 									</th>
-									<th>Active</th>
+									
+									<th>
+										Active
+									</th>
+									
 									<th class="text-end">
 										Actions
 									</th>
+									
 								</tr>
+								
 							</thead>
 							
+							
 							<tbody>
-								<tr *ngFor="let allocation of budgetAllocations">
+								
+								<tr
+								*ngFor="let allocation of budgetAllocations">
+									
+									
 									<td>
+										
 										<div class="fw-semibold">
-											{{ budgetLineLabel(allocation.budget_line_id) }}
+											{{
+											budgetLineLabel(
+											allocation.budget_line_id
+											)
+											}}
 										</div>
 										
 										<div
 										*ngIf="allocation.notes"
 										class="small text-muted">
+											
 											{{ allocation.notes }}
+											
 										</div>
+										
 									</td>
+									
 									
 									<td>
 										{{ allocationTargetLabel(allocation) }}
 									</td>
 									
+									
 									<td class="text-end">
 										{{ moneyLabel(allocation.planned_amount) }}
 									</td>
+									
 									
 									<td class="text-end">
 										{{ moneyLabel(allocation.actual_amount) }}
 									</td>
 									
+									
 									<td class="text-end">
 										{{ moneyLabel(allocation.committed_amount) }}
 									</td>
+									
 									
 									<td>
 										{{ allocation.is_active ? 'Yes' : 'No' }}
 									</td>
 									
+									
 									<td class="text-end">
+										
 										<button
 										type="button"
 										class="btn btn-sm btn-outline-primary me-2"
 										(click)="editAllocation(allocation)">
+											
 											<i class="bi bi-pencil"></i>
+											
 										</button>
+										
 										
 										<button
 										type="button"
 										class="btn btn-sm btn-outline-danger"
 										(click)="deleteAllocation(allocation)">
+											
 											<i class="bi bi-trash"></i>
+											
 										</button>
+										
 									</td>
+									
 								</tr>
 								
-								<tr *ngIf="!budgetAllocations.length">
+								
+								<tr
+								*ngIf="!budgetAllocations.length">
+									
 									<td
 									colspan="7"
 									class="text-center text-muted py-4">
+										
 										No budget allocations yet.
+										
 									</td>
+									
 								</tr>
+								
 							</tbody>
+							
 						</table>
+						
 					</div>
 					
 				</ng-container>
+				
 			</ng-container>
+			
 		</div>
 		
 	</div>
+	
 </div>
