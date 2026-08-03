@@ -1,0 +1,1073 @@
+<div class="position-relative document-type-wrap">
+    
+    
+	<!-- ===============================================================
+        Loading
+    =============================================================== -->
+    
+	<div
+    *ngIf="loading"
+    class="loading-overlay">
+        
+		<div class="text-center">
+            
+			<div
+            class="spinner-border"
+            role="status">
+            </div>
+            
+			<div class="mt-2 fw-semibold">
+				Loading agreement document types…
+            </div>
+            
+        </div>
+        
+    </div>
+    
+    
+	<!-- ===============================================================
+        Header
+    =============================================================== -->
+    
+	<div
+    class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+        
+		<div>
+            
+			<h1 class="h4 mb-0">
+				Agreement Document Types
+            </h1>
+            
+            
+			<div class="text-muted small">
+				Manage agreement document classification
+				and OCR eligibility.
+            </div>
+            
+        </div>
+        
+        
+		<button
+        type="button"
+        class="btn btn-primary"
+        (click)="openCreate()">
+            
+			<i class="bi bi-plus-circle"></i>
+            
+			<span class="ms-2">
+				Add Document Type
+            </span>
+            
+        </button>
+        
+    </div>
+    
+    
+	<!-- ===============================================================
+        Page Error
+    =============================================================== -->
+    
+	<div
+    *ngIf="error"
+    class="alert alert-danger">
+        
+		<i class="bi bi-exclamation-triangle me-2"></i>
+        
+		{{ error }}
+        
+    </div>
+    
+    
+	<!-- ===============================================================
+        Filters
+    =============================================================== -->
+    
+	<div class="card shadow-sm border-0 mb-3">
+        
+		<div class="card-body">
+            
+			<div class="row g-3 align-items-end">
+                
+                
+				<!-- Search -->
+                
+				<div class="col-12 col-xl-6">
+                    
+					<label class="form-label">
+						Search
+                    </label>
+                    
+                    
+					<div class="input-group">
+                        
+						<span class="input-group-text">
+							<i class="bi bi-search"></i>
+                        </span>
+                        
+                        
+						<input
+                        type="text"
+                        class="form-control"
+                        placeholder="Code, name or description"
+                        [(ngModel)]="search"
+                        (keydown.enter)="applyFilters()">
+                        
+                    </div>
+                    
+                </div>
+                
+                
+				<!-- Active -->
+                
+				<div class="col-6 col-xl-2">
+                    
+					<label class="form-label">
+						Status
+                    </label>
+                    
+                    
+					<select
+                    class="form-select"
+                    [(ngModel)]="activeFilter">
+                        
+						<option value="">
+							All
+                        </option>
+                        
+						<option value="1">
+							Active
+                        </option>
+                        
+						<option value="0">
+							Inactive
+                        </option>
+                        
+                    </select>
+                    
+                </div>
+                
+                
+				<!-- OCR -->
+                
+				<div class="col-6 col-xl-2">
+                    
+					<label class="form-label">
+						OCR Eligible
+                    </label>
+                    
+                    
+					<select
+                    class="form-select"
+                    [(ngModel)]="ocrFilter">
+                        
+						<option value="">
+							All
+                        </option>
+                        
+						<option value="1">
+							Eligible
+                        </option>
+                        
+						<option value="0">
+							Not Eligible
+                        </option>
+                        
+                    </select>
+                    
+                </div>
+                
+                
+				<!-- Per Page -->
+                
+				<div class="col-12 col-md-4 col-xl-2">
+                    
+					<label class="form-label">
+						Per Page
+                    </label>
+                    
+                    
+					<select
+                    class="form-select"
+                    [(ngModel)]="perPage"
+                    (change)="page = 1; fetch()">
+                        
+						<option [ngValue]="10">
+							10
+                        </option>
+                        
+						<option [ngValue]="20">
+							20
+                        </option>
+                        
+						<option [ngValue]="50">
+							50
+                        </option>
+                        
+						<option [ngValue]="100">
+							100
+                        </option>
+                        
+                    </select>
+                    
+                </div>
+                
+                
+				<!-- Filter buttons -->
+                
+				<div
+                class="col-12 d-flex justify-content-end flex-wrap gap-2">
+                    
+					<button
+                    type="button"
+                    class="btn btn-primary"
+                    [disabled]="loading"
+                    (click)="applyFilters()">
+                        
+						Apply Filters
+                        
+                    </button>
+                    
+                    
+					<button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    [disabled]="loading"
+                    (click)="resetFilters()">
+                        
+						Reset
+                        
+                    </button>
+                    
+                </div>
+                
+            </div>
+            
+        </div>
+        
+    </div>
+    
+    
+	<!-- ===============================================================
+        Information
+    =============================================================== -->
+    
+	<div class="alert alert-info">
+        
+		<div class="fw-semibold mb-1">
+			Document Type Behaviour
+        </div>
+        
+        
+		<div class="small">
+            
+			OCR eligibility determines whether documents using this
+			type may be submitted to the OCR workflow.
+            
+			System document types are protected: their code cannot
+			be changed and they cannot be deactivated.
+            
+        </div>
+        
+    </div>
+    
+    
+	<!-- ===============================================================
+        Table
+    =============================================================== -->
+    
+	<div class="card shadow-sm border-0">
+        
+		<div class="card-body">
+            
+			<div class="table-responsive">
+                
+				<table
+                class="table table-hover align-middle mb-0">
+                    
+					<thead class="table-light">
+                        
+						<tr>
+                            
+							<th>
+								Document Type
+                            </th>
+                            
+							<th>
+								Description
+                            </th>
+                            
+							<th style="width: 140px;">
+								OCR
+                            </th>
+                            
+							<th style="width: 120px;">
+								Sort Order
+                            </th>
+                            
+							<th style="width: 140px;">
+								Classification
+                            </th>
+                            
+							<th style="width: 120px;">
+								Status
+                            </th>
+                            
+							<th
+                            class="text-end"
+                            style="width: 170px;">
+                                
+								Actions
+                                
+                            </th>
+                            
+                        </tr>
+                        
+                    </thead>
+                    
+                    
+					<tbody>
+                        
+						<tr
+                        *ngFor="let row of rows"
+                        [class.table-light]="!row.is_active">
+                            
+                            
+							<!-- Document Type -->
+                            
+							<td>
+                                
+								<div class="fw-semibold">
+									{{ row.name }}
+                                </div>
+                                
+                                
+								<div class="small text-muted font-monospace">
+									{{ row.code }}
+                                </div>
+                                
+                            </td>
+                            
+                            
+							<!-- Description -->
+                            
+							<td>
+                                
+								<span *ngIf="row.description">
+									{{ row.description }}
+                                </span>
+                                
+                                
+								<span
+                                *ngIf="!row.description"
+                                class="text-muted">
+                                    
+									-
+                                    
+                                </span>
+                                
+                            </td>
+                            
+                            
+							<!-- OCR -->
+                            
+							<td>
+                                
+								<span
+                                class="badge"
+                                [ngClass]="
+                                row.ocr_eligible
+                                ? 'bg-info text-dark'
+                                : 'bg-light text-dark border'
+                                ">
+                                    
+									<i
+                                    class="bi me-1"
+                                    [ngClass]="
+                                    row.ocr_eligible
+                                    ? 'bi-file-text'
+                                    : 'bi-slash-circle'
+                                    ">
+                                    </i>
+                                    
+                                    
+									{{
+                                    row.ocr_eligible
+                                    ? 'Eligible'
+                                    : 'Not Eligible'
+									}}
+                                    
+                                </span>
+                                
+                            </td>
+                            
+                            
+							<!-- Sort -->
+                            
+							<td>
+								{{ row.sort_order }}
+                            </td>
+                            
+                            
+							<!-- Classification -->
+                            
+							<td>
+                                
+								<span
+                                class="badge"
+                                [ngClass]="
+                                row.is_system_type
+                                ? 'bg-primary'
+                                : 'bg-light text-dark border'
+                                ">
+                                    
+									<i
+                                    *ngIf="row.is_system_type"
+                                    class="bi bi-lock me-1">
+                                    </i>
+                                    
+                                    
+									{{
+                                    row.is_system_type
+                                    ? 'System'
+                                    : 'Custom'
+									}}
+                                    
+                                </span>
+                                
+                            </td>
+                            
+                            
+							<!-- Active -->
+                            
+							<td>
+                                
+								<span
+                                class="badge"
+                                [ngClass]="
+                                row.is_active
+                                ? 'bg-success'
+                                : 'bg-secondary'
+                                ">
+                                    
+									{{
+                                    row.is_active
+                                    ? 'Active'
+                                    : 'Inactive'
+									}}
+                                    
+                                </span>
+                                
+                            </td>
+                            
+                            
+							<!-- Actions -->
+                            
+							<td class="text-end">
+                                
+                                
+								<button
+                                type="button"
+                                class="btn btn-sm btn-outline-primary me-2"
+                                (click)="openEdit(row)"
+                                title="Edit document type">
+                                    
+									<i class="bi bi-pencil-square"></i>
+                                    
+                                </button>
+                                
+                                
+								<button
+                                *ngIf="
+                                !row.is_system_type &&
+                                row.is_active
+                                "
+                                type="button"
+                                class="btn btn-sm btn-outline-danger"
+                                [disabled]="
+                                deactivatingId ===
+                                row.id
+                                "
+                                (click)="deactivate(row)"
+                                title="Deactivate document type">
+                                    
+									<span
+                                    *ngIf="
+                                    deactivatingId ===
+                                    row.id
+                                    "
+                                    class="spinner-border spinner-border-sm">
+                                    </span>
+                                    
+                                    
+									<i
+                                    *ngIf="
+                                    deactivatingId !==
+                                    row.id
+                                    "
+                                    class="bi bi-x-circle">
+                                    </i>
+                                    
+                                </button>
+                                
+                                
+								<button
+                                *ngIf="
+                                !row.is_system_type &&
+                                !row.is_active
+                                "
+                                type="button"
+                                class="btn btn-sm btn-outline-success"
+                                [disabled]="
+                                reactivatingId ===
+                                row.id
+                                "
+                                (click)="reactivate(row)"
+                                title="Reactivate document type">
+                                    
+									<span
+                                    *ngIf="
+                                    reactivatingId ===
+                                    row.id
+                                    "
+                                    class="spinner-border spinner-border-sm">
+                                    </span>
+                                    
+                                    
+									<i
+                                    *ngIf="
+                                    reactivatingId !==
+                                    row.id
+                                    "
+                                    class="bi bi-arrow-counterclockwise">
+                                    </i>
+                                    
+                                </button>
+                                
+                                
+								<span
+                                *ngIf="row.is_system_type"
+                                class="small text-muted ms-1"
+                                title="System document types are protected">
+                                    
+									Protected
+                                    
+                                </span>
+                                
+                            </td>
+                            
+                        </tr>
+                        
+                        
+						<tr
+                        *ngIf="
+                        !loading &&
+                        !rows.length
+                        ">
+                            
+							<td
+                            colspan="7"
+                            class="text-center text-muted py-4">
+                                
+								No agreement document types found.
+                                
+                            </td>
+                            
+                        </tr>
+                        
+                    </tbody>
+                    
+                </table>
+                
+            </div>
+            
+            
+			<!-- ===========================================================
+                Pagination
+            =========================================================== -->
+            
+			<div
+            class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
+                
+				<div class="small text-muted">
+					Total: {{ total }}
+                </div>
+                
+                
+				<div class="btn-group btn-group-sm">
+                    
+					<button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    [disabled]="page <= 1"
+                    (click)="changePage(page - 1)">
+                        
+						Previous
+                        
+                    </button>
+                    
+                    
+					<button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    disabled>
+                        
+						Page {{ page }} / {{ lastPage }}
+                        
+                    </button>
+                    
+                    
+					<button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    [disabled]="page >= lastPage"
+                    (click)="changePage(page + 1)">
+                        
+						Next
+                        
+                    </button>
+                    
+                </div>
+                
+            </div>
+            
+        </div>
+        
+    </div>
+    
+    
+	<!-- ===============================================================
+        Create / Edit Modal
+    =============================================================== -->
+    
+	<div
+    *ngIf="modalOpen"
+    class="management-modal-backdrop"
+    (click)="closeModal()">
+        
+		<section
+        class="management-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="document-type-modal-title"
+        (click)="$event.stopPropagation()">
+            
+            
+			<!-- ===========================================================
+                Modal Header
+            =========================================================== -->
+            
+			<header class="management-modal-header">
+                
+				<div>
+                    
+					<h2
+                    id="document-type-modal-title"
+                    class="h5 mb-1">
+                        
+						{{
+                        editingId === null
+                        ? 'Add Document Type'
+                        : 'Edit Document Type'
+						}}
+                        
+                    </h2>
+                    
+                    
+					<div class="small text-muted">
+                        
+						Configure how agreement documents are classified.
+                        
+                    </div>
+                    
+                </div>
+                
+                
+				<button
+                type="button"
+                class="btn btn-sm btn-outline-secondary"
+                [disabled]="saving"
+                (click)="closeModal()">
+                    
+					Close
+                    
+                </button>
+                
+            </header>
+            
+            
+			<!-- ===========================================================
+                Modal Body
+            =========================================================== -->
+            
+			<div class="management-modal-body">
+                
+                
+				<!-- Form Error -->
+                
+				<div
+                *ngIf="formError"
+                class="alert alert-danger">
+                    
+					<i class="bi bi-exclamation-triangle me-2"></i>
+                    
+					{{ formError }}
+                    
+                </div>
+                
+                
+				<!-- System type explanation -->
+                
+				<div
+                *ngIf="editingSystemType"
+                class="alert alert-warning">
+                    
+					<div class="fw-semibold mb-1">
+						Protected System Document Type
+                    </div>
+                    
+					The document type code cannot be changed and this
+					system type cannot be deactivated.
+                    
+					Name, description, OCR eligibility and sort order
+					can still be updated.
+                    
+                </div>
+                
+                
+				<div class="small text-muted mb-3">
+                    
+					Fields marked with
+                    
+					<span class="text-danger fw-bold">
+						*
+                    </span>
+                    
+					are required.
+                    
+                </div>
+                
+                
+				<div class="row g-3">
+                    
+                    
+					<!-- ===================================================
+                        Code
+                    =================================================== -->
+                    
+					<div class="col-12 col-md-6">
+                        
+						<label class="form-label">
+                            
+							Code
+                            
+							<span
+                            class="text-danger fw-bold"
+                            aria-hidden="true">
+								*
+                            </span>
+                            
+                        </label>
+                        
+                        
+						<input
+                        type="text"
+                        class="form-control font-monospace"
+                        maxlength="60"
+                        [(ngModel)]="form.code"
+                        [disabled]="editingSystemType"
+                        (ngModelChange)="clearFieldError('code')"
+                        (blur)="normaliseCode()"
+                        [class.is-invalid]="isFieldInvalid('code')"
+                        [attr.aria-invalid]="isFieldInvalid('code')"
+                        placeholder="SIGNED_AGREEMENT">
+                        
+                        
+						<div class="invalid-feedback">
+                            
+							{{ fieldError('code') }}
+                            
+                        </div>
+                        
+                        
+						<div class="form-text">
+                            
+							Uppercase letters, numbers and underscores.
+							The first character must be a letter.
+                            
+                        </div>
+                        
+                        
+						<div
+                        *ngIf="editingSystemType"
+                        class="form-text text-warning">
+                            
+							System document type codes are protected.
+                            
+                        </div>
+                        
+                    </div>
+                    
+                    
+					<!-- ===================================================
+                        Name
+                    =================================================== -->
+                    
+					<div class="col-12 col-md-6">
+                        
+						<label class="form-label">
+                            
+							Name
+                            
+							<span
+                            class="text-danger fw-bold"
+                            aria-hidden="true">
+								*
+                            </span>
+                            
+                        </label>
+                        
+                        
+						<input
+                        type="text"
+                        class="form-control"
+                        maxlength="150"
+                        [(ngModel)]="form.name"
+                        (ngModelChange)="clearFieldError('name')"
+                        [class.is-invalid]="isFieldInvalid('name')"
+                        [attr.aria-invalid]="isFieldInvalid('name')"
+                        placeholder="Signed Agreement">
+                        
+                        
+						<div class="invalid-feedback">
+                            
+							{{ fieldError('name') }}
+                            
+                        </div>
+                        
+                        
+						<div class="form-text">
+							Maximum 150 characters.
+                        </div>
+                        
+                    </div>
+                    
+                    
+					<!-- ===================================================
+                        Description
+                    =================================================== -->
+                    
+					<div class="col-12">
+                        
+						<label class="form-label">
+							Description
+                        </label>
+                        
+                        
+						<textarea
+                        rows="4"
+                        class="form-control"
+                        [(ngModel)]="form.description"
+                        (ngModelChange)="clearFieldError('description')"
+                        [class.is-invalid]="isFieldInvalid('description')"
+                        [attr.aria-invalid]="isFieldInvalid('description')"
+                        placeholder="Describe when this document type should be used.">
+                        </textarea>
+                        
+                        
+						<div class="invalid-feedback">
+                            
+							{{ fieldError('description') }}
+                            
+                        </div>
+                        
+                    </div>
+                    
+                    
+					<!-- ===================================================
+                        Sort Order
+                    =================================================== -->
+                    
+					<div class="col-12 col-md-4">
+                        
+						<label class="form-label">
+							Sort Order
+                        </label>
+                        
+                        
+						<input
+                        type="number"
+                        min="0"
+                        step="1"
+                        class="form-control"
+                        [(ngModel)]="form.sort_order"
+                        (ngModelChange)="clearFieldError('sort_order')"
+                        [class.is-invalid]="isFieldInvalid('sort_order')"
+                        [attr.aria-invalid]="isFieldInvalid('sort_order')">
+                        
+                        
+						<div class="invalid-feedback">
+                            
+							{{ fieldError('sort_order') }}
+                            
+                        </div>
+                        
+                        
+						<div class="form-text">
+							Must be a whole number of zero or greater.
+                        </div>
+                        
+                    </div>
+                    
+                    
+					<!-- ===================================================
+                        OCR Eligibility
+                    =================================================== -->
+                    
+					<div class="col-12 col-md-4">
+                        
+						<label class="form-label">
+							OCR Eligibility
+                        </label>
+                        
+                        
+						<select
+                        class="form-select"
+                        [(ngModel)]="form.ocr_eligible"
+                        (ngModelChange)="clearFieldError('ocr_eligible')"
+                        [class.is-invalid]="isFieldInvalid('ocr_eligible')"
+                        [attr.aria-invalid]="isFieldInvalid('ocr_eligible')">
+                            
+							<option [ngValue]="true">
+								Eligible
+                            </option>
+                            
+							<option [ngValue]="false">
+								Not Eligible
+                            </option>
+                            
+                        </select>
+                        
+                        
+						<div class="invalid-feedback">
+                            
+							{{ fieldError('ocr_eligible') }}
+                            
+                        </div>
+                        
+                        
+						<div class="form-text">
+                            
+							Eligible document types may be submitted
+							to the OCR workflow when OCR is enabled.
+                            
+                        </div>
+                        
+                    </div>
+                    
+                    
+					<!-- ===================================================
+                        Active
+                    =================================================== -->
+                    
+					<div class="col-12 col-md-4">
+                        
+						<label class="form-label">
+							Status
+                        </label>
+                        
+                        
+						<select
+                        class="form-select"
+                        [(ngModel)]="form.is_active"
+                        [disabled]="editingSystemType"
+                        (ngModelChange)="clearFieldError('is_active')"
+                        [class.is-invalid]="isFieldInvalid('is_active')"
+                        [attr.aria-invalid]="isFieldInvalid('is_active')">
+                            
+							<option [ngValue]="true">
+								Active
+                            </option>
+                            
+							<option [ngValue]="false">
+								Inactive
+                            </option>
+                            
+                        </select>
+                        
+                        
+						<div class="invalid-feedback">
+                            
+							{{ fieldError('is_active') }}
+                            
+                        </div>
+                        
+                        
+						<div
+                        *ngIf="editingSystemType"
+                        class="form-text text-warning">
+                            
+							System document types cannot be deactivated.
+                            
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+                
+            </div>
+            
+            
+			<!-- ===========================================================
+                Modal Footer
+            =========================================================== -->
+            
+			<footer class="management-modal-footer">
+                
+				<button
+                type="button"
+                class="btn btn-outline-secondary"
+                [disabled]="saving"
+                (click)="closeModal()">
+                    
+					Cancel
+                    
+                </button>
+                
+                
+				<button
+                type="button"
+                class="btn btn-primary"
+                [disabled]="saving"
+                (click)="save()">
+                    
+					<span
+                    *ngIf="saving"
+                    class="spinner-border spinner-border-sm me-2">
+                    </span>
+                    
+                    
+					<i
+                    *ngIf="!saving"
+                    class="bi bi-check-lg me-2">
+                    </i>
+                    
+                    
+					{{
+                    saving
+                    ? 'Saving…'
+                    : (
+                    editingId === null
+                    ? 'Create Document Type'
+                    : 'Save Changes'
+                    )
+					}}
+                    
+                </button>
+                
+            </footer>
+            
+        </section>
+        
+    </div>
+    
+</div>

@@ -1,0 +1,80 @@
+.document-type-wrap {
+	min-height: 60vh;
+}
+
+.loading-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 30;
+	display: grid;
+	place-items: center;
+	background: rgba(255, 255, 255, 0.75);
+}
+
+.management-modal-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 2050;
+	display: grid;
+	place-items: center;
+	padding: 1rem;
+	background: rgba(15, 23, 42, 0.6);
+}
+
+.management-modal {
+	width: min(800px, 96vw);
+	max-height: 94vh;
+	overflow: hidden;
+	border-radius: 0.8rem;
+	background: #fff;
+}
+
+.management-modal-header,
+.management-modal-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 1rem 1.25rem;
+}
+
+.management-modal-header {
+	border-bottom: 1px solid #dee2e6;
+}
+
+.management-modal-footer {
+	justify-content: flex-end;
+	border-top: 1px solid #dee2e6;
+}
+
+.management-modal-body {
+	padding: 1.25rem;
+	overflow-y: auto;
+	background: #f8f9fa;
+}
+
+.required-indicator {
+	margin-left: 0.15rem;
+	color: #dc3545;
+	font-weight: 700;
+}
+
+.form-label {
+	font-weight: 500;
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+	border-color: #dc3545;
+	box-shadow: 0 0 0 0.15rem rgba(220, 53, 69, 0.08);
+}
+
+.invalid-feedback {
+	font-size: 0.8rem;
+}
+
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus {
+	border-color: #dc3545;
+	box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.18);
+}

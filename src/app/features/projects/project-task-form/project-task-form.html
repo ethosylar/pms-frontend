@@ -1,216 +1,1199 @@
-<div class="position-relative">
+<div class="position-relative task-form-wrap">
 	
-	<div *ngIf="loading" class="loading-overlay">
+	
+	<!-- ===============================================================
+		Loading
+	=============================================================== -->
+	
+	<div
+	*ngIf="loading"
+	class="loading-overlay">
+		
 		<div class="text-center">
-			<div class="spinner-border" role="status"></div>
-			<div class="mt-2 fw-semibold">Loading…</div>
-		</div>
-	</div>
-	
-	<div class="d-flex align-items-center justify-content-between mb-3">
-		<div>
-			<h1 class="h4 mb-0">{{ isCreate ? 'New Task' : 'Edit Task' }}</h1>
-			<div class="text-muted small">Project #{{ projectId }}</div>
+			
+			<div
+			class="spinner-border"
+			role="status">
+			</div>
+			
+			<div class="mt-2 fw-semibold">
+				Loading task…
+			</div>
+			
 		</div>
 		
-		<div class="d-flex gap-2">
-			<button class="btn btn-outline-secondary" (click)="cancel()">
-				<i class="bi bi-x-lg"></i><span class="ms-2">Cancel</span>
-			</button>
-			<button class="btn btn-primary" [disabled]="saving" (click)="save()">
-				<span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
-				Save
-			</button>
-		</div>
 	</div>
 	
-	<div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+	
+	<!-- ===============================================================
+		Header
+	=============================================================== -->
+	
+	<div
+	class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+		
+		<div>
+			
+			<h1 class="h4 mb-1">
+				
+				{{
+				isCreate
+				? 'New Task'
+				: 'Edit Task'
+				}}
+				
+			</h1>
+			
+			<div class="text-muted small">
+				Project #{{ projectId }}
+			</div>
+			
+		</div>
+		
+		
+		<button
+		type="button"
+		class="btn btn-outline-secondary"
+		[disabled]="saving"
+		(click)="cancel()">
+			
+			<i class="bi bi-arrow-left"></i>
+			
+			<span class="ms-2">
+				Back to Gantt
+			</span>
+			
+		</button>
+		
+	</div>
+	
+	
+	<!-- ===============================================================
+		General Error
+	=============================================================== -->
+	
+	<div
+	*ngIf="error"
+	class="alert alert-danger">
+		
+		<i class="bi bi-exclamation-triangle me-2"></i>
+		
+		{{ error }}
+		
+	</div>
+	
+	
+	<!-- ===============================================================
+		Main Form Card
+	=============================================================== -->
 	
 	<div class="card shadow-sm border-0">
+		
+		<div class="card-header bg-white">
+			
+			<div class="fw-semibold">
+				Task Information
+			</div>
+			
+			<div class="text-muted small">
+				
+				Fields marked with
+				
+				<span class="text-danger fw-bold">
+					*
+				</span>
+				
+				are required.
+				
+			</div>
+			
+		</div>
+		
+		
 		<div class="card-body">
-			<form [formGroup]="form" class="row g-3">
+			
+			<form
+			[formGroup]="form"
+			(ngSubmit)="save()">
 				
-				<div class="col-12">
-					<label class="form-label">Name *</label>
-					<input class="form-control" formControlName="name" />
-					<div class="text-danger small mt-1" *ngIf="form.get('name')?.touched && form.get('name')?.invalid">
-						Name is required.
-					</div>
-				</div>
 				
-				<div class="col-12">
-					<label class="form-label">Description</label>
-					<textarea class="form-control" rows="3" formControlName="description"></textarea>
-				</div>
+				<!-- =======================================================
+					Basic Information
+				======================================================= -->
 				
-				<div class="col-12 col-md-4">
-					<label class="form-label">Status</label>
-					<select class="form-select" formControlName="task_status_id">
-						<option [ngValue]="null">—</option>
-						<option *ngFor="let s of statuses" [ngValue]="s.id">
-							{{ s.code }} - {{ s.name }}
-						</option>
-					</select>
-				</div>
-				
-				<div class="col-12 col-md-4">
-					<label class="form-label">Actual Status</label>
-					<select class="form-select" formControlName="actual_task_status_id">
-						<option [ngValue]="null">—</option>
-						<option *ngFor="let s of statuses" [ngValue]="s.id">
-							{{ s.code }} - {{ s.name }}
-						</option>
-					</select>
-				</div>
-				
-				<div class="col-12 col-md-4">
-					<label class="form-label">Assignee</label>
-					<select class="form-select" formControlName="assigned_to_user_id">
-						<option [ngValue]="null">—</option>
-						<option *ngFor="let u of users" [ngValue]="u.id">{{ u.name }}</option>
-					</select>
-				</div>
-				
-				<div class="col-12 col-md-4">
-					<label class="form-label">Progress (%)</label>
-					<input class="form-control" type="number" min="0" max="100" formControlName="progress" />
-				</div>
-				
-				<div class="col-12 col-md-3">
-					<label class="form-label">Actual Start Date</label>
-					<input class="form-control" type="date" formControlName="actual_start_date" />
-				</div>
-				
-				<div class="col-12 col-md-3">
-					<label class="form-label">Actual End Date</label>
-					<input class="form-control" type="date" formControlName="actual_end_date" />
-				</div>
-				
-				<div class="col-12 col-md-3">
-					<label class="form-label">Duration</label>
-					<input class="form-control" type="number" min="0" formControlName="duration" />
-				</div>
-				
-				<div class="col-12 col-md-3">
-					<label class="form-label">Task Color</label>
-					<input class="form-control" type="color" formControlName="task_color" />
-				</div>
-				
-				<div class="col-12 col-md-3">
-					<label class="form-label">Sort Order</label>
-					<input class="form-control" type="number" formControlName="sort_order" />
-				</div>
-				
-				<div class="col-12 col-md-3">
-					<label class="form-label">Parent Task</label>
-					<select class="form-select" formControlName="parent_task_id">
-						<option [ngValue]="null">—</option>
-						<option *ngFor="let t of taskOptions" [ngValue]="t.id">
-							#{{ t.id }} - {{ t.name }}
-						</option>
-					</select>
-				</div>
-				
-				<div class="col-12 col-md-6">
-					<label class="form-label">Depends On</label>
-					<select class="form-select" formControlName="depends_on_task_id">
-						<option [ngValue]="null">—</option>
-						<option *ngFor="let t of taskOptions" [ngValue]="t.id">
-							#{{ t.id }} - {{ t.name }}
-						</option>
-					</select>
-				</div>
-				
-				<div class="col-12 col-md-6">
-					<label class="form-label">Milestone (optional)</label>
-					<select class="form-select" formControlName="milestone_id">
-						<option [ngValue]="null">— None —</option>
-						<option *ngFor="let m of milestones" [ngValue]="m.id">
-							{{ m.name }} {{ m.milestone_date ? ('• ' + (m.milestone_date | date:'yyyy-MM-dd')) : '' }}
-						</option>
-					</select>
-				</div>
-				
-				<div class="card shadow-sm border-0 mt-3" *ngIf="!isCreate && taskId">
-					<div class="card-header bg-white">
-						<div class="fw-semibold">Task Files</div>
-						<div class="text-muted small">Upload and manage files linked to this task</div>
+				<div class="form-section">
+					
+					<div class="section-title mb-3">
+						Basic Information
 					</div>
 					
-					<div class="card-body">
-						<div class="d-flex align-items-center gap-2 mb-3">
+					
+					<div class="row g-3">
+						
+						
+						<!-- Name -->
+						
+						<div class="col-12">
+							
+							<label class="form-label">
+								
+								Name
+								
+								<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
+								
+							</label>
+							
+							
+							<input
+							type="text"
+							class="form-control"
+							formControlName="name"
+							[class.is-invalid]="isInvalid('name')"
+							[attr.aria-invalid]="isInvalid('name')"
+							placeholder="Enter task name">
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'name',
+								'Name'
+								)
+								}}
+								
+							</div>
+							
+						</div>
+						
+						
+						<!-- Description -->
+						
+						<div class="col-12">
+							
+							<label class="form-label">
+								Description
+							</label>
+							
+							
+							<textarea
+							class="form-control"
+							rows="4"
+							formControlName="description"
+							[class.is-invalid]="isInvalid('description')"
+							[attr.aria-invalid]="isInvalid('description')"
+							placeholder="Describe the work required for this task">
+							</textarea>
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'description',
+								'Description'
+								)
+								}}
+								
+							</div>
+							
+						</div>
+						
+					</div>
+					
+				</div>
+				
+				
+				<!-- =======================================================
+					Status and Assignment
+				======================================================= -->
+				
+				<div class="form-section">
+					
+					<div class="section-title mb-3">
+						Status and Assignment
+					</div>
+					
+					
+					<div class="row g-3">
+						
+						
+						<!-- Planned Status -->
+						
+						<div class="col-12 col-md-4">
+							
+							<label class="form-label">
+								Status
+								<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
+							</label>
+							
+							
+							<select
+							class="form-select"
+							formControlName="task_status_id"
+							[class.is-invalid]="isInvalid('task_status_id')"
+							[attr.aria-invalid]="isInvalid('task_status_id')">
+								
+								<option [ngValue]="null">
+									— No Status —
+								</option>
+								
+								<option
+								*ngFor="let status of statuses"
+								[ngValue]="status.id">
+									
+									{{ status.code }}
+									-
+									{{ status.name }}
+									
+								</option>
+								
+							</select>
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'task_status_id',
+								'Status'
+								)
+								}}
+								
+							</div>
+							
+						</div>
+						
+						
+						<!-- Actual Status -->
+						
+						<div class="col-12 col-md-4">
+							
+							<label class="form-label">
+								Actual Status
+							</label>
+							
+							
+							<select
+							class="form-select"
+							formControlName="actual_task_status_id"
+							[class.is-invalid]="isInvalid('actual_task_status_id')"
+							[attr.aria-invalid]="isInvalid('actual_task_status_id')">
+								
+								<option [ngValue]="null">
+									— No Actual Status —
+								</option>
+								
+								<option
+								*ngFor="let status of statuses"
+								[ngValue]="status.id">
+									
+									{{ status.code }}
+									-
+									{{ status.name }}
+									
+								</option>
+								
+							</select>
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'actual_task_status_id',
+								'Actual Status'
+								)
+								}}
+								
+							</div>
+							
+						</div>
+						
+						
+						<!-- Assignee -->
+						
+						<div class="col-12 col-md-4">
+							
+							<label class="form-label">
+								Assignee
+							</label>
+							
+							
+							<select
+							class="form-select"
+							formControlName="assigned_to_user_id"
+							[class.is-invalid]="isInvalid('assigned_to_user_id')"
+							[attr.aria-invalid]="isInvalid('assigned_to_user_id')">
+								
+								<option [ngValue]="null">
+									— Unassigned —
+								</option>
+								
+								<option
+								*ngFor="let user of users"
+								[ngValue]="user.id">
+									
+									{{ user.name }}
+									
+								</option>
+								
+							</select>
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'assigned_to_user_id',
+								'Assignee'
+								)
+								}}
+								
+							</div>
+							
+							
+							<div
+							*ngIf="users.length === 0"
+							class="form-text">
+								
+								User list is unavailable or restricted.
+								
+							</div>
+							
+						</div>
+						
+						
+						<!-- Progress -->
+						
+						<div class="col-12 col-md-4">
+							
+							<label class="form-label">
+								Progress (%)
+							</label>
+							
+							
+							<input
+							type="number"
+							min="0"
+							max="100"
+							class="form-control"
+							formControlName="progress"
+							[class.is-invalid]="isInvalid('progress')"
+							[attr.aria-invalid]="isInvalid('progress')">
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'progress',
+								'Progress'
+								)
+								}}
+								
+							</div>
+							
+							
+							<div class="form-text">
+								Value must be between 0 and 100.
+							</div>
+							
+						</div>
+						
+					</div>
+					
+				</div>
+				
+				
+				<!-- =======================================================
+					Planned Schedule
+				======================================================= -->
+				
+				<div class="form-section">
+					
+					<div class="section-title mb-3">
+						Planned Schedule
+					</div>
+					
+					
+					<div class="row g-3">
+						
+						
+						<!-- Start Date -->
+						
+						<div class="col-12 col-md-6">
+							
+							<label class="form-label">
+								Start Date
+								<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
+							</label>
+							
+							
+							<input
+							type="date"
+							class="form-control"
+							formControlName="start_date"
+							[class.is-invalid]="isInvalid('start_date')"
+							[attr.aria-invalid]="isInvalid('start_date')">
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'start_date',
+								'Start Date'
+								)
+								}}
+								
+							</div>
+							
+						</div>
+						
+						
+						<!-- End Date -->
+						
+						<div class="col-12 col-md-6">
+							
+							<label class="form-label">
+								End Date
+								<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
+							</label>
+							
+							
+							<input
+							type="date"
+							class="form-control"
+							formControlName="end_date"
+							[class.is-invalid]="isInvalid('end_date')"
+							[attr.aria-invalid]="isInvalid('end_date')">
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'end_date',
+								'End Date'
+								)
+								}}
+								
+							</div>
+							
+						</div>
+						
+					</div>
+					
+				</div>
+				
+				
+				<!-- =======================================================
+					Actual Schedule
+				======================================================= -->
+				
+				<div class="form-section">
+					
+					<div class="section-title mb-3">
+						Actual Schedule
+					</div>
+					
+					
+					<div class="row g-3">
+						
+						
+						<!-- Actual Start -->
+						
+						<div class="col-12 col-md-4">
+							
+							<label class="form-label">
+								Actual Start Date
+							</label>
+							
+							
+							<input
+							type="date"
+							class="form-control"
+							formControlName="actual_start_date"
+							[class.is-invalid]="isInvalid('actual_start_date')"
+							[attr.aria-invalid]="isInvalid('actual_start_date')">
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'actual_start_date',
+								'Actual Start Date'
+								)
+								}}
+								
+							</div>
+							
+						</div>
+						
+						
+						<!-- Actual End -->
+						
+						<div class="col-12 col-md-4">
+							
+							<label class="form-label">
+								Actual End Date
+							</label>
+							
+							
+							<input
+							type="date"
+							class="form-control"
+							formControlName="actual_end_date"
+							[class.is-invalid]="isInvalid('actual_end_date')"
+							[attr.aria-invalid]="isInvalid('actual_end_date')">
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'actual_end_date',
+								'Actual End Date'
+								)
+								}}
+								
+							</div>
+							
+						</div>
+						
+						
+						<!-- Duration -->
+						
+						<div class="col-12 col-md-4">
+							
+							<label class="form-label">
+								Duration
+							</label>
+							
+							
+							<input
+							type="number"
+							min="0"
+							class="form-control"
+							formControlName="duration"
+							[class.is-invalid]="isInvalid('duration')"
+							[attr.aria-invalid]="isInvalid('duration')">
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'duration',
+								'Duration'
+								)
+								}}
+								
+							</div>
+							
+							
+							<div class="form-text">
+								Duration cannot be negative.
+							</div>
+							
+						</div>
+						
+					</div>
+					
+				</div>
+				
+				
+				<!-- =======================================================
+					Task Relationships
+				======================================================= -->
+				
+				<div class="form-section">
+					
+					<div class="section-title mb-3">
+						Task Relationships
+					</div>
+					
+					
+					<div class="row g-3">
+						
+						
+						<!-- Parent Task -->
+						
+						<div class="col-12 col-lg-4">
+							
+							<label class="form-label">
+								Parent Task
+							</label>
+							
+							
+							<select
+							class="form-select"
+							formControlName="parent_task_id"
+							[class.is-invalid]="isInvalid('parent_task_id')"
+							[attr.aria-invalid]="isInvalid('parent_task_id')">
+								
+								<option [ngValue]="null">
+									— No Parent Task —
+								</option>
+								
+								<option
+								*ngFor="let task of taskOptions"
+								[ngValue]="task.id">
+									
+									#{{ task.id }}
+									-
+									{{ task.name }}
+									
+								</option>
+								
+							</select>
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'parent_task_id',
+								'Parent Task'
+								)
+								}}
+								
+							</div>
+							
+							
+							<div class="form-text">
+								Use this to create a parent/child task structure.
+							</div>
+							
+						</div>
+						
+						
+						<!-- Dependency -->
+						
+						<div class="col-12 col-lg-4">
+							
+							<label class="form-label">
+								Depends On
+							</label>
+							
+							
+							<select
+							class="form-select"
+							formControlName="depends_on_task_id"
+							[class.is-invalid]="isInvalid('depends_on_task_id')"
+							[attr.aria-invalid]="isInvalid('depends_on_task_id')">
+								
+								<option [ngValue]="null">
+									— No Dependency —
+								</option>
+								
+								<option
+								*ngFor="let task of taskOptions"
+								[ngValue]="task.id">
+									
+									#{{ task.id }}
+									-
+									{{ task.name }}
+									
+								</option>
+								
+							</select>
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'depends_on_task_id',
+								'Dependency'
+								)
+								}}
+								
+							</div>
+							
+							
+							<div class="form-text">
+								The selected task should be completed before this task.
+							</div>
+							
+						</div>
+						
+						
+						<!-- Milestone -->
+						
+						<div class="col-12 col-lg-4">
+							
+							<label class="form-label">
+								Milestone
+							</label>
+							
+							
+							<select
+							class="form-select"
+							formControlName="milestone_id"
+							[class.is-invalid]="isInvalid('milestone_id')"
+							[attr.aria-invalid]="isInvalid('milestone_id')">
+								
+								<option [ngValue]="null">
+									— No Milestone —
+								</option>
+								
+								<option
+								*ngFor="let milestone of milestones"
+								[ngValue]="milestone.id">
+									
+									{{ milestone.name }}
+									
+									{{
+									milestone.milestone_date
+									? (
+									'• ' +
+									(
+									milestone.milestone_date
+									| date:'yyyy-MM-dd'
+									)
+									)
+									: ''
+									}}
+									
+								</option>
+								
+							</select>
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'milestone_id',
+								'Milestone'
+								)
+								}}
+								
+							</div>
+							
+							
+							<div class="form-text">
+								Optionally associate this task with a project milestone.
+							</div>
+							
+						</div>
+						
+					</div>
+					
+				</div>
+				
+				
+				<!-- =======================================================
+					Display / Ordering
+				======================================================= -->
+				
+				<div class="form-section">
+					
+					<div class="section-title mb-3">
+						Display and Ordering
+					</div>
+					
+					
+					<div class="row g-3">
+						
+						
+						<!-- Task Color -->
+						
+						<div class="col-12 col-md-6">
+							
+							<label class="form-label">
+								Task Color
+							</label>
+							
+							
+							<input
+							type="color"
+							class="form-control form-control-color"
+							formControlName="task_color"
+							[class.is-invalid]="isInvalid('task_color')"
+							[attr.aria-invalid]="isInvalid('task_color')">
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'task_color',
+								'Task Color'
+								)
+								}}
+								
+							</div>
+							
+						</div>
+						
+						
+						<!-- Sort Order -->
+						
+						<div class="col-12 col-md-6">
+							
+							<label class="form-label">
+								Sort Order
+							</label>
+							
+							
+							<input
+							type="number"
+							min="0"
+							class="form-control"
+							formControlName="sort_order"
+							[class.is-invalid]="isInvalid('sort_order')"
+							[attr.aria-invalid]="isInvalid('sort_order')">
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'sort_order',
+								'Sort Order'
+								)
+								}}
+								
+							</div>
+							
+							
+							<div class="form-text">
+								Lower values are displayed first.
+							</div>
+							
+						</div>
+						
+					</div>
+					
+				</div>
+				
+				
+				<!-- =======================================================
+					Task Files
+				======================================================= -->
+				
+				<div
+				class="form-section"
+				*ngIf="!isCreate && taskId">
+					
+					<div
+					class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
+						
+						<div>
+							
+							<div class="section-title mb-1">
+								Task Files
+							</div>
+							
+							<div class="text-muted small">
+								Upload and manage files linked to this task.
+							</div>
+							
+						</div>
+						
+					</div>
+					
+					
+					<!-- Upload -->
+					
+					<div
+					class="row g-2 align-items-end mb-3">
+						
+						<div class="col-12 col-lg">
+							
+							<label class="form-label">
+								Select File
+							</label>
+							
+							
 							<input
 							type="file"
 							class="form-control"
 							(change)="onTaskFileSelected($event)"
-							[disabled]="uploadingTaskFile" />
+							[disabled]="uploadingTaskFile">
+							
+						</div>
+						
+						
+						<div class="col-12 col-lg-auto">
 							
 							<button
 							type="button"
-							class="btn btn-primary"
-							[disabled]="!selectedTaskFile || uploadingTaskFile"
+							class="btn btn-primary w-100"
+							[disabled]="
+							!selectedTaskFile ||
+							uploadingTaskFile
+							"
 							(click)="uploadSelectedTaskFile()">
-								<span *ngIf="uploadingTaskFile" class="spinner-border spinner-border-sm me-2"></span>
-								Upload
+								
+								<span
+								*ngIf="uploadingTaskFile"
+								class="spinner-border spinner-border-sm me-2">
+								</span>
+								
+								<i
+								*ngIf="!uploadingTaskFile"
+								class="bi bi-upload me-2">
+								</i>
+								
+								{{
+								uploadingTaskFile
+								? 'Uploading…'
+								: 'Upload File'
+								}}
+								
 							</button>
+							
 						</div>
 						
-						<div *ngIf="selectedTaskFileName" class="text-muted small mb-3">
-							Selected: {{ selectedTaskFileName }}
-						</div>
-						
-						<div *ngIf="taskFilesError" class="alert alert-danger mb-3">
-							{{ taskFilesError }}
-						</div>
-						
-						<div *ngIf="taskFilesLoading" class="text-muted small">
-							<span class="spinner-border spinner-border-sm me-2"></span>Loading files...
-						</div>
-						
-						<div class="table-responsive" *ngIf="!taskFilesLoading">
-							<table class="table table-sm align-middle mb-0">
-								<thead class="table-light">
-									<tr>
-										<th>Name</th>
-										<th style="width: 120px;">Size</th>
-										<th style="width: 180px;">Uploaded</th>
-										<th style="width: 140px;" class="text-end">Actions</th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr *ngFor="let f of taskFiles">
-										<td>{{ f.original_name }}</td>
-										<td>{{ formatBytes(f.size) }}</td>
-										<td>{{ f.created_at ? (f.created_at | date:'yyyy-MM-dd HH:mm') : '—' }}</td>
-										<td class="text-end">
-											<button
-											*ngIf="canPreviewFile(f)"
-											class="btn btn-sm btn-outline-primary me-2"
-											(click)="previewTaskFile(f)">
-												<i class="bi bi-eye"></i>
-											</button>
-											
-											<button class="btn btn-sm btn-outline-secondary me-2" (click)="downloadTaskFile(f)">
-												<i class="bi bi-download"></i>
-											</button>
-											
-											<button class="btn btn-sm btn-outline-danger" (click)="removeTaskFile(f)">
-												<i class="bi bi-trash"></i>
-											</button>
-										</td>
-									</tr>
-									
-									<tr *ngIf="!taskFiles.length">
-										<td colspan="4" class="text-center text-muted py-3">No files uploaded.</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
 					</div>
+					
+					
+					<div
+					*ngIf="selectedTaskFileName"
+					class="text-muted small mb-3">
+						
+						Selected:
+						<strong>
+							{{ selectedTaskFileName }}
+						</strong>
+						
+					</div>
+					
+					
+					<div
+					*ngIf="taskFilesError"
+					class="alert alert-danger">
+						
+						{{ taskFilesError }}
+						
+					</div>
+					
+					
+					<div
+					*ngIf="taskFilesLoading"
+					class="text-center text-muted py-4">
+						
+						<div
+						class="spinner-border spinner-border-sm">
+						</div>
+						
+						<div class="mt-2">
+							Loading task files…
+						</div>
+						
+					</div>
+					
+					
+					<div
+					class="table-responsive"
+					*ngIf="!taskFilesLoading">
+						
+						<table
+						class="table table-sm table-hover align-middle mb-0">
+							
+							<thead class="table-light">
+								
+								<tr>
+									
+									<th>
+										File
+									</th>
+									
+									<th style="width: 120px;">
+										Size
+									</th>
+									
+									<th style="width: 180px;">
+										Uploaded
+									</th>
+									
+									<th
+									style="width: 165px;"
+									class="text-end">
+										
+										Actions
+										
+									</th>
+									
+								</tr>
+								
+							</thead>
+							
+							
+							<tbody>
+								
+								<tr
+								*ngFor="let file of taskFiles">
+									
+									<td>
+										
+										<div class="fw-semibold">
+											{{ file.original_name }}
+										</div>
+										
+										<div class="small text-muted">
+											{{ file.mime_type || 'Unknown type' }}
+										</div>
+										
+									</td>
+									
+									
+									<td>
+										{{ formatBytes(file.size) }}
+									</td>
+									
+									
+									<td>
+										
+										{{
+										file.created_at
+										? (
+										file.created_at
+										| date:'yyyy-MM-dd HH:mm'
+										)
+										: '—'
+										}}
+										
+									</td>
+									
+									
+									<td class="text-end">
+										
+										<button
+										*ngIf="canPreviewFile(file)"
+										type="button"
+										class="btn btn-sm btn-outline-primary me-1"
+										(click)="previewTaskFile(file)"
+										title="Preview">
+											
+											<i class="bi bi-eye"></i>
+											
+										</button>
+										
+										
+										<button
+										type="button"
+										class="btn btn-sm btn-outline-secondary me-1"
+										(click)="downloadTaskFile(file)"
+										title="Download">
+											
+											<i class="bi bi-download"></i>
+											
+										</button>
+										
+										
+										<button
+										type="button"
+										class="btn btn-sm btn-outline-danger"
+										(click)="removeTaskFile(file)"
+										title="Remove">
+											
+											<i class="bi bi-trash"></i>
+											
+										</button>
+										
+									</td>
+									
+								</tr>
+								
+								
+								<tr
+								*ngIf="!taskFiles.length">
+									
+									<td
+									colspan="4"
+									class="text-center text-muted py-4">
+										
+										No files uploaded.
+										
+									</td>
+									
+								</tr>
+								
+							</tbody>
+							
+						</table>
+						
+					</div>
+					
+				</div>
+				
+				
+				<!-- =======================================================
+					Save / Cancel
+				======================================================= -->
+				
+				<div
+				class="d-flex justify-content-end flex-wrap gap-2 mt-4">
+					
+					
+					<button
+					type="button"
+					class="btn btn-outline-secondary"
+					[disabled]="saving"
+					(click)="cancel()">
+						
+						Cancel
+						
+					</button>
+					
+					
+					<button
+					type="submit"
+					class="btn btn-primary"
+					[disabled]="saving">
+						
+						<span
+						*ngIf="saving"
+						class="spinner-border spinner-border-sm me-2">
+						</span>
+						
+						
+						<i
+						*ngIf="!saving"
+						class="bi bi-check-lg me-2">
+						</i>
+						
+						
+						{{
+						saving
+						? 'Saving…'
+						: (
+						isCreate
+						? 'Create Task'
+						: 'Save Changes'
+						)
+						}}
+						
+					</button>
+					
 				</div>
 				
 			</form>
+			
 		</div>
+		
 	</div>
 	
 </div>

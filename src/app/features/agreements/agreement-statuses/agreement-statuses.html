@@ -1,0 +1,1123 @@
+<div class="position-relative agreement-status-wrap">
+	
+	
+	<!-- ===============================================================
+		Loading Overlay
+	=============================================================== -->
+	
+	<div
+	*ngIf="loadingAccess || loading"
+	class="loading-overlay">
+		
+		<div class="text-center">
+			
+			<div
+			class="spinner-border"
+			role="status">
+			</div>
+			
+			
+			<div class="mt-2 fw-semibold">
+				
+				{{
+				loadingAccess
+				? 'Checking access…'
+				: 'Loading agreement statuses…'
+				}}
+				
+			</div>
+			
+		</div>
+		
+	</div>
+	
+	
+	<!-- ===============================================================
+		Header
+	=============================================================== -->
+	
+	<div
+	class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+		
+		<div>
+			
+			<h1 class="h4 mb-0">
+				Agreement Status Management
+			</h1>
+			
+			
+			<div class="text-muted small">
+				
+				Manage agreement lifecycle statuses, terminal states,
+				display order and availability.
+				
+			</div>
+			
+		</div>
+		
+		
+		<button
+		*ngIf="canManage"
+		type="button"
+		class="btn btn-primary"
+		(click)="openCreate()">
+			
+			<i class="bi bi-plus-circle"></i>
+			
+			<span class="ms-2">
+				Add Status
+			</span>
+			
+		</button>
+		
+	</div>
+	
+	
+	<!-- ===============================================================
+		Page Error
+	=============================================================== -->
+	
+	<div
+	*ngIf="error"
+	class="alert alert-danger">
+		
+		<i class="bi bi-exclamation-triangle me-2"></i>
+		
+		{{ error }}
+		
+	</div>
+	
+	
+	<ng-container *ngIf="canManage">
+		
+		
+		<!-- ===========================================================
+			Filters
+		=========================================================== -->
+		
+		<div class="card shadow-sm border-0 mb-3">
+			
+			<div class="card-body">
+				
+				<div class="row g-3 align-items-end">
+					
+					
+					<!-- Search -->
+					
+					<div class="col-12 col-xl-4">
+						
+						<label class="form-label small">
+							Search
+						</label>
+						
+						
+						<input
+						type="text"
+						class="form-control"
+						placeholder="Code, name or description"
+						[(ngModel)]="search"
+						(keydown.enter)="applyFilters()">
+						
+					</div>
+					
+					
+					<!-- Active -->
+					
+					<div class="col-12 col-md-4 col-xl-2">
+						
+						<label class="form-label small">
+							Active
+						</label>
+						
+						
+						<select
+						class="form-select"
+						[(ngModel)]="isActiveFilter">
+							
+							<option value="">
+								All
+							</option>
+							
+							<option value="1">
+								Active
+							</option>
+							
+							<option value="0">
+								Inactive
+							</option>
+							
+						</select>
+						
+					</div>
+					
+					
+					<!-- Terminal -->
+					
+					<div class="col-12 col-md-4 col-xl-2">
+						
+						<label class="form-label small">
+							Terminal
+						</label>
+						
+						
+						<select
+						class="form-select"
+						[(ngModel)]="isTerminalFilter">
+							
+							<option value="">
+								All
+							</option>
+							
+							<option value="1">
+								Terminal
+							</option>
+							
+							<option value="0">
+								Non-terminal
+							</option>
+							
+						</select>
+						
+					</div>
+					
+					
+					<!-- System -->
+					
+					<div class="col-12 col-md-4 col-xl-2">
+						
+						<label class="form-label small">
+							Status Type
+						</label>
+						
+						
+						<select
+						class="form-select"
+						[(ngModel)]="isSystemFilter">
+							
+							<option value="">
+								All
+							</option>
+							
+							<option value="1">
+								System
+							</option>
+							
+							<option value="0">
+								Custom
+							</option>
+							
+						</select>
+						
+					</div>
+					
+					
+					<!-- Per Page -->
+					
+					<div class="col-12 col-md-4 col-xl-2">
+						
+						<label class="form-label small">
+							Per Page
+						</label>
+						
+						
+						<select
+						class="form-select"
+						[(ngModel)]="perPage"
+						(change)="page = 1; fetch()">
+							
+							<option [ngValue]="10">
+								10
+							</option>
+							
+							<option [ngValue]="25">
+								25
+							</option>
+							
+							<option [ngValue]="50">
+								50
+							</option>
+							
+							<option [ngValue]="100">
+								100
+							</option>
+							
+						</select>
+						
+					</div>
+					
+					
+					<!-- Filter buttons -->
+					
+					<div
+					class="col-12 d-flex justify-content-end flex-wrap gap-2">
+						
+						<button
+						type="button"
+						class="btn btn-primary"
+						[disabled]="loading"
+						(click)="applyFilters()">
+							
+							Apply Filters
+							
+						</button>
+						
+						
+						<button
+						type="button"
+						class="btn btn-outline-secondary"
+						[disabled]="loading"
+						(click)="resetFilters()">
+							
+							Reset
+							
+						</button>
+						
+					</div>
+					
+				</div>
+				
+			</div>
+			
+		</div>
+		
+		
+		<!-- ===========================================================
+			Explanation
+		=========================================================== -->
+		
+		<div class="alert alert-info">
+			
+			<div class="fw-semibold mb-1">
+				System and terminal statuses
+			</div>
+			
+			
+			<div class="small">
+				
+				System statuses are seeded lifecycle records.
+				Their code cannot be changed and they cannot be deactivated.
+				
+				A terminal status represents an end-state such as
+				Expired, Terminated, Archived or Cancelled.
+				
+			</div>
+			
+		</div>
+		
+		
+		<!-- ===========================================================
+			Table
+		=========================================================== -->
+		
+		<div class="card shadow-sm border-0">
+			
+			<div class="card-body">
+				
+				<div class="table-responsive">
+					
+					<table
+					class="table table-hover align-middle mb-0">
+						
+						<thead class="table-light">
+							
+							<tr>
+								
+								<th style="width: 100px;">
+									Order
+								</th>
+								
+								
+								<th style="width: 190px;">
+									Code
+								</th>
+								
+								
+								<th>
+									Name and Description
+								</th>
+								
+								
+								<th style="width: 130px;">
+									Terminal
+								</th>
+								
+								
+								<th style="width: 130px;">
+									Type
+								</th>
+								
+								
+								<th style="width: 120px;">
+									Active
+								</th>
+								
+								
+								<th style="width: 180px;">
+									Updated
+								</th>
+								
+								
+								<th
+								class="text-end"
+								style="width: 190px;">
+									
+									Actions
+									
+								</th>
+								
+							</tr>
+							
+						</thead>
+						
+						
+						<tbody>
+							
+							<tr
+							*ngFor="let status of rows"
+							[class.table-light]="!status.is_active">
+								
+								
+								<!-- Order -->
+								
+								<td>
+									{{ status.sort_order }}
+								</td>
+								
+								
+								<!-- Code -->
+								
+								<td>
+									
+									<code class="status-code">
+										{{ status.code }}
+									</code>
+									
+								</td>
+								
+								
+								<!-- Name -->
+								
+								<td>
+									
+									<div class="fw-semibold">
+										{{ status.name }}
+									</div>
+									
+									
+									<div
+									*ngIf="status.description"
+									class="small text-muted mt-1 status-description">
+										
+										{{ status.description }}
+										
+									</div>
+									
+								</td>
+								
+								
+								<!-- Terminal -->
+								
+								<td>
+									
+									<span
+									*ngIf="status.is_terminal"
+									class="badge bg-dark">
+										
+										Terminal
+										
+									</span>
+									
+									
+									<span
+									*ngIf="!status.is_terminal"
+									class="badge bg-light text-dark border">
+										
+										Non-terminal
+										
+									</span>
+									
+								</td>
+								
+								
+								<!-- Type -->
+								
+								<td>
+									
+									<span
+									class="badge"
+									[class.bg-primary]="status.is_system_status"
+									[class.bg-secondary]="!status.is_system_status">
+										
+										{{ statusTypeLabel(status) }}
+										
+									</span>
+									
+								</td>
+								
+								
+								<!-- Active -->
+								
+								<td>
+									
+									<span
+									class="badge"
+									[class.bg-success]="status.is_active"
+									[class.bg-secondary]="!status.is_active">
+										
+										{{
+										status.is_active
+										? 'Active'
+										: 'Inactive'
+										}}
+										
+									</span>
+									
+								</td>
+								
+								
+								<!-- Updated -->
+								
+								<td>
+									
+									<span *ngIf="status.updated_at">
+										
+										{{
+										status.updated_at
+										| date:'yyyy-MM-dd HH:mm'
+										}}
+										
+									</span>
+									
+									
+									<span *ngIf="!status.updated_at">
+										-
+									</span>
+									
+								</td>
+								
+								
+								<!-- Actions -->
+								
+								<td class="text-end action-cell">
+									
+									
+									<button
+									type="button"
+									class="btn btn-sm btn-outline-primary me-2"
+									(click)="openEdit(status)"
+									title="Edit status">
+										
+										<i class="bi bi-pencil-square"></i>
+										
+									</button>
+									
+									
+									<button
+									*ngIf="
+									!status.is_system_status &&
+									status.is_active
+									"
+									type="button"
+									class="btn btn-sm btn-outline-danger"
+									[disabled]="
+									deactivatingId ===
+									status.id
+									"
+									(click)="deactivate(status)"
+									title="Deactivate status">
+										
+										<span
+										*ngIf="
+										deactivatingId ===
+										status.id
+										"
+										class="spinner-border spinner-border-sm">
+										</span>
+										
+										
+										<i
+										*ngIf="
+										deactivatingId !==
+										status.id
+										"
+										class="bi bi-power">
+										</i>
+										
+									</button>
+									
+									
+									<button
+									*ngIf="
+									!status.is_system_status &&
+									!status.is_active
+									"
+									type="button"
+									class="btn btn-sm btn-outline-success"
+									[disabled]="
+									reactivatingId ===
+									status.id
+									"
+									(click)="reactivate(status)"
+									title="Reactivate status">
+										
+										<span
+										*ngIf="
+										reactivatingId ===
+										status.id
+										"
+										class="spinner-border spinner-border-sm">
+										</span>
+										
+										
+										<i
+										*ngIf="
+										reactivatingId !==
+										status.id
+										"
+										class="bi bi-arrow-counterclockwise">
+										</i>
+										
+									</button>
+									
+									
+									<span
+									*ngIf="status.is_system_status"
+									class="small text-muted ms-1"
+									title="System statuses cannot be deactivated">
+										
+										Protected
+										
+									</span>
+									
+								</td>
+								
+							</tr>
+							
+							
+							<tr
+							*ngIf="
+							!loading &&
+							rows.length === 0
+							">
+								
+								<td
+								colspan="8"
+								class="text-center text-muted py-4">
+									
+									No agreement statuses found.
+									
+								</td>
+								
+							</tr>
+							
+						</tbody>
+						
+					</table>
+					
+				</div>
+				
+				
+				<!-- =======================================================
+					Pagination
+				======================================================= -->
+				
+				<div
+				class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3">
+					
+					<div class="text-muted small">
+						Total: {{ total }}
+					</div>
+					
+					
+					<div class="btn-group btn-group-sm">
+						
+						<button
+						type="button"
+						class="btn btn-outline-secondary"
+						[disabled]="page <= 1"
+						(click)="changePage(page - 1)">
+							
+							Prev
+							
+						</button>
+						
+						
+						<button
+						type="button"
+						class="btn btn-outline-secondary"
+						disabled>
+							
+							Page {{ page }} / {{ lastPage }}
+							
+						</button>
+						
+						
+						<button
+						type="button"
+						class="btn btn-outline-secondary"
+						[disabled]="page >= lastPage"
+						(click)="changePage(page + 1)">
+							
+							Next
+							
+						</button>
+						
+					</div>
+					
+				</div>
+				
+			</div>
+			
+		</div>
+		
+	</ng-container>
+	
+	
+	<!-- ===============================================================
+		Create / Edit Modal
+	=============================================================== -->
+	
+	<div
+	*ngIf="editorOpen"
+	class="status-modal-backdrop"
+	(click)="closeEditor()">
+		
+		<section
+		class="status-modal-panel"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="agreement-status-editor-title"
+		(click)="$event.stopPropagation()">
+			
+			
+			<form
+			[formGroup]="form"
+			(ngSubmit)="save()">>
+				
+				
+				<!-- =======================================================
+					Modal Header
+				======================================================= -->
+				
+				<div class="status-modal-header">
+					
+					<div>
+						
+						<h2
+						id="agreement-status-editor-title"
+						class="h5 mb-1">
+							
+							{{
+							editingStatus
+							? 'Edit Agreement Status'
+							: 'Add Agreement Status'
+							}}
+							
+						</h2>
+						
+						
+						<div class="small text-muted">
+							
+							{{
+							editingStatus?.is_system_status
+							? 'This is a protected system lifecycle status.'
+							: 'Configure the agreement lifecycle status.'
+							}}
+							
+						</div>
+						
+					</div>
+					
+					
+					<button
+					type="button"
+					class="btn btn-outline-secondary btn-sm"
+					[disabled]="saving"
+					(click)="closeEditor()">
+						
+						Close
+						
+					</button>
+					
+				</div>
+				
+				
+				<!-- =======================================================
+					Modal Body
+				======================================================= -->
+				
+				<div class="status-modal-body">
+					
+					
+					<div
+					*ngIf="formError"
+					class="alert alert-danger">
+						
+						<i class="bi bi-exclamation-triangle me-2"></i>
+						
+						{{ formError }}
+						
+					</div>
+					
+					
+					<div
+					*ngIf="editingStatus?.is_system_status"
+					class="alert alert-warning">
+						
+						<div class="fw-semibold mb-1">
+							Protected System Status
+						</div>
+						
+						
+						The system status code and active state are protected.
+						The name, description, sort order and terminal setting
+						can still be maintained.
+						
+					</div>
+					
+					
+					<div class="mb-3 text-muted small">
+						
+						Fields marked with
+						
+						<span class="text-danger fw-bold">
+							*
+						</span>
+						
+						are required.
+						
+					</div>
+					
+					
+					<div class="row g-3">
+						
+						
+						<!-- ===================================================
+							Code
+						=================================================== -->
+						
+						<div class="col-12 col-md-6">
+							
+							<label class="form-label">
+								
+								Code
+								
+								<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
+								
+							</label>
+							
+							
+							<input
+							type="text"
+							class="form-control font-monospace"
+							formControlName="code"
+							maxlength="50"
+							(input)="onCodeInput()"
+							[class.is-invalid]="isInvalid('code')"
+							[attr.aria-invalid]="isInvalid('code')"
+							placeholder="LEGAL_REVIEW">
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'code',
+								'Code'
+								)
+								}}
+								
+							</div>
+							
+							
+							<div class="form-text">
+								
+								Uppercase letters, numbers and underscores.
+								The first character must be a letter.
+								
+							</div>
+							
+							
+							<div
+							*ngIf="editingStatus?.is_system_status"
+							class="form-text text-warning">
+								
+								This code is protected because this is a
+								system status.
+								
+							</div>
+							
+						</div>
+						
+						
+						<!-- ===================================================
+							Name
+						=================================================== -->
+						
+						<div class="col-12 col-md-6">
+							
+							<label class="form-label">
+								
+								Name
+								
+								<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
+								
+							</label>
+							
+							
+							<input
+							type="text"
+							class="form-control"
+							formControlName="name"
+							maxlength="120"
+							[class.is-invalid]="isInvalid('name')"
+							[attr.aria-invalid]="isInvalid('name')"
+							placeholder="Legal Review">
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'name',
+								'Name'
+								)
+								}}
+								
+							</div>
+							
+							
+							<div class="form-text">
+								Maximum 120 characters.
+							</div>
+							
+						</div>
+						
+						
+						<!-- ===================================================
+							Description
+						=================================================== -->
+						
+						<div class="col-12">
+							
+							<label class="form-label">
+								Description
+							</label>
+							
+							
+							<textarea
+							rows="4"
+							class="form-control"
+							formControlName="description"
+							[class.is-invalid]="isInvalid('description')"
+							[attr.aria-invalid]="isInvalid('description')"
+							placeholder="Explain when this status should be used.">
+							</textarea>
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'description',
+								'Description'
+								)
+								}}
+								
+							</div>
+							
+						</div>
+						
+						
+						<!-- ===================================================
+							Sort Order
+						=================================================== -->
+						
+						<div class="col-12 col-md-4">
+							
+							<label class="form-label">
+								Sort Order
+							</label>
+							
+							
+							<input
+							type="number"
+							min="0"
+							step="1"
+							class="form-control"
+							formControlName="sort_order"
+							[class.is-invalid]="isInvalid('sort_order')"
+							[attr.aria-invalid]="isInvalid('sort_order')">
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'sort_order',
+								'Sort Order'
+								)
+								}}
+								
+							</div>
+							
+							
+							<div class="form-text">
+								
+								Controls display order.
+								Must be zero or greater.
+								
+							</div>
+							
+						</div>
+						
+						
+						<!-- ===================================================
+							Terminal
+						=================================================== -->
+						
+						<div class="col-12 col-md-4">
+							
+							<div class="form-check form-switch status-switch">
+								
+								<input
+								class="form-check-input"
+								type="checkbox"
+								id="agreementStatusTerminal"
+								formControlName="is_terminal">
+								
+								
+								<label
+								class="form-check-label"
+								for="agreementStatusTerminal">
+									
+									Terminal status
+									
+								</label>
+								
+								
+								<div class="form-text">
+									
+									Marks an agreement end-state.
+									
+								</div>
+								
+							</div>
+							
+						</div>
+						
+						
+						<!-- ===================================================
+							Active
+						=================================================== -->
+						
+						<div class="col-12 col-md-4">
+							
+							<div class="form-check form-switch status-switch">
+								
+								<input
+								class="form-check-input"
+								type="checkbox"
+								id="agreementStatusActive"
+								formControlName="is_active">
+								
+								
+								<label
+								class="form-check-label"
+								for="agreementStatusActive">
+									
+									Active
+									
+								</label>
+								
+								
+								<div class="form-text">
+									
+									Controls whether the status is available
+									for use.
+									
+								</div>
+								
+								
+								<div
+								*ngIf="editingStatus?.is_system_status"
+								class="form-text text-warning">
+									
+									System statuses cannot be deactivated.
+									
+								</div>
+								
+							</div>
+							
+						</div>
+						
+					</div>
+					
+				</div>
+				
+				
+				<!-- =======================================================
+					Modal Footer
+				======================================================= -->
+				
+				<div class="status-modal-footer">
+					
+					
+					<button
+					type="button"
+					class="btn btn-outline-secondary"
+					[disabled]="saving"
+					(click)="closeEditor()">
+						
+						Cancel
+						
+					</button>
+					
+					
+					<button
+					type="submit"
+					class="btn btn-primary"
+					[disabled]="saving">
+						
+						<span
+						*ngIf="saving"
+						class="spinner-border spinner-border-sm me-2"
+						role="status">
+						</span>
+						
+						
+						<i
+						*ngIf="!saving"
+						class="bi bi-check-lg me-2">
+						</i>
+						
+						
+						{{
+						saving
+						? 'Saving…'
+						: (
+						editingStatus
+						? 'Save Changes'
+						: 'Create Status'
+						)
+						}}
+						
+					</button>
+					
+				</div>
+				
+			</form>
+			
+		</section>
+		
+	</div>
+	
+</div>

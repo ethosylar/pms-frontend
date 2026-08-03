@@ -1,66 +1,374 @@
-<div class="position-relative">
+<div class="position-relative milestone-form-wrap">
 	
-	<div *ngIf="loading" class="loading-overlay">
+	
+	<!-- ===============================================================
+		Loading overlay
+	=============================================================== -->
+	
+	<div
+	*ngIf="loading"
+	class="loading-overlay">
+		
 		<div class="text-center">
-			<div class="spinner-border" role="status"></div>
-			<div class="mt-2 fw-semibold">Loading…</div>
-		</div>
-	</div>
-	
-	<div class="d-flex align-items-center justify-content-between mb-3">
-		<div>
-			<h1 class="h4 mb-0">{{ isCreate ? 'New Milestone' : 'Edit Milestone' }}</h1>
-			<div class="text-muted small" *ngIf="project">
-				{{ project.code }} • {{ project.name }}
+			
+			<div
+			class="spinner-border"
+			role="status">
 			</div>
+			
+			<div class="mt-2 fw-semibold">
+				Loading milestone…
+			</div>
+			
 		</div>
 		
-		<button class="btn btn-outline-secondary" (click)="cancel()">
-			<i class="bi bi-x-lg"></i><span class="ms-2">Cancel</span>
-		</button>
 	</div>
 	
-	<div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+	
+	<!-- ===============================================================
+		Page Header
+	=============================================================== -->
+	
+	<div
+	class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+		
+		<div>
+			
+			<h1 class="h4 mb-1">
+				
+				{{
+				isCreate
+				? 'New Milestone'
+				: 'Edit Milestone'
+				}}
+				
+			</h1>
+			
+			
+			<div
+			*ngIf="project"
+			class="text-muted small">
+				
+				{{ project.code }}
+				•
+				{{ project.name }}
+				
+			</div>
+			
+			
+			<div
+			*ngIf="!project && !loading"
+			class="text-muted small">
+				
+				Project #{{ projectId }}
+				
+			</div>
+			
+		</div>
+		
+		
+		<button
+		type="button"
+		class="btn btn-outline-secondary"
+		[disabled]="saving"
+		(click)="cancel()">
+			
+			<i class="bi bi-arrow-left"></i>
+			
+			<span class="ms-2">
+				Back
+			</span>
+			
+		</button>
+		
+	</div>
+	
+	
+	<!-- ===============================================================
+		General error
+	=============================================================== -->
+	
+	<div
+	*ngIf="error"
+	class="alert alert-danger">
+		
+		<i class="bi bi-exclamation-triangle me-2"></i>
+		
+		{{ error }}
+		
+	</div>
+	
+	
+	<!-- ===============================================================
+		Form
+	=============================================================== -->
 	
 	<div class="card shadow-sm border-0">
+		
+		<div class="card-header bg-white">
+			
+			<div class="fw-semibold">
+				Milestone Information
+			</div>
+			
+			<div class="text-muted small">
+				Fields marked with
+				<span class="text-danger fw-bold">*</span>
+				are required.
+			</div>
+			
+		</div>
+		
+		
 		<div class="card-body">
-			<form [formGroup]="form" class="row g-3">
+			
+			<form
+			[formGroup]="form"
+			(ngSubmit)="save()">
 				
-				<div class="col-12">
-					<label class="form-label">Name</label>
-					<input class="form-control" formControlName="name" />
-					<div class="text-danger small mt-1" *ngIf="form.get('name')?.touched && form.get('name')?.invalid">
-						Name is required.
+				<div class="row g-3">
+					
+					
+					<!-- ===================================================
+						Name
+					=================================================== -->
+					
+					<div class="col-12">
+						
+						<label class="form-label">
+							
+							Name
+							
+							<span
+							class="text-danger fw-bold"
+							aria-hidden="true">
+								*
+							</span>
+							
+						</label>
+						
+						
+						<input
+						type="text"
+						class="form-control"
+						formControlName="name"
+						[class.is-invalid]="isInvalid('name')"
+						[attr.aria-invalid]="isInvalid('name')"
+						placeholder="Enter milestone name">
+						
+						
+						<div class="invalid-feedback">
+							
+							{{
+							fieldError(
+							'name',
+							'Name'
+							)
+							}}
+							
+						</div>
+						
 					</div>
-				</div>
-				
-				<div class="col-12 col-md-4">
-					<label class="form-label">Milestone Date</label>
-					<input type="date" class="form-control" formControlName="milestone_date" />
-					<div class="text-danger small mt-1" *ngIf="form.get('milestone_date')?.touched && form.get('milestone_date')?.invalid">
-						Date is required.
+					
+					
+					<!-- ===================================================
+						Milestone Date
+					=================================================== -->
+					
+					<div class="col-12 col-md-6">
+						
+						<label class="form-label">
+							
+							Milestone Date
+							
+							<span
+							class="text-danger fw-bold"
+							aria-hidden="true">
+								*
+							</span>
+							
+						</label>
+						
+						
+						<input
+						type="date"
+						class="form-control"
+						formControlName="milestone_date"
+						[class.is-invalid]="isInvalid('milestone_date')"
+						[attr.aria-invalid]="isInvalid('milestone_date')">
+						
+						
+						<div class="invalid-feedback">
+							
+							{{
+							fieldError(
+							'milestone_date',
+							'Milestone Date'
+							)
+							}}
+							
+						</div>
+						
 					</div>
-				</div>
-				
-				<div class="col-12 col-md-4">
-					<label class="form-label">Status</label>
-					<select class="form-select" formControlName="status">
-						<option value="PENDING">PENDING</option>
-						<option value="DONE">DONE</option>
-						<option value="CANCELLED">CANCELLED</option>
-					</select>
-				</div>
-				
-				<div class="col-12 d-flex gap-2">
-					<button type="button" class="btn btn-primary" [disabled]="saving" (click)="save()">
-						<span *ngIf="!saving">Save</span>
-						<span *ngIf="saving">Saving…</span>
-					</button>
-					<button type="button" class="btn btn-outline-secondary" [disabled]="saving" (click)="cancel()">Cancel</button>
+					
+					
+					<!-- ===================================================
+						Status
+					=================================================== -->
+					
+					<div class="col-12 col-md-6">
+						
+						<label class="form-label">
+							
+							Status
+							
+							<span
+							class="text-danger fw-bold"
+							aria-hidden="true">
+								*
+							</span>
+							
+						</label>
+						
+						
+						<select
+						class="form-select"
+						formControlName="status"
+						[class.is-invalid]="isInvalid('status')"
+						[attr.aria-invalid]="isInvalid('status')">
+							
+							
+							<option
+							*ngFor="let status of milestoneStatuses"
+							[value]="status.code">
+								
+								{{ status.name }}
+								
+							</option>
+							
+						</select>
+						
+						
+						<div class="invalid-feedback">
+							
+							{{
+							fieldError(
+							'status',
+							'Status'
+							)
+							}}
+							
+						</div>
+						
+					</div>
+					
+					
+					<!-- ===================================================
+						Status explanation
+					=================================================== -->
+					
+					<div class="col-12">
+						
+						<div class="alert alert-light border mb-0">
+							
+							<div class="small">
+								
+								<div class="mb-1">
+									
+									<span class="badge bg-warning text-dark me-2">
+										Pending
+									</span>
+									
+									Milestone has not yet been completed.
+									
+								</div>
+								
+								
+								<div class="mb-1">
+									
+									<span class="badge bg-success me-2">
+										Done
+									</span>
+									
+									Milestone has been completed.
+									
+								</div>
+								
+								
+								<div>
+									
+									<span class="badge bg-secondary me-2">
+										Cancelled
+									</span>
+									
+									Milestone is no longer applicable.
+									
+								</div>
+								
+							</div>
+							
+						</div>
+						
+					</div>
+					
+					
+					<!-- ===================================================
+						Action Buttons
+					=================================================== -->
+					
+					<div
+					class="col-12 d-flex justify-content-end flex-wrap gap-2 mt-4">
+						
+						
+						<button
+						type="button"
+						class="btn btn-outline-secondary"
+						[disabled]="saving"
+						(click)="cancel()">
+							
+							Cancel
+							
+						</button>
+						
+						
+						<button
+						type="submit"
+						class="btn btn-primary"
+						[disabled]="saving">
+							
+							<span
+							*ngIf="saving"
+							class="spinner-border spinner-border-sm me-2"
+							role="status">
+							</span>
+							
+							
+							<i
+							*ngIf="!saving"
+							class="bi bi-check-lg me-2">
+							</i>
+							
+							
+							{{
+							saving
+							? 'Saving…'
+							: (
+							isCreate
+							? 'Create Milestone'
+							: 'Save Changes'
+							)
+							}}
+							
+						</button>
+						
+					</div>
+					
 				</div>
 				
 			</form>
+			
 		</div>
+		
 	</div>
 	
 </div>

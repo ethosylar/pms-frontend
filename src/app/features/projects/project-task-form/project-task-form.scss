@@ -7,3 +7,29 @@
 	z-index: 10;
 	border-radius: 12px;
 }
+
+.required-indicator {
+	margin-left: 0.15rem;
+	color: #dc3545;
+	font-weight: 700;
+}
+
+.form-label {
+	font-weight: 500;
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+	border-color: #dc3545;
+	box-shadow: 0 0 0 0.15rem rgba(220, 53, 69, 0.08);
+}
+
+.invalid-feedback {
+	font-size: 0.8rem;
+}
+
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus {
+	border-color: #dc3545;
+	box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.18);
+}

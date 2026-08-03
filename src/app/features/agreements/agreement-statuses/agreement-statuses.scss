@@ -1,0 +1,134 @@
+.agreement-status-wrap {
+	min-height: 60vh;
+}
+
+.loading-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 30;
+	display: grid;
+	place-items: center;
+	border-radius: 0.75rem;
+	background: rgba(255, 255, 255, 0.78);
+	backdrop-filter: blur(2px);
+}
+
+.status-code {
+	padding: 0.2rem 0.4rem;
+	border: 1px solid #dee2e6;
+	border-radius: 0.35rem;
+	background: #f8f9fa;
+	color: #212529;
+	font-size: 0.8rem;
+}
+
+.status-description {
+	max-width: 520px;
+	white-space: normal;
+}
+
+.action-cell {
+	white-space: nowrap;
+}
+
+.status-modal-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 2050;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1.5rem;
+	background: rgba(15, 23, 42, 0.58);
+	backdrop-filter: blur(2px);
+}
+
+.status-modal-panel {
+	display: flex;
+	flex-direction: column;
+	width: min(900px, 96vw);
+	max-height: 92vh;
+	overflow: hidden;
+	border: 1px solid #dee2e6;
+	border-radius: 0.75rem;
+	background: #ffffff;
+	box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.3);
+}
+
+.status-modal-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 1rem 1.25rem;
+	border-bottom: 1px solid #dee2e6;
+}
+
+.status-modal-body {
+	max-height: calc(92vh - 150px);
+	padding: 1.25rem;
+	overflow-y: auto;
+	background: #f8f9fa;
+}
+
+.status-modal-footer {
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.75rem;
+	padding: 1rem 1.25rem;
+	border-top: 1px solid #dee2e6;
+	background: #ffffff;
+}
+
+.status-switch {
+	padding-top: 2rem;
+}
+
+@media (max-width: 767.98px) {
+	.status-modal-backdrop {
+		padding: 0;
+	}
+	
+	.status-modal-panel {
+		width: 100%;
+		height: 100%;
+		max-height: none;
+		border: 0;
+		border-radius: 0;
+	}
+	
+	.status-modal-body {
+		max-height: none;
+		flex: 1 1 auto;
+	}
+	
+	.status-switch {
+		padding-top: 0.5rem;
+	}
+}
+
+.required-indicator {
+	margin-left: 0.15rem;
+	color: #dc3545;
+	font-weight: 700;
+}
+
+.form-label {
+	font-weight: 500;
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+	border-color: #dc3545;
+	box-shadow: 0 0 0 0.15rem rgba(220, 53, 69, 0.08);
+}
+
+.invalid-feedback {
+	font-size: 0.8rem;
+}
+
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus {
+	border-color: #dc3545;
+	box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.18);
+}

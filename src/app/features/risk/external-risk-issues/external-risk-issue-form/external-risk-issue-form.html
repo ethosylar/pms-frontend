@@ -1,369 +1,816 @@
 <div class="position-relative external-risk-form-wrap">
 	
-	<div *ngIf="loading" class="loading-overlay">
+	
+	<!-- ===============================================================
+		Loading
+	=============================================================== -->
+	
+	<div
+	*ngIf="loading"
+	class="loading-overlay">
+		
 		<div class="text-center">
-			<div class="spinner-border" role="status"></div>
+			
+			<div
+			class="spinner-border"
+			role="status">
+			</div>
+			
 			<div class="mt-2 fw-semibold">
 				Loading form…
 			</div>
+			
 		</div>
+		
 	</div>
 	
+	
+	<!-- ===============================================================
+		Header
+	=============================================================== -->
+	
 	<div
-	class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+	class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+		
 		<div>
+			
 			<h1 class="h4 mb-0">
+				
 				{{
 				isCreate
 				? 'Add External Risk Issue'
 				: 'Edit External Risk Issue'
 				}}
+				
 			</h1>
 			
+			
 			<div class="text-muted small">
+				
 				Maintain the external record and its primary project.
 				Task, milestone and ePTW links are managed from the detail page.
+				
 			</div>
+			
 		</div>
+		
 		
 		<button
 		type="button"
 		class="btn btn-outline-secondary"
+		[disabled]="saving"
 		(click)="cancel()">
+			
 			<i class="bi bi-arrow-left"></i>
-			<span class="ms-2">Back</span>
+			
+			<span class="ms-2">
+				Back
+			</span>
+			
 		</button>
+		
 	</div>
 	
-	<div *ngIf="error" class="alert alert-danger">
+	
+	<!-- ===============================================================
+		General Error
+	=============================================================== -->
+	
+	<div
+	*ngIf="error"
+	class="alert alert-danger">
+		
+		<i class="bi bi-exclamation-triangle me-2"></i>
+		
 		{{ error }}
+		
 	</div>
+	
+	
+	<!-- ===============================================================
+		Main Card
+	=============================================================== -->
 	
 	<div class="card shadow-sm border-0">
+		
+		<div class="card-header bg-white">
+			
+			<div class="fw-semibold">
+				External Risk / Issue Information
+			</div>
+			
+			<div class="text-muted small">
+				
+				Fields marked with
+				
+				<span class="text-danger fw-bold">
+					*
+				</span>
+				
+				are required.
+				
+			</div>
+			
+		</div>
+		
+		
 		<div class="card-body">
 			
 			<form
 			[formGroup]="form"
 			(ngSubmit)="save()">
 				
+				
+				<!-- =======================================================
+					External Source Information
+				======================================================= -->
+				
 				<div class="form-section">
+					
 					<div class="section-title">
 						External Source Information
 					</div>
 					
+					
 					<div class="row g-3">
+						
+						
+						<!-- External Source -->
+						
 						<div class="col-12 col-md-6">
+							
 							<label class="form-label">
 								External Source
 							</label>
 							
+							
 							<select
 							class="form-select"
-							formControlName="external_source_id">
+							formControlName="external_source_id"
+							[class.is-invalid]="isInvalid('external_source_id')"
+							[attr.aria-invalid]="isInvalid('external_source_id')">
+								
 								<option [ngValue]="null">
 									None
 								</option>
 								
+								
 								<option
 								*ngFor="let source of sources"
 								[ngValue]="source.id">
+									
 									{{ source.code }}
 									-
 									{{ source.name }}
+									
 								</option>
+								
 							</select>
-						</div>
-						
-						<div class="col-12 col-md-6">
-							<label class="form-label">
-								External ID
-							</label>
 							
-							<input
-							class="form-control"
-							formControlName="external_id"
-							[class.is-invalid]="
-							form.get('external_id')?.touched &&
-							form.get('external_id')?.invalid
-							">
 							
 							<div class="invalid-feedback">
-								External ID is required and cannot exceed
-								120 characters.
+								
+								{{
+								fieldError(
+								'external_source_id',
+								'External Source'
+								)
+								}}
+								
 							</div>
+							
+							
+							<div class="form-text">
+								
+								External Source is optional. When selected,
+								the combination of External Source and External ID
+								must be unique.
+								
+							</div>
+							
 						</div>
+						
+						
+						<!-- External ID -->
+						
+						<div class="col-12 col-md-6">
+							
+							<label class="form-label">
+								
+								External ID
+								
+								<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
+								
+							</label>
+							
+							
+							<input
+							type="text"
+							class="form-control"
+							maxlength="120"
+							formControlName="external_id"
+							[class.is-invalid]="isInvalid('external_id')"
+							[attr.aria-invalid]="isInvalid('external_id')"
+							placeholder="External system record ID">
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'external_id',
+								'External ID'
+								)
+								}}
+								
+							</div>
+							
+							
+							<div class="form-text">
+								Maximum 120 characters.
+							</div>
+							
+						</div>
+						
 					</div>
+					
 				</div>
 				
+				
+				<!-- =======================================================
+					Risk / Issue Classification
+				======================================================= -->
+				
 				<div class="form-section">
+					
 					<div class="section-title">
 						Risk / Issue Classification
 					</div>
 					
+					
 					<div class="row g-3">
-						<div class="col-12">
-							<label class="form-label">
-								Title
-							</label>
-							
-							<input
-							class="form-control"
-							formControlName="title"
-							[class.is-invalid]="
-							form.get('title')?.touched &&
-							form.get('title')?.invalid
-							">
-							
-							<div class="invalid-feedback">
-								Title is required and cannot exceed
-								255 characters.
-							</div>
-						</div>
+						
+						
+						<!-- Title -->
 						
 						<div class="col-12">
+							
+							<label class="form-label">
+								
+								Title
+								
+								<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
+								
+							</label>
+							
+							
+							<input
+							type="text"
+							class="form-control"
+							maxlength="255"
+							formControlName="title"
+							[class.is-invalid]="isInvalid('title')"
+							[attr.aria-invalid]="isInvalid('title')"
+							placeholder="Enter risk or issue title">
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'title',
+								'Title'
+								)
+								}}
+								
+							</div>
+							
+							
+							<div class="form-text">
+								Maximum 255 characters.
+							</div>
+							
+						</div>
+						
+						
+						<!-- Description -->
+						
+						<div class="col-12">
+							
 							<label class="form-label">
 								Description
 							</label>
+							
 							
 							<textarea
 							rows="5"
 							class="form-control"
 							formControlName="description"
+							[class.is-invalid]="isInvalid('description')"
+							[attr.aria-invalid]="isInvalid('description')"
 							placeholder="Describe the external risk or issue, its impact and relevant context.">
 							</textarea>
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'description',
+								'Description'
+								)
+								}}
+								
+							</div>
+							
 						</div>
 						
+						
+						<!-- Type -->
+						
 						<div class="col-12 col-md-4">
+							
 							<label class="form-label">
+								
 								Type
+								
+								<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
+								
 							</label>
+							
 							
 							<select
 							class="form-select"
 							formControlName="type_id"
-							[class.is-invalid]="
-							form.get('type_id')?.touched &&
-							form.get('type_id')?.invalid
-							">
+							[class.is-invalid]="isInvalid('type_id')"
+							[attr.aria-invalid]="isInvalid('type_id')">
+								
 								<option [ngValue]="null">
 									Select type…
 								</option>
 								
+								
 								<option
 								*ngFor="let type of types"
 								[ngValue]="type.id">
+									
 									{{ type.code }}
 									-
 									{{ type.name }}
+									
 								</option>
+								
 							</select>
 							
+							
 							<div class="invalid-feedback">
-								Type is required.
+								
+								{{
+								fieldError(
+								'type_id',
+								'Type'
+								)
+								}}
+								
 							</div>
+							
 						</div>
 						
+						
+						<!-- Severity -->
+						
 						<div class="col-12 col-md-4">
+							
 							<label class="form-label">
+								
 								Severity
+								
+								<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
+								
 							</label>
+							
 							
 							<select
 							class="form-select"
 							formControlName="severity_id"
-							[class.is-invalid]="
-							form.get('severity_id')?.touched &&
-							form.get('severity_id')?.invalid
-							">
+							[class.is-invalid]="isInvalid('severity_id')"
+							[attr.aria-invalid]="isInvalid('severity_id')">
+								
 								<option [ngValue]="null">
 									Select severity…
 								</option>
 								
+								
 								<option
 								*ngFor="let severity of severities"
 								[ngValue]="severity.id">
+									
 									{{ severity.code }}
 									-
 									{{ severity.name }}
+									
 								</option>
+								
 							</select>
 							
+							
 							<div class="invalid-feedback">
-								Severity is required.
+								
+								{{
+								fieldError(
+								'severity_id',
+								'Severity'
+								)
+								}}
+								
 							</div>
+							
 						</div>
 						
+						
+						<!-- Status -->
+						
 						<div class="col-12 col-md-4">
+							
 							<label class="form-label">
+								
 								Status
+								
+								<span
+								class="text-danger fw-bold"
+								aria-hidden="true">
+									*
+								</span>
+								
 							</label>
+							
 							
 							<select
 							class="form-select"
 							formControlName="risk_issue_status_id"
-							[class.is-invalid]="
-							form.get('risk_issue_status_id')?.touched &&
-							form.get('risk_issue_status_id')?.invalid
-							">
+							[class.is-invalid]="isInvalid('risk_issue_status_id')"
+							[attr.aria-invalid]="isInvalid('risk_issue_status_id')">
+								
 								<option [ngValue]="null">
 									Select status…
 								</option>
 								
+								
 								<option
 								*ngFor="let status of statuses"
 								[ngValue]="status.id">
+									
 									{{ status.code }}
 									-
 									{{ status.name }}
+									
 								</option>
+								
 							</select>
 							
+							
 							<div class="invalid-feedback">
-								Status is required.
+								
+								{{
+								fieldError(
+								'risk_issue_status_id',
+								'Status'
+								)
+								}}
+								
 							</div>
+							
 						</div>
 						
+						
+						<!-- Owner -->
+						
 						<div class="col-12 col-md-6">
+							
 							<label class="form-label">
 								Owner
 							</label>
 							
+							
 							<input
+							type="text"
 							class="form-control"
+							maxlength="255"
 							formControlName="owner"
-							[class.is-invalid]="
-							form.get('owner')?.touched &&
-							form.get('owner')?.invalid
-							">
+							[class.is-invalid]="isInvalid('owner')"
+							[attr.aria-invalid]="isInvalid('owner')"
+							placeholder="External or internal owner">
+							
 							
 							<div class="invalid-feedback">
-								Owner cannot exceed 255 characters.
+								
+								{{
+								fieldError(
+								'owner',
+								'Owner'
+								)
+								}}
+								
 							</div>
+							
+							
+							<div class="form-text">
+								Maximum 255 characters.
+							</div>
+							
 						</div>
 						
+						
+						<!-- Primary Project -->
+						
 						<div class="col-12 col-md-6">
+							
 							<label class="form-label">
 								Primary Project
 							</label>
 							
+							
 							<select
 							class="form-select"
-							formControlName="project_id">
+							formControlName="project_id"
+							[class.is-invalid]="isInvalid('project_id')"
+							[attr.aria-invalid]="isInvalid('project_id')">
+								
 								<option [ngValue]="null">
 									No primary project
 								</option>
 								
+								
 								<option
 								*ngFor="let project of projects"
 								[ngValue]="project.id">
+									
 									{{ project.code }}
 									-
 									{{ project.name }}
+									
 								</option>
+								
 							</select>
 							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'project_id',
+								'Primary Project'
+								)
+								}}
+								
+							</div>
+							
+							
 							<div class="form-text">
+								
 								This is the issue's direct primary project.
 								Additional Project, Task, Milestone and ePTW
 								relationships can be added after saving.
+								
 							</div>
+							
 						</div>
+						
 					</div>
+					
 				</div>
 				
+				
+				<!-- =======================================================
+					Source Dates
+				======================================================= -->
+				
 				<div class="form-section">
+					
 					<div class="section-title">
 						Source Dates
 					</div>
 					
+					
 					<div class="row g-3">
+						
+						
+						<!-- Source Created -->
+						
 						<div class="col-12 col-md-4">
+							
 							<label class="form-label">
 								Source Created At
 							</label>
 							
+							
 							<input
 							type="datetime-local"
 							class="form-control"
-							formControlName="source_created_at">
+							formControlName="source_created_at"
+							[class.is-invalid]="isInvalid('source_created_at')"
+							[attr.aria-invalid]="isInvalid('source_created_at')">
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'source_created_at',
+								'Source Created At'
+								)
+								}}
+								
+							</div>
+							
 						</div>
 						
+						
+						<!-- Source Updated -->
+						
 						<div class="col-12 col-md-4">
+							
 							<label class="form-label">
 								Source Updated At
 							</label>
 							
-							<input
-							type="datetime-local"
-							class="form-control"
-							formControlName="source_updated_at">
-						</div>
-						
-						<div class="col-12 col-md-4">
-							<label class="form-label">
-								Last Synced At
-							</label>
 							
 							<input
 							type="datetime-local"
 							class="form-control"
-							formControlName="last_synced_at">
+							formControlName="source_updated_at"
+							[class.is-invalid]="isInvalid('source_updated_at')"
+							[attr.aria-invalid]="isInvalid('source_updated_at')">
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'source_updated_at',
+								'Source Updated At'
+								)
+								}}
+								
+							</div>
+							
 						</div>
+						
+						
+						<!-- Last Sync -->
+						
+						<div class="col-12 col-md-4">
+							
+							<label class="form-label">
+								Last Synced At
+							</label>
+							
+							
+							<input
+							type="datetime-local"
+							class="form-control"
+							formControlName="last_synced_at"
+							[class.is-invalid]="isInvalid('last_synced_at')"
+							[attr.aria-invalid]="isInvalid('last_synced_at')">
+							
+							
+							<div class="invalid-feedback">
+								
+								{{
+								fieldError(
+								'last_synced_at',
+								'Last Synced At'
+								)
+								}}
+								
+							</div>
+							
+						</div>
+						
 					</div>
+					
 				</div>
 				
+				
+				<!-- =======================================================
+					Raw External Payload
+				======================================================= -->
+				
 				<div class="form-section mb-0">
+					
 					<div class="section-title">
 						Raw External Payload
 					</div>
+					
 					
 					<label class="form-label">
 						Raw Payload (JSON)
 					</label>
 					
+					
 					<textarea
 					rows="10"
 					class="form-control font-monospace"
 					formControlName="raw_payload"
+					[class.is-invalid]="isInvalid('raw_payload')"
+					[attr.aria-invalid]="isInvalid('raw_payload')"
 					placeholder="{&#10;  &quot;source_field&quot;: &quot;value&quot;&#10;}">
 					</textarea>
 					
-					<div class="form-text">
-						Leave blank to store null. Any supplied value must
-						be valid JSON.
+					
+					<div class="invalid-feedback">
+						
+						{{
+						fieldError(
+						'raw_payload',
+						'Raw Payload'
+						)
+						}}
+						
 					</div>
+					
+					
+					<div class="form-text">
+						
+						Leave blank to store null.
+						Any supplied value must contain valid JSON.
+						
+					</div>
+					
 				</div>
 				
+				
+				<!-- =======================================================
+					Buttons
+				======================================================= -->
+				
 				<div
-				class="d-flex gap-2 justify-content-end mt-4">
+				class="d-flex gap-2 justify-content-end flex-wrap mt-4">
+					
+					
 					<button
 					type="button"
 					class="btn btn-outline-secondary"
-					(click)="cancel()"
-					[disabled]="saving">
+					[disabled]="saving"
+					(click)="cancel()">
+						
 						Cancel
+						
 					</button>
+					
 					
 					<button
 					type="submit"
 					class="btn btn-primary"
 					[disabled]="saving">
-						<span *ngIf="!saving">
-							{{
-							isCreate
-							? 'Create Issue'
-							: 'Save Changes'
-							}}
+						
+						<span
+						*ngIf="saving"
+						class="spinner-border spinner-border-sm me-2"
+						role="status">
 						</span>
 						
-						<span *ngIf="saving">
-							Saving…
-						</span>
+						
+						<i
+						*ngIf="!saving"
+						class="bi bi-check-lg me-2">
+						</i>
+						
+						
+						{{
+						saving
+						? 'Saving…'
+						: (
+						isCreate
+						? 'Create Issue'
+						: 'Save Changes'
+						)
+						}}
+						
 					</button>
+					
 				</div>
 				
 			</form>
 			
 		</div>
+		
 	</div>
+	
 </div>
