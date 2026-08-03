@@ -1,0 +1,563 @@
+<div class="position-relative agreement-list-wrap">
+	
+	<div
+	*ngIf="loading"
+	class="loading-overlay">
+		
+		<div class="text-center">
+			<div class="spinner-border"></div>
+			
+			<div class="mt-2 fw-semibold">
+				Loading agreements…
+			</div>
+		</div>
+	</div>
+	
+	<div
+	class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+		
+		<div>
+			<h1 class="h4 mb-0">
+				Agreement Management
+			</h1>
+			
+			<div class="text-muted small">
+				Manage agreements, lifecycle versions,
+				documents, approvals and project links.
+			</div>
+		</div>
+		
+		<button
+		*ngIf="canCreate()"
+		type="button"
+		class="btn btn-primary"
+		(click)="create()">
+			
+			<i class="bi bi-plus-circle"></i>
+			
+			<span class="ms-2">
+				New Agreement
+			</span>
+		</button>
+	</div>
+	
+	<div
+	*ngIf="error"
+	class="alert alert-danger">
+		
+		{{ error }}
+	</div>
+	
+	<div class="card shadow-sm border-0 mb-3">
+		<div class="card-body">
+			
+			<div class="row g-3 align-items-end">
+				
+				<div class="col-12 col-xl-6">
+					<label class="form-label">
+						Search
+					</label>
+					
+					<div class="input-group">
+						<span class="input-group-text">
+							<i class="bi bi-search"></i>
+						</span>
+						
+						<input
+						class="form-control"
+						placeholder="Agreement number, title, description or counterparty"
+						[(ngModel)]="search"
+						(keydown.enter)="applyFilters()">
+						
+						<button
+						type="button"
+						class="btn btn-outline-secondary"
+						(click)="applyFilters()">
+							
+							Search
+						</button>
+					</div>
+				</div>
+				
+				<div class="col-12 col-md-4 col-xl-2">
+					<label class="form-label">
+						Status
+					</label>
+					
+					<select
+					class="form-select"
+					[(ngModel)]="statusCode">
+						
+						<option
+						*ngFor="let status of statuses"
+						[value]="status.code">
+							
+							{{ status.name }}
+						</option>
+					</select>
+				</div>
+				
+				<div class="col-12 col-md-4 col-xl-2">
+					<label class="form-label">
+						Version
+					</label>
+					
+					<select
+					class="form-select"
+					[(ngModel)]="currentVersionFilter">
+						
+						<option value="">
+							All Versions
+						</option>
+						
+						<option value="1">
+							Current Only
+						</option>
+						
+						<option value="0">
+							Previous Only
+						</option>
+					</select>
+				</div>
+				
+				<div class="col-12 col-md-4 col-xl-2">
+					<label class="form-label">
+						Per Page
+					</label>
+					
+					<select
+					class="form-select"
+					[(ngModel)]="perPage"
+					(change)="page = 1; fetch()">
+						
+						<option [ngValue]="10">10</option>
+						<option [ngValue]="20">20</option>
+						<option [ngValue]="50">50</option>
+						<option [ngValue]="100">100</option>
+					</select>
+				</div>
+				
+				<div class="col-12">
+					<button
+					type="button"
+					class="btn btn-link px-0 text-decoration-none"
+					(click)="showAdvancedFilters = !showAdvancedFilters">
+						
+						<i
+						class="bi"
+						[ngClass]="
+						showAdvancedFilters
+						? 'bi-chevron-up'
+						: 'bi-chevron-down'
+						">
+						</i>
+						
+						<span class="ms-2">
+							Advanced Filters
+						</span>
+					</button>
+				</div>
+				
+				<ng-container *ngIf="showAdvancedFilters">
+					
+					<div class="col-12 col-md-6 col-xl-3">
+						<label class="form-label">
+							Department
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="departmentId">
+							
+							<option [ngValue]="null">
+								All Departments
+							</option>
+							
+							<option
+							*ngFor="let department of departments"
+							[ngValue]="department.id">
+								
+								{{ department.code }} - {{ department.name }}
+							</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-6 col-xl-3">
+						<label class="form-label">
+							Owner
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="ownerUserId">
+							
+							<option [ngValue]="null">
+								All Owners
+							</option>
+							
+							<option
+							*ngFor="let owner of owners"
+							[ngValue]="owner.id">
+								
+								{{ owner.name }}
+							</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-6 col-xl-3">
+						<label class="form-label">
+							Counterparty
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="counterpartyId">
+							
+							<option [ngValue]="null">
+								All Counterparties
+							</option>
+							
+							<option
+							*ngFor="let party of counterparties"
+							[ngValue]="party.id">
+								
+								{{ party.code }} - {{ party.legal_name }}
+							</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-6 col-xl-3">
+						<label class="form-label">
+							Lifecycle Type
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="lifecycleType">
+							
+							<option value="">
+								All Lifecycle Types
+							</option>
+							
+							<option value="ORIGINAL">
+								Original
+							</option>
+							
+							<option value="AMENDMENT">
+								Amendment
+							</option>
+							
+							<option value="RENEWAL">
+								Renewal
+							</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-6 col-xl-3">
+						<label class="form-label">
+							Category
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="categoryId">
+							
+							<option [ngValue]="null">
+								All Categories
+							</option>
+							
+							<option
+							*ngFor="let category of categories"
+							[ngValue]="category.id">
+								
+								{{ category.code }} - {{ category.name }}
+							</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-6 col-xl-3">
+						<label class="form-label">
+							Type
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="typeId">
+							
+							<option [ngValue]="null">
+								All Types
+							</option>
+							
+							<option
+							*ngFor="let type of types"
+							[ngValue]="type.id">
+								
+								{{ type.code }} - {{ type.name }}
+							</option>
+						</select>
+					</div>
+					
+					<div class="col-6 col-xl-3">
+						<label class="form-label">
+							Effective From
+						</label>
+						
+						<input
+						type="date"
+						class="form-control"
+						[(ngModel)]="effectiveFrom">
+					</div>
+					
+					<div class="col-6 col-xl-3">
+						<label class="form-label">
+							Effective To
+						</label>
+						
+						<input
+						type="date"
+						class="form-control"
+						[(ngModel)]="effectiveTo">
+					</div>
+					
+					<div class="col-6 col-xl-3">
+						<label class="form-label">
+							Expiry From
+						</label>
+						
+						<input
+						type="date"
+						class="form-control"
+						[(ngModel)]="expiryFrom">
+					</div>
+					
+					<div class="col-6 col-xl-3">
+						<label class="form-label">
+							Expiry To
+						</label>
+						
+						<input
+						type="date"
+						class="form-control"
+						[(ngModel)]="expiryTo">
+					</div>
+					
+					<div class="col-12 col-xl-3">
+						<div class="form-check mt-xl-4">
+							<input
+							id="includeArchived"
+							type="checkbox"
+							class="form-check-input"
+							[(ngModel)]="includeArchived">
+							
+							<label
+							for="includeArchived"
+							class="form-check-label">
+								
+								Include archived agreements
+							</label>
+						</div>
+					</div>
+				</ng-container>
+				
+				<div class="col-12 d-flex justify-content-end gap-2">
+					
+					<button
+					type="button"
+					class="btn btn-primary"
+					[disabled]="loading"
+					(click)="applyFilters()">
+						
+						Apply Filters
+					</button>
+					
+					<button
+					type="button"
+					class="btn btn-outline-secondary"
+					[disabled]="loading"
+					(click)="resetFilters()">
+						
+						Reset
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="card shadow-sm border-0">
+		<div class="card-body">
+			
+			<div class="table-responsive">
+				<table class="table table-hover align-middle mb-0 agreement-table">
+					
+					<thead class="table-light">
+						<tr>
+							<th>Agreement</th>
+							<th>Counterparty</th>
+							<th>Classification</th>
+							<th>Owner / Department</th>
+							<th>Period</th>
+							<th>Value</th>
+							<th>Lifecycle</th>
+							<th>Status</th>
+							<th class="text-end">Actions</th>
+						</tr>
+					</thead>
+					
+					<tbody>
+						<tr *ngFor="let row of rows">
+							
+							<td>
+								<a
+								class="fw-semibold text-decoration-none"
+								[routerLink]="['/agreements', row.id]">
+									
+									{{ row.agreement_no }}
+								</a>
+								
+								<div class="mt-1">
+									{{ row.title }}
+								</div>
+							</td>
+							
+							<td>
+								{{ counterpartyLabel(row) }}
+							</td>
+							
+							<td>
+								{{ classificationLabel(row) }}
+							</td>
+							
+							<td>
+								<div>
+									{{ row.owner?.name || '-' }}
+								</div>
+								
+								<div class="small text-muted">
+									{{ row.department?.name || '-' }}
+								</div>
+							</td>
+							
+							<td>
+								<div>
+									{{ row.effective_date || '-' }}
+								</div>
+								
+								<div class="small text-muted">
+									to {{ row.expiry_date || '-' }}
+								</div>
+							</td>
+							
+							<td>
+								{{ moneyLabel(row) }}
+							</td>
+							
+							<td>
+								<span class="badge bg-light text-dark border">
+									{{ row.lifecycle.type }}
+								</span>
+								
+								<div class="small text-muted mt-1">
+									<span *ngIf="row.lifecycle.type === 'AMENDMENT'">
+										Revision {{ row.lifecycle.revision_no }}
+									</span>
+									
+									<span *ngIf="row.lifecycle.type === 'RENEWAL'">
+										Renewal {{ row.lifecycle.renewal_sequence }}
+									</span>
+									
+									<span *ngIf="row.lifecycle.type === 'ORIGINAL'">
+										Original
+									</span>
+								</div>
+								
+								<span
+								*ngIf="row.lifecycle.is_current_version"
+								class="badge bg-success mt-1">
+									
+									Current
+								</span>
+							</td>
+							
+							<td>
+								<span
+								class="badge"
+								[ngClass]="statusBadgeClass(row.status?.code)">
+									
+									{{ row.status?.name || '-' }}
+								</span>
+							</td>
+							
+							<td class="text-end action-column">
+								
+								<button
+								type="button"
+								class="btn btn-sm btn-outline-secondary me-2"
+								(click)="view(row)"
+								title="View agreement">
+									
+									<i class="bi bi-eye"></i>
+								</button>
+								
+								<button
+								*ngIf="isDirectlyEditable(row)"
+								type="button"
+								class="btn btn-sm btn-outline-primary"
+								(click)="edit(row)"
+								title="Edit agreement">
+									
+									<i class="bi bi-pencil-square"></i>
+								</button>
+							</td>
+						</tr>
+						
+						<tr *ngIf="!loading && !rows.length">
+							<td
+							colspan="9"
+							class="text-center text-muted py-4">
+								
+								No agreements found.
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			
+			<div
+			class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3">
+				
+				<div class="small text-muted">
+					Total: {{ total }}
+				</div>
+				
+				<div class="btn-group btn-group-sm">
+					
+					<button
+					type="button"
+					class="btn btn-outline-secondary"
+					[disabled]="page <= 1"
+					(click)="changePage(page - 1)">
+						
+						Previous
+					</button>
+					
+					<button
+					type="button"
+					class="btn btn-outline-secondary"
+					disabled>
+						
+						Page {{ page }} / {{ lastPage }}
+					</button>
+					
+					<button
+					type="button"
+					class="btn btn-outline-secondary"
+					[disabled]="page >= lastPage"
+					(click)="changePage(page + 1)">
+						
+						Next
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

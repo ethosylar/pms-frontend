@@ -1,0 +1,14 @@
+.agreement-form-wrap {
+	min-height: 60vh;
+}
+
+.loading-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 30;
+	display: grid;
+	place-items: center;
+	min-height: 320px;
+	background: rgba(255, 255, 255, 0.76);
+	backdrop-filter: blur(2px);
+}

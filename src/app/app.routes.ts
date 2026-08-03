@@ -4,6 +4,10 @@ import { LoginComponent } from './features/auth/login/login';
 import { DashboardComponent } from './features/dashboard/dashboard/dashboard';
 import { authGuard } from './core/guards/auth-guard';
 import { permissionGuard } from './core/guards/permission-guard';
+import { agreementStatusManageGuard } from './core/guards/agreement-status-manage-guard';
+import { counterpartyManageGuard } from './core/guards/counterparty-manage-guard';
+import { agreementCategoryTypeManageGuard } from './core/guards/agreement-category-type-manage-guard';
+import { agreementCreateGuard, agreementDocumentTypeGuard, agreementEditGuard, agreementViewGuard, } from './core/guards/agreement-guards';
 
 export const routes: Routes = [
 	{
@@ -495,6 +499,70 @@ export const routes: Routes = [
 						title: 'Task Statuses Management',
 					},
 				],
+			},
+			{
+				path: 'agreements/statuses',
+				canActivate: [agreementStatusManageGuard],
+				loadComponent: () =>
+				import('./features/agreements/agreement-statuses/agreement-statuses')
+				.then(module => module.AgreementStatusesComponent),
+				title: 'Agreement Statuses Management',
+			},
+			{
+				path: 'agreements/counterparties',
+				canActivate: [counterpartyManageGuard,],
+				loadComponent: () =>
+				import('./features/agreements/counterparties/counterparties')
+				.then(m => m.CounterpartiesComponent),
+				title: 'Counterparties Management',
+			},
+			{
+				path: 'agreements/category-types',
+				canActivate: [agreementCategoryTypeManageGuard,],
+				loadComponent: () =>
+				import('./features/agreements/agreement-category-types/agreement-category-types')
+				.then(m => m.AgreementCategoryTypesComponent),
+				title: 'Agreement Category & Types Management',
+			},
+			{
+				path: 'agreements',
+				canActivate: [agreementViewGuard,],
+				loadComponent: () =>
+				import('./features/agreements/agreements/agreements')
+				.then(m => m.AgreementsComponent),
+				title: 'Agreement Management',
+			},
+			{
+				path: 'agreements/new',
+				canActivate: [agreementCreateGuard,],
+				loadComponent: () =>
+				import('./features/agreements/agreement-form/agreement-form')
+				.then(m => m.AgreementFormComponent),
+				title: 'Agreement Form',
+			},
+			{
+				path: 'agreements/document-types',
+				canActivate: [agreementDocumentTypeGuard,],
+				loadComponent: () =>
+				import('./features/agreements/agreement-document-types/agreement-document-types')
+				.then(m => m.AgreementDocumentTypesComponent),
+				title: 'Agreement Document Types',
+			},
+			{
+				path: 'agreements/:id/edit',
+				canActivate: [agreementEditGuard,],
+				loadComponent: () =>
+				import('./features/agreements/agreement-form/agreement-form')
+				.then(m => m.AgreementFormComponent),
+				title: 'Edit Agreement',
+			},
+			{
+				path: 'agreements/:id',
+				canActivate: [agreementViewGuard,],
+				loadComponent: () =>
+				import('./features/agreements/agreement-detail/agreement-detail')
+				.then(m => m.AgreementDetailComponent),
+				title: 'Agreement Details',
 			},
 		],
 	},

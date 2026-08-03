@@ -1,0 +1,1682 @@
+<div class="position-relative agreement-detail-wrap">
+	
+	<div
+	*ngIf="loading"
+	class="loading-overlay">
+		
+		<div class="text-center">
+			<div class="spinner-border"></div>
+			
+			<div class="mt-2 fw-semibold">
+				Loading agreement…
+			</div>
+		</div>
+	</div>
+	
+	<div
+	class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+		
+		<div>
+			<div class="d-flex align-items-center flex-wrap gap-2">
+				
+				<h1 class="h4 mb-0">
+					{{ row?.agreement_no || 'Agreement' }}
+				</h1>
+				
+				<span
+				*ngIf="row"
+				class="badge"
+				[ngClass]="statusBadgeClass()">
+					
+					{{ row.status?.name || 'Unknown Status' }}
+				</span>
+				
+				<span
+				*ngIf="row?.lifecycle?.is_current_version"
+				class="badge bg-success">
+					
+					Current Version
+				</span>
+				
+				<span
+				*ngIf="
+				row &&
+				!row.lifecycle.is_current_version
+				"
+				class="badge bg-secondary">
+					
+					Historical Version
+				</span>
+			</div>
+			
+			<div class="text-muted mt-1">
+				{{ row?.title }}
+			</div>
+		</div>
+		
+		<div class="d-flex flex-wrap gap-2">
+			
+			<a
+			class="btn btn-outline-secondary"
+			routerLink="/agreements">
+				
+				<i class="bi bi-arrow-left"></i>
+				
+				<span class="ms-2">
+					Back
+				</span>
+			</a>
+			
+			<button
+			*ngIf="canDirectEdit()"
+			type="button"
+			class="btn btn-outline-primary"
+			(click)="edit()">
+				
+				<i class="bi bi-pencil-square"></i>
+				
+				<span class="ms-2">
+					Edit Agreement
+				</span>
+			</button>
+		</div>
+	</div>
+	
+	<div
+	*ngIf="error"
+	class="alert alert-danger">
+		
+		{{ error }}
+	</div>
+	
+	<ng-container *ngIf="row">
+		
+		<!-- Lifecycle progress -->
+		<div class="card shadow-sm border-0 mb-3">
+			<div class="card-body">
+				
+				<div
+				class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+					
+					<div>
+						<div class="fw-semibold">
+							Agreement Lifecycle
+						</div>
+						
+						<div class="small text-muted">
+							{{ nextActionMessage() }}
+						</div>
+					</div>
+					
+					<div
+					*ngIf="hasLifecycleAction()"
+					class="d-flex flex-wrap gap-2">
+						
+						<button
+						*ngIf="canReview()"
+						type="button"
+						class="btn btn-sm btn-outline-primary"
+						(click)="openAction('review')">
+							
+							Move to Review
+						</button>
+						
+						<button
+						*ngIf="canSubmitCurrent()"
+						type="button"
+						class="btn btn-sm btn-primary"
+						(click)="openAction('submit')">
+							
+							Submit for Approval
+						</button>
+						
+						<button
+						*ngIf="canApproveCurrent()"
+						type="button"
+						class="btn btn-sm btn-success"
+						(click)="openAction('approve')">
+							
+							Approve
+						</button>
+						
+						<button
+						*ngIf="canActivateCurrent()"
+						type="button"
+						class="btn btn-sm btn-success"
+						(click)="openAction('activate')">
+							
+							Activate
+						</button>
+						
+						<button
+						*ngIf="canAmendCurrent()"
+						type="button"
+						class="btn btn-sm btn-outline-primary"
+						(click)="openAction('amend')">
+							
+							Create Amendment
+						</button>
+						
+						<button
+						*ngIf="canRenewCurrent()"
+						type="button"
+						class="btn btn-sm btn-outline-success"
+						(click)="openAction('renew')">
+							
+							Create Renewal
+						</button>
+						
+						<button
+						*ngIf="canTerminateCurrent()"
+						type="button"
+						class="btn btn-sm btn-outline-danger"
+						(click)="openAction('terminate')">
+							
+							Terminate
+						</button>
+						
+						<button
+						*ngIf="canArchiveCurrent()"
+						type="button"
+						class="btn btn-sm btn-outline-secondary"
+						(click)="openAction('archive')">
+							
+							Archive
+						</button>
+						
+						<button
+						*ngIf="canCancelCurrent()"
+						type="button"
+						class="btn btn-sm btn-outline-danger"
+						(click)="openAction('cancel')">
+							
+							Cancel
+						</button>
+					</div>
+				</div>
+				
+				<div class="lifecycle-stepper">
+					<div
+					*ngFor="let step of workflowSteps; let last = last"
+					class="lifecycle-step"
+					[ngClass]="workflowStepClass(step.code)">
+						
+						<div class="step-marker">
+							<i
+							class="bi"
+							[ngClass]="
+							workflowStepClass(step.code) === 'completed'
+							? 'bi-check-lg'
+							: 'bi-circle-fill'
+							">
+							</i>
+						</div>
+						
+						<div class="step-content">
+							<div class="fw-semibold">
+								{{ step.name }}
+							</div>
+							
+							<div class="small">
+								{{ step.description }}
+							</div>
+						</div>
+						
+						<div
+						*ngIf="!last"
+						class="step-line">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="card shadow-sm border-0">
+			
+			<div class="card-header bg-white p-0">
+				<div class="agreement-tabs">
+					
+					<button
+					type="button"
+					class="agreement-tab"
+					[class.active]="activeTab === 'overview'"
+					(click)="setTab('overview')">
+						
+						<i class="bi bi-card-text"></i>
+						<span>Overview</span>
+					</button>
+					
+					<button
+					type="button"
+					class="agreement-tab"
+					[class.active]="activeTab === 'lifecycle'"
+					(click)="setTab('lifecycle')">
+						
+						<i class="bi bi-clock-history"></i>
+						<span>
+							Lifecycle History
+							({{ row.lifecycle_events?.length || 0 }})
+						</span>
+					</button>
+					
+					<button
+					type="button"
+					class="agreement-tab"
+					[class.active]="activeTab === 'documents'"
+					(click)="setTab('documents')">
+						
+						<i class="bi bi-file-earmark-text"></i>
+						<span>
+							Documents
+							({{ documentRows.length }})
+						</span>
+					</button>
+					
+					<button
+					type="button"
+					class="agreement-tab"
+					[class.active]="activeTab === 'projects'"
+					(click)="setTab('projects')">
+						
+						<i class="bi bi-kanban"></i>
+						<span>
+							Projects
+							({{ row.projects?.length || 0 }})
+						</span>
+					</button>
+					
+					<button
+					type="button"
+					class="agreement-tab"
+					[class.active]="activeTab === 'versions'"
+					(click)="setTab('versions')">
+						
+						<i class="bi bi-diagram-3"></i>
+						<span>Versions</span>
+					</button>
+				</div>
+			</div>
+			
+			<!-- Overview -->
+			<div
+			*ngIf="activeTab === 'overview'"
+			class="card-body">
+				
+				<div class="row g-3">
+					
+					<div class="col-12 col-xl-8">
+						<div class="detail-section h-100">
+							
+							<div class="section-title">
+								Agreement Information
+							</div>
+							
+							<div class="row g-3">
+								
+								<div class="col-12 col-md-6">
+									<div class="detail-label">
+										Counterparty
+									</div>
+									
+									<div class="detail-value">
+										{{
+										row.counterparty?.trading_name ||
+										row.counterparty?.legal_name ||
+										'-'
+										}}
+									</div>
+									
+									<div class="small text-muted">
+										{{ row.counterparty?.registration_no || '' }}
+									</div>
+								</div>
+								
+								<div class="col-12 col-md-6">
+									<div class="detail-label">
+										Classification
+									</div>
+									
+									<div class="detail-value">
+										{{ row.category?.name || '-' }}
+										
+										<span *ngIf="row.type">
+											/ {{ row.type.name }}
+										</span>
+									</div>
+								</div>
+								
+								<div class="col-12 col-md-6">
+									<div class="detail-label">
+										Department
+									</div>
+									
+									<div class="detail-value">
+										{{ row.department?.name || '-' }}
+									</div>
+								</div>
+								
+								<div class="col-12 col-md-6">
+									<div class="detail-label">
+										Owner
+									</div>
+									
+									<div class="detail-value">
+										{{ row.owner?.name || '-' }}
+									</div>
+									
+									<div class="small text-muted">
+										{{ row.owner?.email || '' }}
+									</div>
+								</div>
+								
+								<div class="col-12">
+									<div class="detail-label">
+										Description
+									</div>
+									
+									<div class="detail-value pre-line">
+										{{ row.description || '-' }}
+									</div>
+								</div>
+								
+								<div class="col-12 col-xl-6">
+									<div class="detail-label">
+										Purpose
+									</div>
+									
+									<div class="detail-value pre-line">
+										{{ row.purpose || '-' }}
+									</div>
+								</div>
+								
+								<div class="col-12 col-xl-6">
+									<div class="detail-label">
+										Scope
+									</div>
+									
+									<div class="detail-value pre-line">
+										{{ row.scope || '-' }}
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<div class="col-12 col-xl-4">
+						<div class="detail-section h-100">
+							
+							<div class="section-title">
+								Term Summary
+							</div>
+							
+							<div class="info-row">
+								<div class="detail-label">
+									Effective Date
+								</div>
+								
+								<div class="detail-value">
+									{{ row.effective_date || '-' }}
+								</div>
+							</div>
+							
+							<div class="info-row">
+								<div class="detail-label">
+									Expiry Date
+								</div>
+								
+								<div class="detail-value">
+									{{ row.expiry_date || '-' }}
+								</div>
+							</div>
+							
+							<div class="info-row">
+								<div class="detail-label">
+									Signed Date
+								</div>
+								
+								<div class="detail-value">
+									{{ row.signed_date || '-' }}
+								</div>
+							</div>
+							
+							<div class="info-row">
+								<div class="detail-label">
+									Notice Period
+								</div>
+								
+								<div class="detail-value">
+									{{
+									row.notice_period_days !== null &&
+									row.notice_period_days !== undefined
+									? row.notice_period_days + ' days'
+									: '-'
+									}}
+								</div>
+							</div>
+							
+							<div class="info-row">
+								<div class="detail-label">
+									Auto Renewal
+								</div>
+								
+								<div class="detail-value">
+									{{ row.auto_renewal ? 'Yes' : 'No' }}
+								</div>
+							</div>
+							
+							<div class="info-row">
+								<div class="detail-label">
+									Contract Value
+								</div>
+								
+								<div class="detail-value">
+									{{ moneyLabel() }}
+								</div>
+							</div>
+							
+							<div class="info-row mb-0">
+								<div class="detail-label">
+									Lifecycle Version
+								</div>
+								
+								<div class="detail-value">
+									{{ row.lifecycle.type }}
+									
+									<span *ngIf="row.lifecycle.type === 'AMENDMENT'">
+										Revision {{ row.lifecycle.revision_no }}
+									</span>
+									
+									<span *ngIf="row.lifecycle.type === 'RENEWAL'">
+										Sequence {{ row.lifecycle.renewal_sequence }}
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<div
+					*ngIf="row.workflow.termination_reason"
+					class="col-12">
+						
+						<div class="alert alert-danger mb-0">
+							<div class="fw-semibold">
+								Termination
+							</div>
+							
+							<div>
+								{{ row.workflow.termination_reason }}
+							</div>
+							
+							<div class="small mt-1">
+								Termination date:
+								{{ row.workflow.terminated_on || '-' }}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<!-- Lifecycle history -->
+			<div
+			*ngIf="activeTab === 'lifecycle'"
+			class="card-body">
+				
+				<div
+				*ngIf="!row.lifecycle_events?.length"
+				class="empty-state">
+					
+					No lifecycle events are available.
+				</div>
+				
+				<div
+				*ngFor="let event of row.lifecycle_events"
+				class="timeline-item">
+					
+					<div class="timeline-marker">
+						<i class="bi bi-circle-fill"></i>
+					</div>
+					
+					<div class="timeline-content">
+						
+						<div
+						class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+							
+							<div>
+								<div class="fw-semibold">
+									{{ event.event_type }}
+								</div>
+								
+								<div class="small text-muted">
+									{{ eventStatusLabel(event) }}
+								</div>
+							</div>
+							
+							<div class="small text-muted">
+								{{
+								event.event_at
+								| date:'yyyy-MM-dd HH:mm'
+								}}
+							</div>
+						</div>
+						
+						<div
+						*ngIf="event.reason"
+						class="mt-2">
+							
+							<span class="fw-semibold">
+								Reason:
+							</span>
+							
+							{{ event.reason }}
+						</div>
+						
+						<div
+						*ngIf="event.performed_by"
+						class="small text-muted mt-2">
+							
+							Performed by
+							{{ event.performed_by.name }}
+						</div>
+						
+						<a
+						*ngIf="event.related_agreement"
+						class="small d-inline-block mt-2"
+						[routerLink]="[
+						'/agreements',
+						event.related_agreement.id
+						]">
+							
+							Related agreement:
+							{{ event.related_agreement.agreement_no }}
+						</a>
+						
+						<details
+						*ngIf="event.metadata"
+						class="mt-2">
+							
+							<summary class="small">
+								Event metadata
+							</summary>
+							
+							<pre class="metadata-box">{{
+								metadataText(event.metadata)
+							}}</pre>
+						</details>
+					</div>
+				</div>
+			</div>
+			
+			<!-- Documents -->
+			<div
+			*ngIf="activeTab === 'documents'"
+			class="card-body">
+				
+				<div
+				class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+					
+					<div>
+						<div class="section-title mb-1">
+							Agreement Documents
+						</div>
+						
+						<div class="small text-muted">
+							Upload, version, supersede and track OCR
+							status for agreement files.
+						</div>
+					</div>
+					
+					<button
+					*ngIf="canUploadDocuments()"
+					type="button"
+					class="btn btn-primary btn-sm"
+					(click)="openUploadDocument()">
+						
+						<i class="bi bi-upload"></i>
+						
+						<span class="ms-2">
+							Upload Document
+						</span>
+					</button>
+				</div>
+				
+				<div
+				*ngIf="documentError"
+				class="alert alert-danger">
+					
+					{{ documentError }}
+				</div>
+				
+				<div class="row g-2 align-items-end mb-3">
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label small">
+							Document Type
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="documentTypeFilter">
+							
+							<option [ngValue]="null">
+								All Types
+							</option>
+							
+							<option
+							*ngFor="let type of documentTypes"
+							[ngValue]="type.id">
+								
+								{{ type.code }} - {{ type.name }}
+							</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-2">
+						<label class="form-label small">
+							Current
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="documentCurrentFilter">
+							
+							<option value="">All</option>
+							<option value="1">Current</option>
+							<option value="0">Previous</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-2">
+						<label class="form-label small">
+							Executed
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="documentExecutedFilter">
+							
+							<option value="">All</option>
+							<option value="1">Executed</option>
+							<option value="0">Not Executed</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-2">
+						<label class="form-label small">
+							OCR Status
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="documentOcrFilter">
+							
+							<option value="">All</option>
+							<option value="NOT_REQUESTED">Not Requested</option>
+							<option value="PENDING">Pending</option>
+							<option value="PROCESSING">Processing</option>
+							<option value="COMPLETED">Completed</option>
+							<option value="FAILED">Failed</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-3">
+						<div class="d-flex gap-2">
+							
+							<button
+							type="button"
+							class="btn btn-outline-primary flex-grow-1"
+							(click)="loadDocuments()">
+								
+								Apply
+							</button>
+							
+							<button
+							type="button"
+							class="btn btn-outline-secondary"
+							(click)="resetDocumentFilters()">
+								
+								Reset
+							</button>
+						</div>
+					</div>
+				</div>
+				
+				<div
+				*ngIf="documentsLoading"
+				class="text-center py-5">
+					
+					<div class="spinner-border"></div>
+				</div>
+				
+				<div
+				*ngIf="
+				!documentsLoading &&
+				!documentRows.length
+				"
+				class="empty-state">
+					
+					No agreement documents found.
+				</div>
+				
+				<div
+				*ngIf="
+				!documentsLoading &&
+				documentRows.length
+				"
+				class="table-responsive">
+					
+					<table class="table table-hover align-middle document-table">
+						
+						<thead class="table-light">
+							<tr>
+								<th>Document</th>
+								<th>Type</th>
+								<th>Version</th>
+								<th>Date</th>
+								<th>Flags</th>
+								<th>OCR</th>
+								<th>Uploaded</th>
+								<th class="text-end">Actions</th>
+							</tr>
+						</thead>
+						
+						<tbody>
+							<tr *ngFor="let file of documentRows">
+								
+								<td>
+									<div class="fw-semibold">
+										{{ file.file?.original_name || '-' }}
+									</div>
+									
+									<div class="small text-muted">
+										{{ file.file?.mime_type || '-' }}
+										·
+										{{ fileSize(file.file?.size) }}
+									</div>
+									
+									<div
+									*ngIf="file.notes"
+									class="small text-muted mt-1">
+										
+										{{ file.notes }}
+									</div>
+								</td>
+								
+								<td>
+									{{ file.document_type?.name || '-' }}
+								</td>
+								
+								<td>
+									{{ file.document_version || '-' }}
+								</td>
+								
+								<td>
+									{{ file.document_date || '-' }}
+								</td>
+								
+								<td>
+									<span
+									*ngIf="file.is_current"
+									class="badge bg-success me-1">
+										
+										Current
+									</span>
+									
+									<span
+									*ngIf="file.is_executed_copy"
+									class="badge bg-primary">
+										
+										Executed
+									</span>
+								</td>
+								
+								<td>
+									<span class="badge bg-light text-dark border">
+										{{ file.ocr.status }}
+									</span>
+									
+									<div
+									*ngIf="file.ocr.error_message"
+									class="small text-danger mt-1">
+										
+										{{ file.ocr.error_message }}
+									</div>
+								</td>
+								
+								<td>
+									<div>
+										{{ file.linked_by?.name || '-' }}
+									</div>
+									
+									<div class="small text-muted">
+										{{
+										file.created_at
+										| date:'yyyy-MM-dd HH:mm'
+										}}
+									</div>
+								</td>
+								
+								<td class="text-end document-actions">
+									
+									<button
+									type="button"
+									class="btn btn-sm btn-outline-secondary me-1"
+									(click)="previewDocument(file)"
+									title="Preview">
+										
+										<i class="bi bi-eye"></i>
+									</button>
+									
+									<button
+									type="button"
+									class="btn btn-sm btn-outline-secondary me-1"
+									(click)="downloadDocument(file)"
+									title="Download">
+										
+										<i class="bi bi-download"></i>
+									</button>
+									
+									<button
+									*ngIf="canQueueOcr(file)"
+									type="button"
+									class="btn btn-sm btn-outline-info me-1"
+									[disabled]="requestingOcrId === file.id"
+									(click)="requestOcr(file)"
+									title="Request OCR">
+										
+										<i class="bi bi-file-text"></i>
+									</button>
+									
+									<button
+									*ngIf="canUploadDocuments()"
+									type="button"
+									class="btn btn-sm btn-outline-primary me-1"
+									(click)="openEditDocument(file)"
+									title="Edit metadata">
+										
+										<i class="bi bi-pencil-square"></i>
+									</button>
+									
+									<button
+									*ngIf="canUploadDocuments()"
+									type="button"
+									class="btn btn-sm btn-outline-danger"
+									[disabled]="removingDocumentId === file.id"
+									(click)="removeDocument(file)"
+									title="Remove">
+										
+										<i class="bi bi-trash"></i>
+									</button>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			
+			<!-- Projects -->
+			<div
+			*ngIf="activeTab === 'projects'"
+			class="card-body">
+				
+				<div
+				*ngIf="projectError"
+				class="alert alert-danger">
+					
+					{{ projectError }}
+				</div>
+				
+				<div
+				*ngIf="canLinkProjects()"
+				class="link-project-card mb-4">
+					
+					<div class="fw-semibold mb-3">
+						Link Project
+					</div>
+					
+					<div class="row g-3 align-items-end">
+						
+						<div class="col-12 col-xl-5">
+							<label class="form-label">
+								Project
+							</label>
+							
+							<select
+							class="form-select"
+							[(ngModel)]="projectLinkForm.project_id">
+								
+								<option [ngValue]="null">
+									Select project…
+								</option>
+								
+								<option
+								*ngFor="let project of projectOptions"
+								[ngValue]="project.id">
+									
+									{{ project.code }} - {{ project.name }}
+								</option>
+							</select>
+						</div>
+						
+						<div class="col-12 col-xl-5">
+							<label class="form-label">
+								Notes
+							</label>
+							
+							<input
+							class="form-control"
+							[(ngModel)]="projectLinkForm.notes">
+						</div>
+						
+						<div class="col-12 col-xl-2">
+							<button
+							type="button"
+							class="btn btn-primary w-100"
+							[disabled]="projectLinkSaving"
+							(click)="linkProject()">
+								
+								Link Project
+							</button>
+						</div>
+					</div>
+				</div>
+				
+				<div
+				*ngIf="!row.projects?.length"
+				class="empty-state">
+					
+					No projects are linked to this agreement.
+				</div>
+				
+				<div
+				*ngFor="let project of row.projects"
+				class="project-link-row">
+					
+					<div>
+						<a
+						class="fw-semibold"
+						[routerLink]="[
+						'/projects',
+						project.id
+						]">
+							
+							{{ project.code }} - {{ project.name }}
+						</a>
+						
+						<div
+						*ngIf="project.notes"
+						class="small text-muted">
+							
+							{{ project.notes }}
+						</div>
+						
+						<div class="small text-muted">
+							Linked
+							{{
+							project.linked_at
+							| date:'yyyy-MM-dd HH:mm'
+							}}
+						</div>
+					</div>
+					
+					<button
+					*ngIf="canLinkProjects()"
+					type="button"
+					class="btn btn-sm btn-outline-danger"
+					[disabled]="
+					unlinkingProjectId === project.link_id
+					"
+					(click)="unlinkProject(project)">
+						
+						Unlink
+					</button>
+				</div>
+			</div>
+			
+			<!-- Versions -->
+			<div
+			*ngIf="activeTab === 'versions'"
+			class="card-body">
+				
+				<div class="alert alert-info">
+					Approved amendments and renewals replace the previous
+					current version. Previous records are retained for
+					historical reference.
+				</div>
+				
+				<div class="row g-3">
+					
+					<div
+					*ngIf="row.parent_agreement"
+					class="col-12">
+						
+						<div class="version-card">
+							<div class="detail-label">
+								Parent Agreement
+							</div>
+							
+							<a
+							class="fw-semibold"
+							[routerLink]="[
+							'/agreements',
+							row.parent_agreement.id
+							]">
+								
+								{{ row.parent_agreement.agreement_no }}
+								-
+								{{ row.parent_agreement.title }}
+							</a>
+						</div>
+					</div>
+					
+					<div class="col-12">
+						<div class="version-card current-version-card">
+							
+							<div
+							class="d-flex align-items-center justify-content-between gap-2">
+								
+								<div>
+									<div class="detail-label">
+										This Version
+									</div>
+									
+									<div class="fw-semibold">
+										{{ row.agreement_no }}
+										-
+										{{ row.title }}
+									</div>
+									
+									<div class="small text-muted">
+										{{ row.lifecycle.type }}
+										· Revision {{ row.lifecycle.revision_no }}
+										· Renewal {{ row.lifecycle.renewal_sequence }}
+									</div>
+								</div>
+								
+								<span
+								*ngIf="row.lifecycle.is_current_version"
+								class="badge bg-success">
+									
+									Current
+								</span>
+							</div>
+						</div>
+					</div>
+					
+					<div
+					*ngFor="let child of row.child_agreements"
+					class="col-12">
+						
+						<div class="version-card">
+							
+							<div
+							class="d-flex align-items-center justify-content-between gap-2">
+								
+								<div>
+									<div class="detail-label">
+										{{ child.lifecycle_type }}
+									</div>
+									
+									<a
+									class="fw-semibold"
+									[routerLink]="[
+									'/agreements',
+									child.id
+									]">
+										
+										{{ child.agreement_no }}
+										-
+										{{ child.title }}
+									</a>
+									
+									<div class="small text-muted">
+										Revision {{ child.revision_no }}
+										· Renewal {{ child.renewal_sequence }}
+									</div>
+								</div>
+								
+								<span
+								*ngIf="child.is_current_version"
+								class="badge bg-success">
+									
+									Current
+								</span>
+							</div>
+						</div>
+					</div>
+					
+					<div
+					*ngIf="!row.parent_agreement && !row.child_agreements?.length"
+					class="col-12">
+						
+						<div class="empty-state">
+							No amendments or renewals have been created.
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</ng-container>
+	
+	<!-- Lifecycle modal -->
+	<div
+	*ngIf="action"
+	class="modal-backdrop-custom"
+	(click)="closeAction()">
+		
+		<section
+		class="modal-panel-custom"
+		(click)="$event.stopPropagation()">
+			
+			<header class="modal-header-custom">
+				<h2 class="h5 mb-0">
+					{{ actionTitle() }}
+				</h2>
+				
+				<button
+				type="button"
+				class="btn btn-sm btn-outline-secondary"
+				[disabled]="actionSaving"
+				(click)="closeAction()">
+					
+					Close
+				</button>
+			</header>
+			
+			<div class="modal-body-custom">
+				
+				<div
+				*ngIf="actionError"
+				class="alert alert-danger">
+					
+					{{ actionError }}
+				</div>
+				
+				<ng-container
+				*ngIf="
+				action !== 'amend' &&
+				action !== 'renew' &&
+				action !== 'terminate'
+				">
+					
+					<div class="mb-3">
+						<label class="form-label">
+							Reason
+						</label>
+						
+						<textarea
+						rows="3"
+						class="form-control"
+						[(ngModel)]="actionForm.reason">
+						</textarea>
+					</div>
+					
+					<div>
+						<label class="form-label">
+							Notes
+						</label>
+						
+						<textarea
+						rows="4"
+						class="form-control"
+						[(ngModel)]="actionForm.notes">
+						</textarea>
+					</div>
+				</ng-container>
+				
+				<ng-container *ngIf="action === 'amend'">
+					
+					<div class="mb-3">
+						<label class="form-label">
+							Amendment Title
+						</label>
+						
+						<input
+						class="form-control"
+						[(ngModel)]="actionForm.title"
+						placeholder="Leave blank to auto-generate">
+					</div>
+					
+					<div class="mb-3">
+						<label class="form-label">
+							Amendment Reason
+							<span class="text-danger">*</span>
+						</label>
+						
+						<textarea
+						rows="4"
+						class="form-control"
+						[(ngModel)]="actionForm.amendment_reason">
+						</textarea>
+					</div>
+					
+					<div class="row g-3">
+						<div class="col-6">
+							<label class="form-label">
+								Effective Date
+							</label>
+							
+							<input
+							type="date"
+							class="form-control"
+							[(ngModel)]="actionForm.effective_date">
+						</div>
+						
+						<div class="col-6">
+							<label class="form-label">
+								Expiry Date
+							</label>
+							
+							<input
+							type="date"
+							class="form-control"
+							[(ngModel)]="actionForm.expiry_date">
+						</div>
+					</div>
+					
+					<div class="form-check mt-3">
+						<input
+						id="amendCopyProjects"
+						type="checkbox"
+						class="form-check-input"
+						[(ngModel)]="actionForm.copy_project_links">
+						
+						<label
+						for="amendCopyProjects"
+						class="form-check-label">
+							
+							Copy linked projects to amendment
+						</label>
+					</div>
+				</ng-container>
+				
+				<ng-container *ngIf="action === 'renew'">
+					
+					<div class="mb-3">
+						<label class="form-label">
+							Renewal Title
+						</label>
+						
+						<input
+						class="form-control"
+						[(ngModel)]="actionForm.title"
+						placeholder="Leave blank to auto-generate">
+					</div>
+					
+					<div class="mb-3">
+						<label class="form-label">
+							Renewal Reason
+						</label>
+						
+						<textarea
+						rows="3"
+						class="form-control"
+						[(ngModel)]="actionForm.renewal_reason">
+						</textarea>
+					</div>
+					
+					<div class="row g-3">
+						
+						<div class="col-6">
+							<label class="form-label">
+								Effective Date
+								<span class="text-danger">*</span>
+							</label>
+							
+							<input
+							type="date"
+							class="form-control"
+							[(ngModel)]="actionForm.effective_date">
+						</div>
+						
+						<div class="col-6">
+							<label class="form-label">
+								Expiry Date
+								<span class="text-danger">*</span>
+							</label>
+							
+							<input
+							type="date"
+							class="form-control"
+							[(ngModel)]="actionForm.expiry_date">
+						</div>
+						
+						<div class="col-4">
+							<label class="form-label">
+								Currency
+							</label>
+							
+							<input
+							class="form-control"
+							maxlength="3"
+							[(ngModel)]="actionForm.currency_code">
+						</div>
+						
+						<div class="col-8">
+							<label class="form-label">
+								Contract Value
+							</label>
+							
+							<input
+							type="number"
+							min="0"
+							step="0.01"
+							class="form-control"
+							[(ngModel)]="actionForm.contract_value">
+						</div>
+						
+						<div class="col-6">
+							<label class="form-label">
+								Notice Period
+							</label>
+							
+							<input
+							type="number"
+							min="0"
+							max="3650"
+							class="form-control"
+							[(ngModel)]="actionForm.notice_period_days">
+						</div>
+						
+						<div class="col-6">
+							<div class="form-check mt-4">
+								<input
+								id="renewAuto"
+								type="checkbox"
+								class="form-check-input"
+								[(ngModel)]="actionForm.auto_renewal">
+								
+								<label
+								for="renewAuto"
+								class="form-check-label">
+									
+									Auto Renewal
+								</label>
+							</div>
+						</div>
+					</div>
+					
+					<div class="form-check mt-3">
+						<input
+						id="renewCopyProjects"
+						type="checkbox"
+						class="form-check-input"
+						[(ngModel)]="actionForm.copy_project_links">
+						
+						<label
+						for="renewCopyProjects"
+						class="form-check-label">
+							
+							Copy linked projects to renewal
+						</label>
+					</div>
+				</ng-container>
+				
+				<ng-container *ngIf="action === 'terminate'">
+					
+					<div class="mb-3">
+						<label class="form-label">
+							Termination Date
+						</label>
+						
+						<input
+						type="date"
+						class="form-control"
+						[(ngModel)]="actionForm.terminated_on">
+					</div>
+					
+					<div>
+						<label class="form-label">
+							Termination Reason
+							<span class="text-danger">*</span>
+						</label>
+						
+						<textarea
+						rows="5"
+						maxlength="5000"
+						class="form-control"
+						[(ngModel)]="actionForm.termination_reason">
+						</textarea>
+					</div>
+				</ng-container>
+			</div>
+			
+			<footer class="modal-footer-custom">
+				
+				<button
+				type="button"
+				class="btn btn-outline-secondary"
+				[disabled]="actionSaving"
+				(click)="closeAction()">
+					
+					Cancel
+				</button>
+				
+				<button
+				type="button"
+				class="btn"
+				[ngClass]="actionButtonClass()"
+				[disabled]="actionSaving"
+				(click)="executeAction()">
+					
+					<span
+					*ngIf="actionSaving"
+					class="spinner-border spinner-border-sm me-2">
+					</span>
+					
+					Confirm
+				</button>
+			</footer>
+		</section>
+	</div>
+	
+	<!-- Document modal -->
+	<div
+	*ngIf="documentModalMode"
+	class="modal-backdrop-custom"
+	(click)="closeDocumentModal()">
+		
+		<section
+		class="modal-panel-custom modal-panel-large"
+		(click)="$event.stopPropagation()">
+			
+			<header class="modal-header-custom">
+				<h2 class="h5 mb-0">
+					{{
+					documentModalMode === 'upload'
+					? 'Upload Agreement Document'
+					: 'Edit Document Metadata'
+					}}
+				</h2>
+				
+				<button
+				type="button"
+				class="btn btn-sm btn-outline-secondary"
+				[disabled]="documentSaving"
+				(click)="closeDocumentModal()">
+					
+					Close
+				</button>
+			</header>
+			
+			<div class="modal-body-custom">
+				
+				<div
+				*ngIf="documentError"
+				class="alert alert-danger">
+					
+					{{ documentError }}
+				</div>
+				
+				<div class="row g-3">
+					
+					<div
+					*ngIf="documentModalMode === 'upload'"
+					class="col-12">
+						
+						<label class="form-label">
+							File
+							<span class="text-danger">*</span>
+						</label>
+						
+						<input
+						type="file"
+						class="form-control"
+						accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.txt"
+						(change)="onDocumentFileSelected($event)">
+						
+						<div class="form-text">
+							Maximum size: 25 MB.
+						</div>
+					</div>
+					
+					<div class="col-12 col-md-6">
+						<label class="form-label">
+							Document Type
+							<span class="text-danger">*</span>
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="documentForm.document_type_id">
+							
+							<option [ngValue]="null">
+								Select type…
+							</option>
+							
+							<option
+							*ngFor="let type of documentTypes"
+							[ngValue]="type.id">
+								
+								{{ type.code }} - {{ type.name }}
+							</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label">
+							Version
+						</label>
+						
+						<input
+						class="form-control"
+						maxlength="80"
+						[(ngModel)]="documentForm.document_version">
+					</div>
+					
+					<div class="col-12 col-md-3">
+						<label class="form-label">
+							Document Date
+						</label>
+						
+						<input
+						type="date"
+						class="form-control"
+						[(ngModel)]="documentForm.document_date">
+					</div>
+					
+					<div class="col-12">
+						<label class="form-label">
+							Supersedes Document
+						</label>
+						
+						<select
+						class="form-select"
+						[(ngModel)]="documentForm.supersedes_agreement_file_id">
+							
+							<option [ngValue]="null">
+								Does not supersede another document
+							</option>
+							
+							<option
+							*ngFor="let previous of supersedeCandidates"
+							[ngValue]="previous.id"
+							[disabled]="previous.id === editingDocument?.id">
+								
+								#{{ previous.id }}
+								-
+								{{ previous.file?.original_name }}
+								({{ previous.document_version || 'No version' }})
+							</option>
+						</select>
+					</div>
+					
+					<div class="col-12 col-md-6">
+						<div class="form-check form-switch">
+							<input
+							id="documentCurrent"
+							type="checkbox"
+							class="form-check-input"
+							[(ngModel)]="documentForm.is_current">
+							
+							<label
+							for="documentCurrent"
+							class="form-check-label">
+								
+								Current document for this type
+							</label>
+						</div>
+					</div>
+					
+					<div class="col-12 col-md-6">
+						<div class="form-check form-switch">
+							<input
+							id="documentExecuted"
+							type="checkbox"
+							class="form-check-input"
+							[(ngModel)]="documentForm.is_executed_copy">
+							
+							<label
+							for="documentExecuted"
+							class="form-check-label">
+								
+								Executed / signed copy
+							</label>
+						</div>
+					</div>
+					
+					<div class="col-12">
+						<label class="form-label">
+							Notes
+						</label>
+						
+						<textarea
+						rows="4"
+						class="form-control"
+						[(ngModel)]="documentForm.notes">
+						</textarea>
+					</div>
+				</div>
+			</div>
+			
+			<footer class="modal-footer-custom">
+				
+				<button
+				type="button"
+				class="btn btn-outline-secondary"
+				[disabled]="documentSaving"
+				(click)="closeDocumentModal()">
+					
+					Cancel
+				</button>
+				
+				<button
+				type="button"
+				class="btn btn-primary"
+				[disabled]="documentSaving"
+				(click)="saveDocument()">
+					
+					<span
+					*ngIf="documentSaving"
+					class="spinner-border spinner-border-sm me-2">
+					</span>
+					
+					{{
+					documentModalMode === 'upload'
+					? 'Upload Document'
+					: 'Save Metadata'
+					}}
+				</button>
+			</footer>
+		</section>
+	</div>
+</div>
