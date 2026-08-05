@@ -590,18 +590,25 @@
 							{{ event.related_agreement.agreement_no }}
 						</a>
 						
-						<details
-						*ngIf="event.metadata"
-						class="mt-2">
+						<ng-container *ngIf="metadataEntries(event.metadata) as metadata">
 							
-							<summary class="small">
-								Event metadata
-							</summary>
-							
-							<pre class="metadata-box">{{
-								metadataText(event.metadata)
-							}}</pre>
-						</details>
+							<details *ngIf="metadata.length" class="mt-3">
+								<summary class="small">
+									Additional details
+								</summary>
+								<div class="metadata-list">
+									<div *ngFor="let entry of metadata" class="metadata-row">
+										<div class="metadata-label">
+											{{ entry.label }}
+										</div>
+										
+										<div class="metadata-value">
+											{{ entry.value }}
+										</div>
+									</div>
+								</div>
+							</details>
+						</ng-container>
 					</div>
 				</div>
 			</div>
@@ -1201,25 +1208,65 @@
 					<div class="mb-3">
 						<label class="form-label">
 							Reason
+							<span class="text-danger">*</span>
 						</label>
 						
 						<textarea
 						rows="3"
+						maxlength="5000"
 						class="form-control"
-						[(ngModel)]="actionForm.reason">
+						[(ngModel)]="actionForm.reason"
+						(ngModelChange)="
+						clearActionFieldError(
+						'reason'
+						)
+						"
+						[class.is-invalid]="
+						actionFieldInvalid(
+						'reason'
+						)
+						">
 						</textarea>
+						
+						<div class="invalid-feedback">
+							{{
+							actionFieldError(
+							'reason'
+							)
+							}}
+						</div>
 					</div>
 					
 					<div>
 						<label class="form-label">
 							Notes
+							<span class="text-danger">*</span>
 						</label>
 						
 						<textarea
 						rows="4"
+						maxlength="5000"
 						class="form-control"
-						[(ngModel)]="actionForm.notes">
+						[(ngModel)]="actionForm.notes"
+						(ngModelChange)="
+						clearActionFieldError(
+						'notes'
+						)
+						"
+						[class.is-invalid]="
+						actionFieldInvalid(
+						'notes'
+						)
+						">
 						</textarea>
+						
+						<div class="invalid-feedback">
+							{{
+							actionFieldError(
+							'notes'
+							)
+							}}
+						</div>
 					</div>
 				</ng-container>
 				
@@ -1305,13 +1352,33 @@
 					<div class="mb-3">
 						<label class="form-label">
 							Renewal Reason
+							<span class="text-danger">*</span>
 						</label>
 						
 						<textarea
 						rows="3"
+						maxlength="5000"
 						class="form-control"
-						[(ngModel)]="actionForm.renewal_reason">
+						[(ngModel)]="actionForm.renewal_reason"
+						(ngModelChange)="
+						clearActionFieldError(
+						'renewal_reason'
+						)
+						"
+						[class.is-invalid]="
+						actionFieldInvalid(
+						'renewal_reason'
+						)
+						">
 						</textarea>
+						
+						<div class="invalid-feedback">
+							{{
+							actionFieldError(
+							'renewal_reason'
+							)
+							}}
+						</div>
 					</div>
 					
 					<div class="row g-3">
@@ -1325,7 +1392,13 @@
 							<input
 							type="date"
 							class="form-control"
-							[(ngModel)]="actionForm.effective_date">
+							[(ngModel)]="actionForm.effective_date"
+							(ngModelChange)="clearActionFieldError('effective_date')"
+							[class.is-invalid]="actionFieldInvalid('effective_date')">
+							
+							<div class="invalid-feedback">
+								{{ actionFieldError('effective_date') }}
+							</div>
 						</div>
 						
 						<div class="col-6">
@@ -1337,7 +1410,13 @@
 							<input
 							type="date"
 							class="form-control"
-							[(ngModel)]="actionForm.expiry_date">
+							[(ngModel)]="actionForm.expiry_date"
+							(ngModelChange)="clearActionFieldError('expiry_date')"
+							[class.is-invalid]="actionFieldInvalid('expiry_date')">
+							
+							<div class="invalid-feedback">
+								{{ actionFieldError('expiry_date') }}
+							</div>
 						</div>
 						
 						<div class="col-4">

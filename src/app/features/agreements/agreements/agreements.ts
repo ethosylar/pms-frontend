@@ -61,7 +61,7 @@ export class AgreementsComponent implements OnInit {
 	expiryFrom = '';
 	expiryTo = '';
 	
-	currentVersionFilter: BooleanFilter = '1';
+	currentVersionFilter: BooleanFilter = '';
 	includeArchived = false;
 	
 	departments: DepartmentDto[] = [];
@@ -354,5 +354,22 @@ export class AgreementsComponent implements OnInit {
 			return undefined;
 		}
 		return value === '1';
+	}
+	
+	onStatusChange(statusCode: string): void {
+		this.statusCode = statusCode;
+		
+		/*
+			* Archived agreements are excluded
+			* by the backend unless this flag
+			* is enabled.
+		*/
+		if (statusCode === 'ARCHIVED') {
+			this.includeArchived = true;
+		}
+		
+		if (statusCode !== 'ARCHIVED') {
+			this.includeArchived = false;
+		}
 	}
 }

@@ -605,29 +605,14 @@ implements OnInit {
 			* - code cannot be changed
 			* - status cannot be deactivated
 		*/
-		if (
-			status
-			.is_system_status
-			) {
+		if (status.is_system_status) {
 			
-			this.form
-			.get(
-				'code'
-			)
-			?.disable({
-				emitEvent:
-				false,
-			});
-			
-			
-			this.form
-			.get(
-				'is_active'
-			)
-			?.disable({
-				emitEvent:
-				false,
-			});
+			this.form.get('code')?.disable({emitEvent: false, });
+			this.form.get('name')?.disable({emitEvent: false, });
+			this.form.get('description')?.disable({emitEvent: false, });
+			this.form.get('sort_order')?.disable({emitEvent: false, });
+			this.form.get('is_terminal')?.disable({emitEvent: false, });
+			this.form.get('is_active')?.disable({emitEvent: false,});
 		}
 		
 		

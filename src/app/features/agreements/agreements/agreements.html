@@ -86,7 +86,8 @@
 					
 					<select
 					class="form-select"
-					[(ngModel)]="statusCode">
+					[(ngModel)]="statusCode"
+					(ngModelChange)="onStatusChange($event)">
 						
 						<option
 						*ngFor="let status of statuses"

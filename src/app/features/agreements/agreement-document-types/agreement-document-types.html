@@ -831,6 +831,7 @@
                         type="text"
                         class="form-control"
                         maxlength="150"
+						[disabled]="editingSystemType"
                         [(ngModel)]="form.name"
                         (ngModelChange)="clearFieldError('name')"
                         [class.is-invalid]="isFieldInvalid('name')"
@@ -867,6 +868,7 @@
                         rows="4"
                         class="form-control"
                         [(ngModel)]="form.description"
+						[disabled]="editingSystemType"
                         (ngModelChange)="clearFieldError('description')"
                         [class.is-invalid]="isFieldInvalid('description')"
                         [attr.aria-invalid]="isFieldInvalid('description')"
@@ -900,6 +902,7 @@
                         step="1"
                         class="form-control"
                         [(ngModel)]="form.sort_order"
+						[disabled]="editingSystemType"
                         (ngModelChange)="clearFieldError('sort_order')"
                         [class.is-invalid]="isFieldInvalid('sort_order')"
                         [attr.aria-invalid]="isFieldInvalid('sort_order')">
@@ -933,6 +936,7 @@
 						<select
                         class="form-select"
                         [(ngModel)]="form.ocr_eligible"
+						[disabled]="editingSystemType"
                         (ngModelChange)="clearFieldError('ocr_eligible')"
                         [class.is-invalid]="isFieldInvalid('ocr_eligible')"
                         [attr.aria-invalid]="isFieldInvalid('ocr_eligible')">
