@@ -40,6 +40,11 @@ type LifecycleAction =
 | 'terminate'
 | null;
 
+interface MetadataDisplayEntry {
+	label: string;
+	value: string;
+}
+
 @Component({
 	standalone: true,
 	selector: 'app-agreement-detail',
@@ -63,6 +68,7 @@ export class AgreementDetailComponent implements OnInit {
 	action: LifecycleAction = null;
 	actionSaving = false;
 	actionError: string | null = null;
+	actionFieldErrors: Record<string, string> = {};
 	
 	actionForm = {
 		reason: '',
@@ -171,31 +177,60 @@ export class AgreementDetailComponent implements OnInit {
 	) {}
 	
 	ngOnInit(): void {
-		const parsed = Number(this.route.snapshot.paramMap.get('id'));
-		
-		if (!Number.isInteger(parsed) || parsed <= 0) {
-			this.error = 'Invalid agreement ID.';
-			this.loading = false;
-			return;
-		}
-		
-		this.agreementId = parsed;
-		
-		this.loadAgreement();
 		this.loadDocumentTypes();
 		
 		if (this.canLinkProjects()) {
 			this.loadProjectOptions();
 		}
+		
+		/*
+			* Do not use route.snapshot here.
+			*
+			* Angular reuses this component when
+			* moving:
+			*
+			* /agreements/8
+			*      ->
+			* /agreements/7
+			*
+			* Listening to paramMap ensures the
+			* page actually reloads the new
+			* agreement.
+		*/
+		this.route.paramMap.subscribe(params => {
+			
+			const parsed = Number(params.get('id'));
+			
+			if (!Number.isInteger(parsed) || parsed <= 0) {
+				this.error = 'Invalid agreement ID.';
+				this.row = null;
+				this.loading = false;
+				
+				return;
+			}
+			
+			if (this.agreementId === parsed && this.row) {
+				return;
+			}
+			
+			this.agreementId = parsed;
+			this.error = null;
+			this.row = null;
+			this.documentRows = [];
+			this.supersedeCandidates = [];
+			this.action = null;
+			this.actionError = null;
+			this.actionFieldErrors = {};
+			this.documentModalMode = null;
+			this.loadAgreement();
+		});
 	}
 	
 	loadAgreement(): void {
 		this.loading = true;
 		this.error = null;
 		
-		this.api.getAgreement(
-			this.agreementId
-		)
+		this.api.getAgreement(this.agreementId)
 		.pipe(
 			finalize(() => {
 				this.loading = false;
@@ -358,32 +393,43 @@ export class AgreementDetailComponent implements OnInit {
 	openAction(action: Exclude<LifecycleAction, null>): void {
 		this.action = action;
 		this.actionError = null;
+		this.actionFieldErrors = {};
 		
 		this.actionForm = {
 			reason: '',
 			notes: '',
+			
 			title: '',
 			amendment_reason: '',
+			
 			renewal_reason: '',
 			effective_date: this.row?.effective_date ?? '',
 			expiry_date: this.row?.expiry_date ?? '',
+			
 			contract_value: this.row?.contract_value === null || this.row?.contract_value === undefined ? null : Number(this.row.contract_value),
+			
 			currency_code: this.row?.currency_code || 'MYR',
+			
 			notice_period_days: this.row?.notice_period_days ?? null,
+			
 			auto_renewal: this.row?.auto_renewal ?? false,
+			
 			copy_project_links: true,
+			
 			termination_reason: '',
+			
 			terminated_on: new Date().toISOString().slice(0, 10),
 		};
 	}
 	
-	closeAction(): void {
-		if (this.actionSaving) {
+	closeAction(force = false): void {
+		if (this.actionSaving && !force) {
 			return;
 		}
 		
 		this.action = null;
 		this.actionError = null;
+		this.actionFieldErrors = {};
 	}
 	
 	executeAction(): void {
@@ -392,15 +438,23 @@ export class AgreementDetailComponent implements OnInit {
 		}
 		
 		this.actionError = null;
+		this.actionFieldErrors = {};
+		
+		if (!this.validateActionForm()) {
+			return;
+		}
+		
+		const completedAction = this.action;
+		
 		let request$: ReturnType<ApiService['reviewAgreement']>;
 		
-		const notesPayload: AgreementNotesPayload = {
-			reason: this.nullText(this.actionForm.reason),
-			notes: this.nullText(this.actionForm.notes),
+		const notesPayload : AgreementNotesPayload = {
+			reason: this.actionForm.reason.trim(),
+			notes: this.actionForm.notes.trim(),
 		};
 		
-		switch (this.action) {
-			case 'review':
+		switch (completedAction) {
+			case 'review': 
 			request$ = this.api.reviewAgreement(this.agreementId, notesPayload);
 			break;
 			
@@ -425,63 +479,36 @@ export class AgreementDetailComponent implements OnInit {
 			break;
 			
 			case 'amend':
-			if (!this.actionForm.amendment_reason.trim()) {
-				this.actionError = 'Amendment Reason is required.';
-				return;
+			request$ = this.api.amendAgreement(this.agreementId, {
+				title: this.nullText(this.actionForm.title),
+				amendment_reason: this.actionForm.amendment_reason.trim(),
+				effective_date: this.actionForm.effective_date || null,
+				expiry_date: this.actionForm.expiry_date || null,
+				copy_project_links: this.actionForm.copy_project_links,
 			}
-			
-			request$ =
-			this.api.amendAgreement(
-				this.agreementId,
-				{
-					title: this.nullText(this.actionForm.title),
-					amendment_reason: this.actionForm.amendment_reason.trim(),
-					effective_date: this.actionForm.effective_date || null,
-					expiry_date: this.actionForm.expiry_date || null,
-					copy_project_links: this.actionForm.copy_project_links,
-				}
 			);
 			break;
 			
 			case 'renew':
-			if (!this.actionForm.effective_date || !this.actionForm.expiry_date) {
-				this.actionError = 'Renewal Effective Date and Expiry Date are required.';
-				return;
+			request$ = this.api.renewAgreement(this.agreementId, {
+				title: this.nullText(this.actionForm.title),
+				renewal_reason: this.actionForm.renewal_reason.trim(),
+				effective_date: this.actionForm.effective_date,
+				expiry_date: this.actionForm.expiry_date,
+				contract_value: this.actionForm.contract_value,
+				currency_code: this.actionForm.currency_code.trim().toUpperCase(),
+				notice_period_days: this.actionForm.notice_period_days,
+				auto_renewal: this.actionForm.auto_renewal,
+				copy_project_links: this.actionForm.copy_project_links,
 			}
-			
-			if (this.actionForm.expiry_date <= this.actionForm.effective_date) {
-				this.actionError = 'Renewal Expiry Date must be after the Effective Date.';
-				return;
-			}
-			
-			request$ = this.api.renewAgreement(
-				this.agreementId,
-				{
-					title: this.nullText(this.actionForm.title),
-					renewal_reason: this.nullText(this.actionForm.renewal_reason),
-					effective_date: this.actionForm.effective_date,
-					expiry_date: this.actionForm.expiry_date,
-					contract_value: this.actionForm.contract_value,
-					currency_code: this.actionForm.currency_code.trim().toUpperCase(),
-					notice_period_days: this.actionForm.notice_period_days,
-					auto_renewal: this.actionForm.auto_renewal,
-					copy_project_links: this.actionForm.copy_project_links,
-				}
 			);
 			break;
 			
 			case 'terminate':
-			if (!this.actionForm.termination_reason.trim()) {
-				this.actionError = 'Termination Reason is required.';
-				return;
+			request$ = this.api.terminateAgreement(this.agreementId, {
+				termination_reason: this.actionForm.termination_reason.trim(),
+				terminated_on: this.actionForm.terminated_on || null,
 			}
-			
-			request$ = this.api.terminateAgreement(
-				this.agreementId,
-				{
-					termination_reason: this.actionForm.termination_reason.trim(),
-					terminated_on: this.actionForm.terminated_on || null,
-				}
 			);
 			break;
 		}
@@ -489,30 +516,42 @@ export class AgreementDetailComponent implements OnInit {
 		this.actionSaving = true;
 		
 		request$
-		.pipe(
-			finalize(() => {
-				this.actionSaving = false;
-				this.cdr.detectChanges();
-			})
+		.pipe(finalize(() => {
+			this.actionSaving = false;
+			this.cdr
+			.detectChanges();
+		})
 		)
 		.subscribe({
-			next: result => {
-				const createdNewVersion = ['amend','renew',].includes(this.action!);
-				this.toast.success(this.actionSuccessMessage(this.action!));
-				this.closeAction();
+			next: result => { const createdNewVersion = ['amend','renew',].includes(completedAction);
+				
+				this.toast.success(this.actionSuccessMessage(completedAction));
+				
+				/*
+					* Force close because finalize()
+					* has not run yet.
+				*/
+				this.closeAction(true);
 				
 				if (createdNewVersion && result.data.id !== this.agreementId) {
-					this.router.navigate(['/agreements',result.data.id,]);
+					this.router.navigate(['/agreements', result.data.id,]);
 					return;
 				}
 				
 				this.row = result.data;
 				this.documentRows = result.data.documents ?? [];
+				this.loadSupersedeCandidates();
 			},
+			
 			error: (err: any) => {
 				console.error(err);
-				this.actionError = this.apiErrorMessage(err, 'Failed to perform agreement lifecycle action.'
-				);
+				
+				if (this.applyActionApiErrors(err)) {
+					this.cdr.detectChanges();
+					return;
+				}
+				
+				this.actionError = this.apiErrorMessage(err, 'Failed to perform agreement lifecycle action.');
 			},
 		});
 	}
@@ -1048,15 +1087,95 @@ export class AgreementDetailComponent implements OnInit {
 		return (event.to_status?.name || event.from_status?.name || '-');
 	}
 	
-	metadataText(value: unknown): string {
-		if (value === null || value === undefined) {
-			return '-';
+	metadataEntries(value: unknown): MetadataDisplayEntry[] {
+		const result: MetadataDisplayEntry[] = [];
+		this.appendMetadataEntries(value, '', result);
+		return result;
+	}
+	
+	private appendMetadataEntries(value: unknown, path: string, result: MetadataDisplayEntry[]): void {
+		/*
+			* Empty values are hidden.
+			* This also removes old:
+			*
+			* "notes": null
+			*
+			* entries from the UI.
+		*/
+		if (value === null || value === undefined || value === '') {
+			return;
 		}
-		try {
-			return JSON.stringify(value, null, 2);
-		} catch {
-			return String(value);
+		
+		if (Array.isArray(value)) {
+			if (!value.length) {
+				return;
+			}
+			
+			const primitiveOnly = value.every(
+				item => 
+				item === null ||
+				item === undefined ||
+				typeof item === 'string' ||
+				typeof item === 'number' ||
+				typeof item === 'boolean'
+			);
+			
+			if (primitiveOnly) {
+				const text = value.filter(
+					item =>
+					item !== null &&
+					item !== undefined
+				)
+				.map(item => this.metadataValue(item))
+				.join(', ');
+				
+				if (text) {
+					result.push({
+						label:
+						this.humanizeMetadataKey(
+							path ||
+							'Value'
+						),
+						value: text,
+					});
+				}
+				
+				return;
+			}
+			
+			value.forEach(
+				(item, index) => {
+					this.appendMetadataEntries(item, path ? `${path}.${index + 1}` : `Item ${index + 1}`, result);
+				}
+			);
+			
+			return;
 		}
+		
+		if (typeof value === 'object') {
+			for (const [key, childValue,] of Object.entries(value as Record<string, unknown>)) {
+				this.appendMetadataEntries(childValue, path ? `${path}.${key}` : key, result);
+			}
+			
+			return;
+		}
+		
+		result.push({label: this.humanizeMetadataKey(path || 'Value'),
+			value: this.metadataValue(value),
+		});
+	}
+	
+	private humanizeMetadataKey(value: string): string {
+		return value.split('.').map(segment => segment.replace(/_/g, ' ')
+		.replace(/\b\w/g, character => character.toUpperCase())).join(' / ');
+	}
+	
+	private metadataValue(value: unknown): string {
+		if (typeof value === 'boolean') {
+			return value ? 'Yes' : 'No';
+		}
+		
+		return String(value);
 	}
 	
 	private booleanFilter(value: string): boolean | undefined {
@@ -1100,5 +1219,104 @@ export class AgreementDetailComponent implements OnInit {
 		}
 		
 		return (err?.error?.message || fallback);
+	}
+	
+	actionFieldInvalid(field: string): boolean {
+		return !!this.actionFieldErrors[field];
+	}
+	
+	actionFieldError(field: string): string {
+		return (this.actionFieldErrors[field] ?? '');
+	}
+	
+	clearActionFieldError(field: string): void {
+		delete this.actionFieldErrors[field];
+		
+		if (Object.keys(this.actionFieldErrors).length === 0) {
+			this.actionError = null;
+		}
+	}
+	
+	private validateActionForm(): boolean {
+		this.actionFieldErrors = {};
+		
+		if (!this.action) {
+			return false;
+		}
+		
+		/*
+			* Standard lifecycle actions use
+			* Reason + Notes.
+		*/
+		if (['review','submit','approve','activate','cancel','archive',].includes(this.action)) {
+			if (!this.actionForm.reason.trim()) {
+				this.actionFieldErrors['reason'] = 'Reason is required.';
+			}
+			
+			if (!this.actionForm.notes.trim()) {
+				this.actionFieldErrors['notes'] = 'Notes are required.';
+			}
+		}
+		
+		if (this.action === 'amend') {
+			if (!this.actionForm.amendment_reason.trim()) {
+				this.actionFieldErrors['amendment_reason'] = 'Amendment Reason is required.';
+			}
+		}
+		
+		if (this.action === 'renew') {
+			if (!this.actionForm.renewal_reason.trim()) {
+				this.actionFieldErrors['renewal_reason'] = 'Renewal Reason is required.';
+			}
+			
+			if (!this.actionForm.effective_date) {
+				this.actionFieldErrors['effective_date'] = 'Effective Date is required.';
+			}
+			
+			if (!this.actionForm.expiry_date) {
+				this.actionFieldErrors['expiry_date'] = 'Expiry Date is required.';
+			}
+			
+			if (this.actionForm.effective_date && this.actionForm.expiry_date && this.actionForm.expiry_date <= this.actionForm.effective_date) {
+				this.actionFieldErrors['expiry_date'] = 'Expiry Date must be after Effective Date.';
+			}
+		}
+		
+		if (this.action === 'terminate') {
+			if (!this.actionForm.termination_reason.trim()) {
+				this.actionFieldErrors['termination_reason'] = 'Termination Reason is required.';
+			}
+		}
+		
+		if (Object.keys(this.actionFieldErrors).length) {
+			this.actionError = 'Please correct the highlighted fields.';
+			
+			return false;
+		}
+		
+		return true;
+	}
+	
+	private applyActionApiErrors(err: any): boolean {
+		const errors = err?.error?.errors;
+		
+		if (err?.status !== 422 || !errors || typeof errors !== 'object') {
+			return false;
+		}
+		
+		let found = false;
+		
+		for (const [field, messages,] of Object.entries(errors)) {
+			const message = Array.isArray(messages) ? String(messages[0] ?? 'Invalid value.') : String(messages);
+			
+			this.actionFieldErrors[field] = message;
+			found = true;
+		}
+		
+		if (found) {
+			this.actionError = 'Please correct the highlighted fields.';
+		}
+		
+		return found;
 	}
 }
