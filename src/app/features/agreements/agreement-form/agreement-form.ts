@@ -6,16 +6,16 @@ import { catchError, finalize, switchMap, } from 'rxjs/operators';
 import { forkJoin, of, } from 'rxjs';
 
 import {
-	AgreementCategoryDto,
 	AgreementDto,
-	AgreementTypeDto,
 	AgreementUpsertPayload,
 	ApiCollection,
 	ApiResource,
 	ApiService,
-	CounterpartyDto,
-	DepartmentDto,
-	UserDto,
+	LookupAgreementCategoryDto,
+	LookupAgreementTypeDto,
+	LookupCounterpartyDto,
+	LookupDepartmentDto,
+	LookupUserDto,
 } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/auth/auth';
 import { ToastService } from '../../../shared/ui/toast/toast';
@@ -43,12 +43,12 @@ export class AgreementFormComponent implements OnInit {
 	
 	original: AgreementDto | null = null;
 	
-	departments: DepartmentDto[] = [];
-	owners: UserDto[] = [];
-	counterparties: CounterpartyDto[] = [];
-	categories: AgreementCategoryDto[] = [];
-	allTypes: AgreementTypeDto[] = [];
-	filteredTypes: AgreementTypeDto[] = [];
+	departments: LookupDepartmentDto[] = [];
+	owners: LookupUserDto[] = [];
+	counterparties: LookupCounterpartyDto[] = [];
+	categories: LookupAgreementCategoryDto[] = [];
+	allTypes: LookupAgreementTypeDto[] = [];
+	filteredTypes: LookupAgreementTypeDto[] = [];
 	
 	form: FormGroup;
 	
@@ -175,61 +175,29 @@ export class AgreementFormComponent implements OnInit {
 				catchError(() => of(null))
 			),
 			
-			departments:
-			this.api.getDepartments({
-				per_page: 100,
-			})
-			.pipe(catchError(() => of({ data: [], } as ApiCollection<DepartmentDto>))),
-			
-			owners:
-			this.api.getUsers({
-				per_page: 100,
-			})
-			.pipe(
-				catchError(() =>
-					of({
-						data: [],
-					} as ApiCollection<UserDto>)
-				)
+			departments: this.api
+			.getLookupDepartments()
+			.pipe(catchError(() => of({ data: [], } as ApiCollection<LookupDepartmentDto>))
 			),
 			
-			counterparties:
-			this.api.getCounterparties({
-				is_active: true,
-				per_page: 100,
-			})
-			.pipe(
-				catchError(() =>
-					of({
-						data: [],
-					} as ApiCollection<CounterpartyDto>)
-				)
+			owners: this.api
+			.getLookupUsers()
+			.pipe(catchError(() => of({ data: [], } as ApiCollection<LookupUserDto>))
 			),
 			
-			categories:
-			this.api.getAgreementCategories({
-				is_active: true,
-				per_page: 100,
-			})
-			.pipe(
-				catchError(() =>
-					of({
-						data: [],
-					} as ApiCollection<AgreementCategoryDto>)
-				)
+			counterparties: this.api
+			.getLookupCounterparties()
+			.pipe(catchError(() => of({ data: [], } as ApiCollection<LookupCounterpartyDto>))
 			),
 			
-			types:
-			this.api.getAgreementTypes({
-				is_active: true,
-				per_page: 100,
-			})
-			.pipe(
-				catchError(() =>
-					of({
-						data: [],
-					} as ApiCollection<AgreementTypeDto>)
-				)
+			categories: this.api
+			.getLookupAgreementCategories()
+			.pipe(catchError(() => of({ data: [], } as ApiCollection<LookupAgreementCategoryDto>))
+			),
+			
+			types: this.api
+			.getLookupAgreementTypes()
+			.pipe(catchError(() => of({ data: [], } as ApiCollection<LookupAgreementTypeDto>))
 			),
 		})
 		.pipe(
@@ -439,11 +407,10 @@ export class AgreementFormComponent implements OnInit {
 			this.owners = [
 				{
 					id: Number(me.id),
+					
 					name: me.name || 'Current User',
-					username: me.username || '',
-					email: me.email || '',
+					
 					department_id: me.department_id ?? me.department?.id ?? null,
-					department: me.department ?? null,
 				},
 			];
 		}
@@ -481,8 +448,6 @@ export class AgreementFormComponent implements OnInit {
 			this.owners.push({
 				id: agreement.owner.id,
 				name: agreement.owner.name,
-				username: '',
-				email: agreement.owner.email || '',
 			});
 		}
 	}

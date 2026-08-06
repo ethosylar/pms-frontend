@@ -18,6 +18,116 @@ export class ApiService {
 	}
 	
 	// ******************************************************************************************************************************
+	// Lookup Section
+	// ******************************************************************************************************************************
+	
+	getLookupDepartments() {
+		return this.http.get<ApiCollection<LookupDepartmentDto>>(
+			`${environment.apiBaseUrl}/lookup/departments`
+		);
+	}
+	
+	getLookupUsers() {
+		return this.http.get<ApiCollection<LookupUserDto>>(
+			`${environment.apiBaseUrl}/lookup/users`
+		);
+	}
+	
+	getLookupPriorities() {
+		return this.http.get<ApiCollection<LookupSortMiniDto>>(
+			`${environment.apiBaseUrl}/lookup/priorities`
+		);
+	}
+	
+	getLookupProjectStatuses() {
+		return this.http.get<ApiCollection<LookupSortMiniDto>>(
+			`${environment.apiBaseUrl}/lookup/project-statuses`
+		);
+	}
+	
+	getLookupTaskStatuses() {
+		return this.http.get<ApiCollection<LookupSortMiniDto>>(
+			`${environment.apiBaseUrl}/lookup/task-statuses`
+		);
+	}
+	
+	getLookupRiskIssueStatuses() {
+		return this.http.get<ApiCollection<LookupSortMiniDto>>(
+			`${environment.apiBaseUrl}/lookup/risk-issue-statuses`
+		);
+	}
+	
+	getLookupSeverities() {
+		return this.http.get<ApiCollection<LookupSortMiniDto>>(
+			`${environment.apiBaseUrl}/lookup/severities`
+		);
+	}
+	
+	getLookupRiskIssueTypes() {
+		return this.http.get<ApiCollection<LookupMiniDto>>(
+			`${environment.apiBaseUrl}/lookup/risk-issue-types`
+		);
+	}
+	
+	getLookupProjectCategories() {
+		return this.http.get<ApiCollection<LookupMiniDto>>(
+			`${environment.apiBaseUrl}/lookup/project-categories`
+		);
+	}
+	
+	getLookupExternalSources() {
+		return this.http.get<ApiCollection<LookupExternalSourceDto>>(
+			`${environment.apiBaseUrl}/lookup/external-sources`
+		);
+	}
+	
+	getLookupProjects() {
+		return this.http.get<ApiCollection<LookupProjectDto>>(
+			`${environment.apiBaseUrl}/lookup/projects`
+		);
+	}
+	
+	// ******************************************************************************************************************************
+	// Agreement Lookups
+	// ******************************************************************************************************************************
+	
+	getLookupAgreementStatuses() {
+		return this.http.get<ApiCollection<LookupAgreementStatusDto>>(
+			`${environment.apiBaseUrl}/lookup/agreement-statuses`
+		);
+	}
+	
+	getLookupAgreementCategories() {
+		return this.http.get<ApiCollection<LookupAgreementCategoryDto>>(
+			`${environment.apiBaseUrl}/lookup/agreement-categories`
+		);
+	}
+	
+	getLookupAgreementTypes(agreementCategoryId?: number | null) {
+		let httpParams = new HttpParams();
+		
+		if (agreementCategoryId != null) {
+			httpParams = httpParams.set('agreement_category_id', String(agreementCategoryId));
+		}
+		
+		return this.http.get<ApiCollection<LookupAgreementTypeDto>>(
+			`${environment.apiBaseUrl}/lookup/agreement-types`, { params: httpParams,}
+		);
+	}
+	
+	getLookupCounterparties() {
+		return this.http.get<ApiCollection<LookupCounterpartyDto>>(
+			`${environment.apiBaseUrl}/lookup/counterparties`
+		);
+	}
+	
+	getLookupAgreementDocumentTypes() {
+		return this.http.get<ApiCollection<LookupAgreementDocumentTypeDto>>(
+			`${environment.apiBaseUrl}/lookup/agreement-document-types`
+		);
+	}
+	
+	// ******************************************************************************************************************************
 	// Dashboard Overview
 	// ******************************************************************************************************************************
 	
@@ -3162,5 +3272,76 @@ export interface AgreementDocumentUpdatePayload {
 	is_executed_copy?: boolean;
 	supersedes_agreement_file_id?: number | null;
 	notes?: string | null;
+}
+
+export interface LookupDepartmentDto {
+	id: number;
+	code: string;
+	name: string;
+}
+
+export interface LookupUserDto {
+	id: number;
+	name: string;
+	department_id?: number | null;
+}
+
+export interface LookupMiniDto {
+	id: number;
+	code: string;
+	name: string;
+}
+
+export interface LookupSortMiniDto
+extends LookupMiniDto {
+	sort_order: number;
+}
+
+export interface LookupExternalSourceDto {
+	id: number;
+	code: string;
+	name: string;
+	base_url?: string | null;
+}
+
+export interface LookupProjectDto {
+	id: number;
+	code: string;
+	name: string;
+}
+
+export interface LookupAgreementStatusDto {
+	id: number;
+	code: string;
+	name: string;
+	is_terminal?: boolean;
+}
+
+export interface LookupAgreementCategoryDto {
+	id: number;
+	code: string;
+	name: string;
+}
+
+export interface LookupAgreementTypeDto {
+	id: number;
+	agreement_category_id?: number | null;
+	code: string;
+	name: string;
+}
+
+export interface LookupCounterpartyDto {
+	id: number;
+	code?: string | null;
+	counterparty_type?: string | null;
+	legal_name: string;
+	trading_name?: string | null;
+}
+
+export interface LookupAgreementDocumentTypeDto {
+	id: number;
+	code: string;
+	name: string;
+	ocr_eligible: boolean;
 }
 
