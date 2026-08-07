@@ -594,14 +594,141 @@
 								
 								<div class="col-12">
 									<div class="detail-box">
-										
-										<div class="d-flex justify-content-between align-items-center mb-2">
-											<div class="fw-semibold">
-												Linked Projects / Tasks
+										<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+											<div>
+												<div class="fw-semibold">
+													Linked Projects / Tasks
+												</div>
+												
+												<div class="small text-muted">
+													{{ p.links?.length ?? 0 }}
+													active link(s)
+												</div>
 											</div>
 											
-											<div class="small text-muted">
-												{{ p.links?.length ?? 0 }} active link(s)
+											
+											<button *ngIf="canLinkPermits() && !p.is_source_deleted"
+											type="button"
+											class="btn btn-sm btn-primary"
+											(click)="openLinkEditor()">
+												<i class="bi bi-link-45deg me-1"></i>
+												Link to Project
+											</button>
+										</div>
+										
+										<!-- ===============================================================
+											Link Permit to Project
+										=============================================================== -->
+										<div *ngIf="linkEditorOpen" class="border rounded p-3 mb-3 bg-light">
+											<div class="d-flex justify-content-between align-items-center mb-3">
+												<div class="fw-semibold">
+													Link Permit to Project
+												</div>
+												<button type="button" 
+												class="btn btn-sm btn-outline-secondary"
+												[disabled]="linkSaving"
+												(click)="closeLinkEditor()">
+													Cancel
+												</button>
+											</div>
+											<div *ngIf="linkError" class="alert alert-danger py-2">
+												<i class="bi bi-exclamation-triangle me-2"></i>
+												{{ linkError }}
+											</div>
+											
+											<!-- Project -->
+											<div class="mb-3">
+												<label class="form-label">
+													Project
+													<span class="text-danger fw-bold">
+														*
+													</span>
+												</label>
+												<select class="form-select"
+												[(ngModel)]="linkProjectId"
+												(ngModelChange)="onLinkProjectChange()"
+												[disabled]="loadingLinkProjects || linkSaving">
+													<option [ngValue]="null">
+														Select project…
+													</option>
+													<option *ngFor="let project of linkProjects" [ngValue]="project.id">
+														{{ project.code }} - {{ project.name }}
+													</option>
+												</select>
+												<div *ngIf="loadingLinkProjects" class="form-text">
+													<span class="spinner-border spinner-border-sm me-1">
+													</span>
+													Loading projects…
+												</div>
+											</div>
+											
+											<!-- Tasks -->
+											<div *ngIf="linkProjectId" class="mb-3">
+												<label class="form-label">
+													Project Tasks
+												</label>
+												<div class="form-text mb-2">
+													Task selection is optional.
+													
+													Leave all tasks unchecked to link this
+													permit directly to the project.
+												</div>
+												<div *ngIf="loadingLinkTasks" class="text-muted small py-2">
+													<span class="spinner-border spinner-border-sm me-2">
+													</span>
+													Loading project tasks…
+												</div>
+												<div *ngIf="!loadingLinkTasks && !linkTasks.length" class="text-muted small border rounded p-2">
+													This project does not have any tasks.
+													
+													The permit will be linked at project level.
+												</div>
+												<div *ngIf="!loadingLinkTasks && linkTasks.length" class="border rounded bg-white">
+													<div *ngFor="let task of linkTasks" class="form-check px-3 py-2 border-bottom">
+														<input class="form-check-input"
+														type="checkbox"
+														[id]="'permit-link-task-' + task.id"
+														[checked]="isLinkTaskSelected(task.id)"
+														[disabled]="linkSaving"
+														(change)="toggleLinkTask(task.id, $any($event.target).checked)">
+														<label class="form-check-label" [for]="'permit-link-task-' + task.id">
+															#{{ task.id }} - {{ task.name }}
+														</label>
+													</div>
+												</div>
+											</div>
+											
+											<!-- Notes -->
+											<div class="mb-3">
+												<label class="form-label">
+													Link Notes
+												</label>
+												<textarea rows="3"
+												class="form-control"
+												[(ngModel)]="linkNotes"
+												[disabled]="linkSaving"
+												placeholder="Optional notes about why this permit is linked to the project.">
+												</textarea>
+											</div>
+											
+											<!-- Submit -->
+											<div class="d-flex justify-content-end gap-2">
+												<button type="button"
+												class="btn btn-outline-secondary"
+												[disabled]="linkSaving"
+												(click)="closeLinkEditor()">
+													Cancel
+												</button>
+												<button type="button"
+												class="btn btn-primary"
+												[disabled]="linkSaving || !linkProjectId"
+												(click)="submitPermitLink()">
+													<span *ngIf="linkSaving" class="spinner-border spinner-border-sm me-2">
+													</span>
+													<i *ngIf="!linkSaving" class="bi bi-link-45deg me-2">
+													</i>
+													{{ linkSaving ? 'Linking…' : 'Link Permit' }}
+												</button>
 											</div>
 										</div>
 										

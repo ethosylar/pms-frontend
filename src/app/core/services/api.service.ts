@@ -1039,26 +1039,23 @@ export class ApiService {
 	// ******************************************************************************************************************************
 	// Project Budget Line's Section
 	// ******************************************************************************************************************************
-	getProjectBudgetLines(
-		projectId: number,
-		params?: {
-			line_type?: ProjectBudgetLineType;
-			is_active?: number;
-			page?: number;
-			per_page?: number;
-		}
-		) {
-		let httpParams = new HttpParams();
-		
-		if (params?.line_type) httpParams = httpParams.set('line_type', params.line_type);
-		if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
-		if (params?.page) httpParams = httpParams.set('page', String(params.page));
-		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
-		
-		return this.http.get<ApiCollection<ProjectBudgetLineDto>>(
-			`${environment.apiBaseUrl}/projects/${projectId}/budget-lines`,
-			{ params: httpParams }
-		);
+	getProjectBudgetLines(projectId: number, params?: {
+		line_type?: ProjectBudgetLineType;
+		is_active?: number;
+		page?: number;
+		per_page?: number;
+	}) {
+	let httpParams = new HttpParams();
+	
+	if (params?.line_type) httpParams = httpParams.set('line_type', params.line_type);
+	if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
+	if (params?.page) httpParams = httpParams.set('page', String(params.page));
+	if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
+	
+	return this.http.get<ApiCollection<ProjectBudgetLineDto>>(
+		`${environment.apiBaseUrl}/projects/${projectId}/budget-lines`,
+		{ params: httpParams }
+	);
 	}
 	
 	getProjectBudgetLine(projectId: number, lineId: number) {
@@ -1091,32 +1088,29 @@ export class ApiService {
 	// Project Budget Allocation's Section
 	// ******************************************************************************************************************************
 	
-	getProjectBudgetAllocations(
-		projectId: number,
-		params?: {
-			budget_line_id?: number;
-			task_id?: number;
-			milestone_id?: number;
-			line_type?: ProjectBudgetLineType;
-			is_active?: number;
-			page?: number;
-			per_page?: number;
-		}
-		) {
-		let httpParams = new HttpParams();
-		
-		if (params?.budget_line_id) httpParams = httpParams.set('budget_line_id', String(params.budget_line_id));
-		if (params?.task_id) httpParams = httpParams.set('task_id', String(params.task_id));
-		if (params?.milestone_id) httpParams = httpParams.set('milestone_id', String(params.milestone_id));
-		if (params?.line_type) httpParams = httpParams.set('line_type', params.line_type);
-		if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
-		if (params?.page) httpParams = httpParams.set('page', String(params.page));
-		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
-		
-		return this.http.get<ApiCollection<ProjectBudgetAllocationDto>>(
-			`${environment.apiBaseUrl}/projects/${projectId}/budget-allocations`,
-			{ params: httpParams }
-		);
+	getProjectBudgetAllocations(projectId: number, params?: {
+		budget_line_id?: number;
+		task_id?: number;
+		milestone_id?: number;
+		line_type?: ProjectBudgetLineType;
+		is_active?: number;
+		page?: number;
+		per_page?: number;
+	}) {
+	let httpParams = new HttpParams();
+	
+	if (params?.budget_line_id) httpParams = httpParams.set('budget_line_id', String(params.budget_line_id));
+	if (params?.task_id) httpParams = httpParams.set('task_id', String(params.task_id));
+	if (params?.milestone_id) httpParams = httpParams.set('milestone_id', String(params.milestone_id));
+	if (params?.line_type) httpParams = httpParams.set('line_type', params.line_type);
+	if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
+	if (params?.page) httpParams = httpParams.set('page', String(params.page));
+	if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
+	
+	return this.http.get<ApiCollection<ProjectBudgetAllocationDto>>(
+		`${environment.apiBaseUrl}/projects/${projectId}/budget-allocations`,
+		{ params: httpParams }
+	);
 	}
 	
 	getProjectBudgetAllocation(projectId: number, allocationId: number) {
@@ -1277,8 +1271,7 @@ export class ApiService {
 	// ******************************************************************************************************************************
 	
 	getAgreementStatuses(params:AgreementStatusListParams = {}) {
-		let httpParams =
-		new HttpParams();
+		let httpParams = new HttpParams();
 		
 		if (params.search) {
 			httpParams = httpParams.set('search',params.search);
@@ -1798,6 +1791,12 @@ export class ApiService {
 	requestAgreementDocumentOcr(agreementId: number, documentId: number) {
 		return this.http.post<ApiResource<AgreementDocumentDto>>(
 			`${environment.apiBaseUrl}/agreements/${agreementId}/documents/${documentId}/ocr/request`, {}
+		);
+	}
+	
+	getProjectAgreements(projectId: number) {
+		return this.http.get<ApiCollection<AgreementDto>>(
+			`${environment.apiBaseUrl}/projects/${projectId}/agreements`
 		);
 	}
 	

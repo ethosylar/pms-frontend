@@ -15,6 +15,8 @@ import {
 	ProjectMilestoneDto,
 	ProjectTaskGanttDto,
 	StoredFileDto,
+	AgreementDto,
+	ExternalPermitDto,
 } from '../../../core/services/api.service';
 import { ToastService } from '../../../shared/ui/toast/toast';
 import { ProjectGanttNgxEmbedComponent, } from '../project-gantt-ngx-embed/project-gantt-ngx-embed';
@@ -25,7 +27,9 @@ type ProjectDetailTab =
 | 'financials'
 | 'project-files'
 | 'milestones'
-| 'task-files';
+| 'task-files'
+| 'agreements'
+| 'permits';
 
 type TaskFilesVm = {
 	taskId: number;
@@ -75,6 +79,14 @@ export class ProjectDetailComponent implements OnInit {
 	budgetAllocations: ProjectBudgetAllocationDto[] = [];
 	budgetLoading = false;
 	budgetError: string | null = null;
+	
+	linkedAgreements: AgreementDto[] = [];
+	agreementsLoading = false;
+	agreementsError: string | null = null;
+	
+	linkedPermits: ExternalPermitDto[] = [];
+	permitsLoading = false;
+	permitsError: string | null = null;
 	
 	taskOptions: Array<{
 		id: number;
@@ -149,6 +161,8 @@ export class ProjectDetailComponent implements OnInit {
 		this.loadMilestones();
 		this.loadProjectFiles();
 		this.loadFinancials();
+		this.loadLinkedAgreements();
+		this.loadLinkedPermits();
 	}
 	
 	back(): void {
@@ -514,9 +528,7 @@ export class ProjectDetailComponent implements OnInit {
 		});
 	}
 	
-	private loadTaskFilesForTasks(
-		tasks: ProjectTaskGanttDto[]
-		): void {
+	private loadTaskFilesForTasks(tasks: ProjectTaskGanttDto[]): void {
 		this.taskFilesLoading = true;
 		this.taskFilesError = null;
 		
@@ -576,9 +588,7 @@ export class ProjectDetailComponent implements OnInit {
 		});
 	}
 	
-	taskStatusLabel(
-		task: ProjectTaskGanttDto
-		): string {
+	taskStatusLabel(task: ProjectTaskGanttDto): string {
 		return (
 			task.status_name ||
 			task.status_code ||
@@ -586,9 +596,7 @@ export class ProjectDetailComponent implements OnInit {
 		);
 	}
 	
-	taskActualStatusLabel(
-		task: ProjectTaskGanttDto
-		): string {
+	taskActualStatusLabel(task: ProjectTaskGanttDto): string {
 		return (
 			task.actual_status_name ||
 			task.actual_status_code ||
@@ -596,10 +604,7 @@ export class ProjectDetailComponent implements OnInit {
 		);
 	}
 	
-	taskBadgeClass(
-		task: ProjectTaskGanttDto,
-		actual = false
-		): string {
+	taskBadgeClass(task: ProjectTaskGanttDto, actual = false): string {
 		const code = String(
 			actual
 			? (
@@ -640,11 +645,8 @@ export class ProjectDetailComponent implements OnInit {
 		}
 	}
 	
-	taskMilestoneLabel(
-		task: ProjectTaskGanttDto
-		): string {
-		return (
-			task.milestone?.name ||
+	taskMilestoneLabel(task: ProjectTaskGanttDto): string {
+		return (task.milestone?.name ||
 			(
 				task.milestone_id
 				? `Milestone #${task.milestone_id}`
@@ -653,9 +655,7 @@ export class ProjectDetailComponent implements OnInit {
 		);
 	}
 	
-	taskAssigneeLabel(
-		task: ProjectTaskGanttDto
-		): string {
+	taskAssigneeLabel(task: ProjectTaskGanttDto): string {
 		return (
 			task.assigned_to_name ||
 			(
@@ -666,15 +666,12 @@ export class ProjectDetailComponent implements OnInit {
 		);
 	}
 	
-	parentTaskLabel(
-		task: ProjectTaskGanttDto
-		): string {
+	parentTaskLabel(task: ProjectTaskGanttDto): string {
 		if (!task.parent_task_id) {
 			return '—';
 		}
 		
-		const parent =
-		this.projectTasks.find(
+		const parent = this.projectTasks.find(
 			item =>
 			item.id ===
 			task.parent_task_id
@@ -685,15 +682,12 @@ export class ProjectDetailComponent implements OnInit {
 		: `Task #${task.parent_task_id}`;
 	}
 	
-	dependencyTaskLabel(
-		task: ProjectTaskGanttDto
-		): string {
+	dependencyTaskLabel(task: ProjectTaskGanttDto): string {
 		if (!task.depends_on_task_id) {
 			return '—';
 		}
 		
-		const dependency =
-		this.projectTasks.find(
+		const dependency = this.projectTasks.find(
 			item =>
 			item.id ===
 			task.depends_on_task_id
@@ -726,31 +720,13 @@ export class ProjectDetailComponent implements OnInit {
 		).length;
 	}
 	
-	isTaskOverdue(
-		task: ProjectTaskGanttDto
-		): boolean {
-		if (
-			!task.end_date ||
-			this.isTerminalTask(task)
-			) {
+	isTaskOverdue(task: ProjectTaskGanttDto): boolean {
+		if (!task.end_date || this.isTerminalTask(task)) {
 			return false;
 		}
-		
-		const rawEndDate =
-		String(task.end_date);
-		
-		const endDate =
-		new Date(
-			rawEndDate.includes('T')
-			? rawEndDate
-			: `${rawEndDate}T23:59:59`
-		);
-		
-		if (
-			Number.isNaN(
-				endDate.getTime()
-			)
-			) {
+		const rawEndDate = String(task.end_date);
+		const endDate = new Date(rawEndDate.includes('T') ? rawEndDate : `${rawEndDate}T23:59:59`);
+		if (Number.isNaN(endDate.getTime())) {
 			return false;
 		}
 		
@@ -758,11 +734,8 @@ export class ProjectDetailComponent implements OnInit {
 		Date.now();
 	}
 	
-	private isCompletedTask(
-		task: ProjectTaskGanttDto
-		): boolean {
-		const code =
-		this.taskEffectiveStatus(task);
+	private isCompletedTask(task: ProjectTaskGanttDto): boolean {
+		const code = this.taskEffectiveStatus(task);
 		
 		return (
 			code === 'DONE' ||
@@ -770,11 +743,8 @@ export class ProjectDetailComponent implements OnInit {
 		);
 	}
 	
-	private isTerminalTask(
-		task: ProjectTaskGanttDto
-		): boolean {
-		const code =
-		this.taskEffectiveStatus(task);
+	private isTerminalTask(task: ProjectTaskGanttDto): boolean {
+		const code = this.taskEffectiveStatus(task);
 		
 		return (
 			code === 'DONE' ||
@@ -783,34 +753,17 @@ export class ProjectDetailComponent implements OnInit {
 		);
 	}
 	
-	private taskEffectiveStatus(
-		task: ProjectTaskGanttDto
-		): string {
-		return String(
-			task.actual_status_code ||
-			task.status_code ||
-			''
-		)
-		.trim()
-		.toUpperCase();
+	private taskEffectiveStatus(task: ProjectTaskGanttDto): string {
+		return String(task.actual_status_code || task.status_code || '').trim().toUpperCase();
 	}
 	
-	previewTaskFile(
-		taskId: number,
-		file: StoredFileDto
-		): void {
+	previewTaskFile(taskId: number, file: StoredFileDto): void {
 		if (!this.canPreviewFile(file)) {
-			this.downloadTaskFile(
-				taskId,
-				file
-			);
+			this.downloadTaskFile(taskId, file);
 			return;
 		}
 		
-		this.api.downloadTaskFile(
-			taskId,
-			file.id
-		)
+		this.api.downloadTaskFile(taskId, file.id)
 		.subscribe({
 			next: blob => {
 				const url =
@@ -839,14 +792,8 @@ export class ProjectDetailComponent implements OnInit {
 		});
 	}
 	
-	downloadTaskFile(
-		taskId: number,
-		file: StoredFileDto
-		): void {
-		this.api.downloadTaskFile(
-			taskId,
-			file.id
-		)
+	downloadTaskFile(taskId: number, file: StoredFileDto): void {
+		this.api.downloadTaskFile(taskId, file.id)
 		.subscribe({
 			next: blob => {
 				this.downloadBlob(
@@ -864,61 +811,31 @@ export class ProjectDetailComponent implements OnInit {
 		});
 	}
 	
-	canPreviewFile(
-		file: StoredFileDto
-		): boolean {
-		const mime =
-		(file.mime_type || '')
-		.toLowerCase();
-		
-		return (
-			mime.startsWith('image/') ||
-			mime === 'application/pdf' ||
-			mime.startsWith('text/')
-		);
+	canPreviewFile(file: StoredFileDto): boolean {
+		const mime = (file.mime_type || '').toLowerCase();
+		return (mime.startsWith('image/') || mime === 'application/pdf' || mime.startsWith('text/'));
 	}
 	
-	formatBytes(
-		size?: number | null
-		): string {
-		const bytes =
-		Number(size ?? 0);
+	formatBytes(size?: number | null): string {
+		const bytes = Number(size ?? 0);
 		
 		if (bytes < 1024) {
 			return `${bytes} B`;
 		}
 		
-		if (
-			bytes <
-			1024 * 1024
-			) {
-			return `${(
-			bytes / 1024
-			).toFixed(1)} KB`;
+		if (bytes < 1024 * 1024) {
+			return `${( bytes / 1024 ).toFixed(1)} KB`;
 		}
 		
-		if (
-			bytes <
-			1024 * 1024 * 1024
-			) {
-			return `${(
-			bytes /
-			(1024 * 1024)
-			).toFixed(1)} MB`;
+		if (bytes < 1024 * 1024 * 1024) {
+			return `${( bytes / (1024 * 1024)).toFixed(1)} MB`;
 		}
 		
-		return `${(
-		bytes /
-		(1024 * 1024 * 1024)
-		).toFixed(1)} GB`;
+		return `${( bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 	}
 	
-	moneyLabel(
-		value?: number | null
-		): string {
-		const currency =
-		this.row?.currency_code ||
-		'MYR';
+	moneyLabel(value?: number | null): string {
+		const currency = this.row?.currency_code || 'MYR';
 		
 		return `${currency} ${Number(
 		value ?? 0
@@ -931,28 +848,15 @@ export class ProjectDetailComponent implements OnInit {
 		)}`;
 	}
 	
-	budgetLineLabel(
-		id?: number | null
-		): string {
-		const line =
-		this.budgetLines.find(
-			item =>
-			item.id ===
-			Number(id)
-		);
+	budgetLineLabel(id?: number | null): string {
+		const line = this.budgetLines.find(item => item.id === Number(id));
 		
-		return line
-		? `${line.line_type} • ${line.code} - ${line.name}`
-		: '—';
+		return line ? `${line.line_type} • ${line.code} - ${line.name}` : '—';
 	}
 	
-	allocationTargetLabel(
-		allocation:
-		ProjectBudgetAllocationDto
-		): string {
+	allocationTargetLabel(allocation: ProjectBudgetAllocationDto): string {
 		if (allocation.task_id) {
-			const task =
-			this.taskOptions.find(
+			const task = this.taskOptions.find(
 				item =>
 				item.id ===
 				allocation.task_id
@@ -983,52 +887,25 @@ export class ProjectDetailComponent implements OnInit {
 		return 'Project level';
 	}
 	
-	allocationTotalByType(
-		type: ProjectBudgetLineType,
-		field:
+	allocationTotalByType(type: ProjectBudgetLineType, field:
 		| 'planned_amount'
 		| 'actual_amount'
 		| 'committed_amount'
 		): number {
-		return this.budgetAllocations
-		.filter(
-			allocation =>
-			this.allocationLineType(
-				allocation
-			) === type
-		)
-		.reduce(
-			(sum, allocation) =>
-			sum +
-			Number(
-				allocation[field] ??
-				0
-			),
-			0
+		return this.budgetAllocations.filter(allocation => this.allocationLineType(allocation) === type)
+		.reduce((sum, allocation) =>
+			sum + Number(allocation[field] ?? 0), 0
 		);
 	}
 	
-	allocationVariance(
-		field:
-		| 'planned_amount'
-		| 'actual_amount'
-		| 'committed_amount'
-		): number {
+	allocationVariance(field: | 'planned_amount'| 'actual_amount'| 'committed_amount'): number {
 		return (
-			this.allocationTotalByType(
-				'FUND',
-				field
-			) -
-			this.allocationTotalByType(
-				'COST',
-				field
-			)
+			this.allocationTotalByType('FUND', field) -
+			this.allocationTotalByType('COST', field)
 		);
 	}
 	
-	varianceClass(
-		value: number
-		): string {
+	varianceClass(value: number): string {
 		if (value < 0) {
 			return 'text-danger fw-semibold';
 		}
@@ -1040,65 +917,219 @@ export class ProjectDetailComponent implements OnInit {
 		return 'fw-semibold';
 	}
 	
-	private allocationLineType(
-		allocation:
-		ProjectBudgetAllocationDto
-		): ProjectBudgetLineType | null {
-		const nestedType =
-		allocation.budget_line
-		?.line_type;
+	private allocationLineType(allocation: ProjectBudgetAllocationDto): ProjectBudgetLineType | null {
+		const nestedType = allocation.budget_line?.line_type;
 		
-		if (
-			nestedType === 'COST' ||
-			nestedType === 'FUND'
-			) {
+		if (nestedType === 'COST' || nestedType === 'FUND') {
 			return nestedType;
 		}
-		
-		return (
-			this.budgetLines.find(
-				line =>
-				line.id ===
-				allocation.budget_line_id
-			)?.line_type ??
-			null
-		);
+		return (this.budgetLines.find(line => line.id === allocation.budget_line_id)?.line_type ?? null);
 	}
 	
-	private normalizeTasks(
-		value: unknown
-		): ProjectTaskGanttDto[] {
+	private normalizeTasks(value: unknown): ProjectTaskGanttDto[] {
 		if (Array.isArray(value)) {
 			return value as ProjectTaskGanttDto[];
 		}
 		
-		if (
-			value &&
-			typeof value === 'object' &&
-			Array.isArray(
-				(value as any).data
-			)
-			) {
+		if (value && typeof value === 'object' && Array.isArray((value as any).data)) {
 			return (value as any).data;
 		}
-		
 		return [];
 	}
 	
-	private downloadBlob(
-		blob: Blob,
-		fileName: string
-		): void {
-		const url =
-		window.URL.createObjectURL(blob);
-		
-		const anchor =
-		document.createElement('a');
-		
+	private downloadBlob(blob: Blob, fileName: string): void {
+		const url = window.URL.createObjectURL(blob);
+		const anchor = document.createElement('a');
 		anchor.href = url;
 		anchor.download = fileName;
 		anchor.click();
-		
 		window.URL.revokeObjectURL(url);
 	}
+	
+	loadLinkedAgreements(): void {
+		this.agreementsLoading = true;
+		this.agreementsError = null;
+		
+		this.api.getProjectAgreements(this.projectId)
+		.pipe(finalize(() => {
+			this.agreementsLoading = false;
+			this.ensureDynamicTabExists();
+			
+			this.cdr.detectChanges();
+		})
+		)
+		.subscribe({
+			next: response => {
+				this.linkedAgreements = response.data ?? [];
+			},
+			error: (err: any) => {
+				console.error(err);
+				this.linkedAgreements = [];
+				/*
+					* 403 means this user can see the
+					* Project but does not have Agreement
+					* visibility.
+					*
+					* Do not show the Agreement tab.
+				*/
+				if (err?.status === 403) {
+					return;
+				}
+				this.agreementsError = err?.error ?.message || 'Failed to load linked agreements.';
+			},
+		});
+	}
+	
+	loadLinkedPermits(): void {
+		this.permitsLoading = true;
+		this.permitsError = null;
+		this.api.getProjectPermits(this.projectId)
+		.pipe(finalize(() => {
+			this.permitsLoading = false;
+			this.ensureDynamicTabExists();
+			this.cdr.detectChanges();
+		})
+		)
+		.subscribe({next: response => {
+			this.linkedPermits = response.data ?? [];
+		},
+		error: (err: any) => {
+			console.error(err);
+			this.linkedPermits = [];
+			if (err?.status === 403) {
+				return;
+			}
+			this.permitsError = err?.error?.message || 'Failed to load linked ePTW permits.';
+		},
+		});
+	}
+	
+	private ensureDynamicTabExists(): void {
+		if (this.activeTab === 'agreements' && this.linkedAgreements.length === 0) {
+			this.activeTab = 'overview';
+		}
+		
+		if (this.activeTab === 'permits' && this.linkedPermits.length === 0) {
+			this.activeTab = 'overview';
+		}
+	}
+	
+	agreementStatusBadgeClass(agreement: AgreementDto): string {
+		const code = String(agreement.status?.code ?? '').trim().toUpperCase();
+		switch (code) {
+			case 'ACTIVE':
+			return 'bg-success';
+			
+			case 'APPROVED':
+			return 'bg-info text-dark';
+			
+			case 'UNDER_REVIEW':
+			case 'PENDING_APPROVAL':
+			return 'bg-primary';
+			
+			case 'EXPIRING_SOON':
+			return 'bg-warning text-dark';
+			
+			case 'EXPIRED':
+			case 'TERMINATED':
+			return 'bg-danger';
+			
+			case 'ARCHIVED':
+			case 'CANCELLED':
+			case 'RENEWED':
+			return 'bg-secondary';
+			
+			default:
+			return 'bg-light text-dark border';
+		}
+	}
+	
+	permitStatusBadgeClass(permit: ExternalPermitDto): string {
+		if (permit.is_source_deleted) {
+			return 'bg-dark';
+		}
+		
+		switch (String(permit.normalized_status ?? '').trim().toUpperCase()) {
+			case 'ACTIVE':
+			return 'bg-success';
+			
+			case 'PENDING':
+			return 'bg-warning text-dark';
+			
+			case 'SUSPENDED':
+			return 'bg-danger';
+			
+			case 'COMPLETED':
+			return 'bg-primary';
+			
+			case 'CANCELLED':
+			case 'CANCELED':
+			return 'bg-secondary';
+			
+			default:
+			return 'bg-light text-dark border';
+		}
+	}
+	
+	permitStatusLabel(permit: ExternalPermitDto): string {
+		if (permit.is_source_deleted) {
+			return 'SOURCE DELETED';
+		}
+		
+		return (permit.normalized_status || 'UNKNOWN');
+	}
+	
+	permitWorkPeriod(permit: ExternalPermitDto): string {
+		const start = permit.work_start_date || '—';
+		const end = permit.work_end_date || '—';
+		return (`${start} to ${end}`);
+	}
+	
+	permitLinkedTaskNames(permit: ExternalPermitDto): string {
+		const names = (
+		permit.links ?? [])
+		.filter(link =>
+			link.project_id === this.projectId && !!link.task
+		).map(link => link.task!.name);
+		
+		if (!names.length) {
+			return 'Project level';
+		}
+		
+		return names.join(', ');
+	}
+	
+	agreementLifecycleLabel(agreement: AgreementDto): string {
+		const lifecycle = agreement.lifecycle;
+		if (!lifecycle) {
+			return '—';
+		}
+		
+		let label = lifecycle.type || 'ORIGINAL';
+		if (lifecycle.revision_no > 0) {
+			label += ` • Revision ${lifecycle.revision_no}`;
+		}
+		
+		if (lifecycle.renewal_sequence > 0) {
+			label += ` • Renewal ${lifecycle.renewal_sequence}`;
+		}
+		return label;
+	}
+	
+	
+	agreementMoneyLabel(agreement: AgreementDto): string {
+		if (agreement.contract_value === null || agreement.contract_value === undefined) {
+			return '—';
+		}
+		
+		return (`${agreement.currency_code || 'MYR'} ` + Number(agreement.contract_value)
+			.toLocaleString('en-US',{
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2,
+			}
+			)
+		);
+	}
+	
+	
 }
