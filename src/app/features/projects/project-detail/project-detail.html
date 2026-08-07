@@ -130,6 +130,37 @@
 					<span>Task Files</span>
 				</button>
 				
+				<!-- ===============================================================
+					Linked Agreements
+				=============================================================== -->
+				<button
+				*ngIf="linkedAgreements.length > 0"
+				type="button"
+				class="project-tab"
+				[class.active]="activeTab === 'agreements'"
+				(click)="setTab('agreements')">
+					<i class="bi bi-file-earmark-text"></i>
+					<span>
+						Agreements
+						({{ linkedAgreements.length }})
+					</span>
+				</button>
+				
+				<!-- ===============================================================
+					Linked ePTW Permits
+				=============================================================== -->
+				<button
+				*ngIf="linkedPermits.length > 0"
+				type="button"
+				class="project-tab"
+				[class.active]="activeTab === 'permits'"
+				(click)="setTab('permits')">
+					<i class="bi bi-shield-check"></i>
+					<span>
+						ePTW Permits
+						({{ linkedPermits.length }})
+					</span>
+				</button>
 			</div>
 		</div>
 		
@@ -1481,6 +1512,240 @@
 						</tbody>
 					</table>
 				</div>
+			</div>
+		</div>
+		
+		<!-- ===============================================================
+			Linked Agreements
+		=============================================================== -->
+		
+		<div class="card-body" *ngIf="activeTab === 'agreements' && linkedAgreements.length > 0">
+			<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+				<div>
+					<div class="section-title mb-1">
+						Linked Agreements
+					</div>
+					<div class="small text-muted">
+						Agreements associated with this project.
+						Historical amendments and renewals remain visible
+						when they are still linked.
+					</div>
+				</div>
+				<div class="badge bg-primary">
+					{{ linkedAgreements.length }}
+					linked
+				</div>
+			</div>
+			<div *ngIf="agreementsError" class="alert alert-danger">
+				{{ agreementsError }}
+			</div>
+			<div *ngIf="agreementsLoading" class="text-center text-muted py-5">
+				<div class="spinner-border"></div>
+				<div class="mt-2">
+					Loading linked agreements…
+				</div>
+			</div>
+			<div class="table-responsive" *ngIf="!agreementsLoading">
+				<table class="table table-hover align-middle mb-0">
+					<thead class="table-light">
+						<tr>
+							<th>Agreement</th>
+							<th>Counterparty</th>
+							<th>Classification</th>
+							<th>Status</th>
+							<th>Period</th>
+							<th>Version</th>
+							<th class="text-end">Value</th>
+							<th class="text-end">Action</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr *ngFor="let agreement of linkedAgreements">
+							<!-- Agreement -->
+							<td>
+								<div class="fw-semibold">
+									{{ agreement.agreement_no }}
+								</div>
+								<div class="small text-muted">
+									{{ agreement.title }}
+								</div>
+							</td>
+							<!-- Counterparty -->
+							<td>
+								{{ agreement.counterparty?.legal_name || '—' }}
+							</td>
+							<!-- Classification -->
+							<td>
+								<div>
+									{{ agreement.category?.name || '—' }}
+								</div>
+								<div *ngIf="agreement.type" class="small text-muted">
+									{{ agreement.type?.name }}
+								</div>
+							</td>
+							<!-- Status -->
+							<td>
+								<span class="badge" [ngClass]="agreementStatusBadgeClass(agreement)">
+									{{ agreement.status?.name || '—' }}
+								</span>
+								<div *ngIf="agreement.lifecycle?.is_current_version" class="mt-1">
+									<span class="badge bg-success">
+										Current
+									</span>
+								</div>
+							</td>
+							<!-- Period -->
+							<td>
+								<div>
+									{{ agreement.effective_date?(agreement.effective_date | date:'yyyy-MM-dd') : '—' }}
+								</div>
+								<div class="small text-muted">
+									to
+									{{ agreement.expiry_date? (agreement.expiry_date | date:'yyyy-MM-dd') : '—' }}
+								</div>
+							</td>
+							<!-- Lifecycle -->
+							<td>
+								{{ agreementLifecycleLabel(agreement) }}
+							</td>
+							<!-- Value -->
+							<td class="text-end">
+								{{ agreementMoneyLabel(agreement) }}
+							</td>
+							<!-- View -->
+							<td class="text-end">
+								<a class="btn btn-sm btn-outline-primary" [routerLink]="['/agreements', agreement.id]">
+									<i class="bi bi-eye me-1"></i>
+									View
+								</a>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		
+		<!-- ===============================================================
+			Linked ePTW Permits
+		=============================================================== -->
+		<div class="card-body" *ngIf="activeTab === 'permits' && linkedPermits.length > 0">
+			<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+				<div>
+					<div class="section-title mb-1">
+						Linked ePTW Permits
+					</div>
+					<div class="small text-muted">
+						Synchronized ePTW permits associated with
+						this Project or its Tasks.
+					</div>
+				</div>
+				<div class="badge bg-primary">
+					{{ linkedPermits.length }}
+					linked
+				</div>
+			</div>
+			<div *ngIf="permitsError" class="alert alert-danger">
+				{{ permitsError }}
+			</div>
+			<div *ngIf="permitsLoading" class="text-center text-muted py-5">
+				<div class="spinner-border"></div>
+				<div class="mt-2">
+					Loading linked permits…
+				</div>
+			</div>
+			<div class="table-responsive" *ngIf="!permitsLoading">
+				<table class="table table-hover align-middle mb-0">
+					<thead class="table-light">
+						<tr>
+							<th>Form</th>
+							<th>Status</th>
+							<th>Company / Service</th>
+							<th>Applicant</th>
+							<th>Work Period</th>
+							<th>Location</th>
+							<th>Linked To</th>
+							<th>Last Synced</th>
+							<th class="text-end">Source</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr *ngFor="let permit of linkedPermits">
+							<!-- Form -->
+							<td>
+								<div class="fw-semibold">
+									{{ permit.external_form_id }}
+								</div>
+								<div *ngIf="permit.external_permit_id" class="small text-muted">
+									{{ permit.external_permit_id }}
+								</div>
+							</td>
+							<!-- Status -->
+							<td>
+								<span class="badge" [ngClass]="permitStatusBadgeClass(permit)">
+									{{ permitStatusLabel(permit) }}
+								</span>
+								<div *ngIf="permit.is_expired && !permit.is_source_deleted" class="small text-danger mt-1">
+									Expired
+								</div>
+							</td>
+							<!-- Company -->
+							<td>
+								<div>
+									{{ permit.company_name || '—' }}
+								</div>
+								<div class="small text-muted">
+									{{ permit.service_name || '—' }}
+								</div>
+							</td>
+							<!-- Applicant -->
+							<td>
+								<div>
+									{{ permit.applicant_name || '—' }}
+								</div>
+								<div *ngIf="permit.supervisor_name" class="small text-muted">
+									Supervisor:
+									{{ permit.supervisor_name }}
+								</div>
+							</td>
+							<!-- Period -->
+							<td>
+								{{ permitWorkPeriod(permit) }}
+								<div *ngIf="permit.work_start_time || permit.work_end_time" class="small text-muted">
+									{{ permit.work_start_time || '—' }}
+									to
+									{{ permit.work_end_time || '—' }}
+								</div>
+							</td>
+							<!-- Location -->
+							<td>
+								{{ permit.exact_location || '—' }}
+							</td>
+							<!-- Link Level -->
+							<td>
+								{{ permitLinkedTaskNames(permit) }}
+							</td>
+							<!-- Sync -->
+							<td>
+								{{ permit.last_synced_at ? (permit.last_synced_at | date:'yyyy-MM-dd HH:mm') : '—' }}
+							</td>
+							<!-- Source -->
+							<td class="text-end">
+								<a *ngIf="permit.source_url"
+								class="btn btn-sm btn-outline-primary"
+								[href]="permit.source_url"
+								target="_blank"
+								rel="noopener noreferrer">
+									<i class="bi bi-box-arrow-up-right me-1"></i>
+									Open ePTW
+								</a>
+								<span *ngIf="!permit.source_url"
+								class="text-muted">
+									—
+								</span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 		</div>
 		

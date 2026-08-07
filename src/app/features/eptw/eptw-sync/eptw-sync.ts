@@ -1,8 +1,4 @@
-import {
-	ChangeDetectorRef,
-	Component,
-	OnInit,
-} from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -16,6 +12,8 @@ import {
 	ExternalPermitQueryParams,
 	IntegrationSyncRunDto,
 	IntegrationSyncRunQueryParams,
+	LookupProjectDto,
+	ProjectTaskGanttDto,
 } from '../../../core/services/api.service';
 import { ToastService } from '../../../shared/ui/toast/toast';
 import { AuthService } from '../../../core/auth/auth';
@@ -50,6 +48,21 @@ export class EptwSyncComponent implements OnInit {
 	
 	selectedPermit: ExternalPermitDto | null = null;
 	permitDetailOpen = false;
+	
+	// -------------------------------------------------------------------------
+	// Permit -> Project linking
+	// -------------------------------------------------------------------------
+	
+	linkEditorOpen = false;
+	loadingLinkProjects = false;
+	loadingLinkTasks = false;
+	linkSaving = false;
+	linkError: string | null = null;
+	linkProjects: LookupProjectDto[] = [];
+	linkTasks: ProjectTaskGanttDto[] = [];
+	linkProjectId: number | null = null;
+	linkTaskIds: number[] = [];
+	linkNotes = '';
 	
 	//runAsync = true;
 	runAsync = false;
@@ -130,15 +143,15 @@ export class EptwSyncComponent implements OnInit {
 	}
 	
 	canSync(): boolean {
-		return this.auth.hasAnyPermission([
-			'permits.sync',
-		]);
+		return this.auth.hasAnyPermission(['permits.sync',]);
+	}
+	
+	canLinkPermits(): boolean {
+		return this.auth.hasAnyPermission(['permits.link',]);
 	}
 	
 	canReadPermits(): boolean {
-		return this.auth.hasAnyPermission([
-			'permits.read',
-		]);
+		return this.auth.hasAnyPermission(['permits.read',]);
 	}
 	
 	setTab(tab: EptwTab): void {
@@ -395,8 +408,18 @@ export class EptwSyncComponent implements OnInit {
 	}
 	
 	closePermitDetail(): void {
+		if (this.linkSaving) {
+			return;
+		}
+		
 		this.permitDetailOpen = false;
 		this.selectedPermit = null;
+		this.linkEditorOpen = false;
+		this.linkError = null;
+		this.linkProjectId = null;
+		this.linkTaskIds = [];
+		this.linkTasks = [];
+		this.linkNotes = '';
 	}
 	
 	pagePermits(direction: -1 | 1): void {
@@ -545,5 +568,211 @@ export class EptwSyncComponent implements OnInit {
 		}
 		
 		return err?.error?.message || fallback;
+	}
+	
+	openLinkEditor(): void {
+		if (!this.selectedPermit) {
+			return;
+		}
+		
+		
+		if (!this.canLinkPermits()) {
+			this.toast.error('You do not have permission to link ePTW permits.');
+			return;
+		}
+		
+		
+		if (this.selectedPermit.is_source_deleted) {
+			this.toast.warning('A deleted ePTW permit cannot be linked.');
+			return;
+		}
+		
+		
+		this.linkEditorOpen = true;
+		this.linkError = null;
+		this.linkProjectId = null;
+		this.linkTaskIds = [];
+		this.linkTasks = [];
+		this.linkNotes = '';
+		
+		if (!this.linkProjects.length) {
+			this.loadLinkProjects();
+		}
+	}
+	
+	
+	closeLinkEditor(): void {
+		if (this.linkSaving) {
+			return;
+		}
+		
+		this.linkEditorOpen = false;
+		this.linkError = null;
+		this.linkProjectId = null;
+		this.linkTaskIds = [];
+		this.linkTasks = [];
+		this.linkNotes = '';
+	}
+	
+	
+	private loadLinkProjects(): void {
+		this.loadingLinkProjects = true;
+		this.linkError = null;
+		
+		this.api.getLookupProjects().pipe(finalize(() => {
+			this.loadingLinkProjects = false;
+			this.cdr.detectChanges();
+		})
+		)
+		.subscribe({next: result => {
+			this.linkProjects = result.data ?? [];
+		},
+		error: (err: any) => {
+			console.error(err);
+			this.linkProjects = [];
+			this.linkError = this.apiErrorMessage(err, 'Failed to load project list.');
+		},
+		});
+	}
+	
+	
+	onLinkProjectChange(): void {
+		this.linkError = null;
+		this.linkTaskIds = [];
+		this.linkTasks = [];
+		
+		if (!this.linkProjectId) {
+			return;
+		}
+		
+		this.loadingLinkTasks = true;
+		this.api.getProjectGantt(this.linkProjectId)
+		.pipe(finalize(() => {
+			this.loadingLinkTasks = false;
+			this.cdr.detectChanges();
+		})
+		)
+		.subscribe({next: response => {
+			this.linkTasks = response.tasks ?? [];
+		},
+		error: (err: any) => {
+			console.error(err);
+			/*
+				* Tasks are optional.
+				*
+				* Even if the task list cannot
+				* be loaded, the user may still
+				* create a project-level link.
+			*/
+			this.linkTasks = [];
+			this.toast.warning('Task list could not be loaded. You can still link the permit directly to the project.');
+		},
+		});
+	}
+	
+	
+	toggleLinkTask(taskId: number, checked: boolean): void {
+		if (checked) {
+			if (!this.linkTaskIds.includes(taskId)) {
+				this.linkTaskIds = [
+					...this.linkTaskIds,
+					taskId,
+				];
+			}
+			return;
+		}
+		this.linkTaskIds = this.linkTaskIds.filter(id => id !== taskId);
+	}
+	
+	
+	isLinkTaskSelected(taskId: number): boolean {
+		return this.linkTaskIds.includes(taskId);
+	}
+	
+	submitPermitLink(): void {
+		if (!this.selectedPermit) {
+			return;
+		}
+		
+		if (!this.canLinkPermits()) {
+			this.linkError = 'You do not have permission to link ePTW permits.';
+			return;
+		}
+		
+		if (!this.linkProjectId) {
+			this.linkError = 'Please select a project.';
+			return;
+		}
+		
+		if (this.selectedPermit.is_source_deleted) {
+			this.linkError = 'A deleted ePTW permit cannot be linked.';
+			return;
+		}
+		
+		this.linkSaving = true;
+		this.linkError = null;
+		const permitId = this.selectedPermit.id;
+		this.api.linkPermitToProject(
+			this.linkProjectId,{
+				permit_id: permitId,
+				task_ids: this.linkTaskIds,
+				notes: this.linkNotes.trim() || null,
+			}
+			).pipe(finalize(() => {
+				this.linkSaving = false;
+				this.cdr.detectChanges();
+			})
+		)
+		.subscribe({next: () => {
+			this.toast.success(
+				this.linkTaskIds.length
+				? 'ePTW permit linked to the project and selected task(s).'
+				: 'ePTW permit linked to the project.'
+			);
+			
+			this.linkEditorOpen = false;
+			this.linkProjectId = null;
+			this.linkTaskIds = [];
+			this.linkTasks = [];
+			this.linkNotes = '';
+			/*
+				* Refresh the permit detail so the
+				* new Project / Task link appears
+				* immediately.
+			*/
+			this.reloadSelectedPermit(permitId);
+			/*
+				* Refresh main table so its
+				* link-count badge also changes.
+			*/
+			this.loadPermits(this.permitMeta.current_page);
+		},
+		error: (err: any) => {
+			console.error(err);
+			this.linkError = this.apiErrorMessage(err, 'Failed to link ePTW permit to project.');
+		},
+		});
+	}
+	
+	
+	private reloadSelectedPermit(permitId: number): void {
+		this.loadingDetail = true;
+		this.api.getExternalPermit(permitId).pipe(
+			finalize(() => {
+				this.loadingDetail = false;
+				this.cdr.detectChanges();
+			})
+		)
+		.subscribe({
+			next: result => {
+				if (this.permitDetailOpen) {
+					this.selectedPermit = result.data;
+				}
+			},
+			error: (err: any) => {
+				console.error(err);
+				this.toast.error(this.apiErrorMessage(err, 'The permit was linked, but its refreshed details could not be loaded.'));
+			},
+		});
 	}
 }
