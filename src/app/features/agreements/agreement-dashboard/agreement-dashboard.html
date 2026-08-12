@@ -1,0 +1,1321 @@
+<div class="position-relative agreement-dashboard-wrap">
+	
+	<!-- ===============================================================
+		Loading
+	=============================================================== -->
+	
+	<div
+	*ngIf="loading"
+	class="loading-overlay">
+		
+		<div class="text-center">
+			
+			<div
+			class="spinner-border"
+			role="status">
+			</div>
+			
+			<div class="mt-2 fw-semibold">
+				Loading agreement overview…
+			</div>
+			
+		</div>
+		
+	</div>
+	
+	
+	<!-- ===============================================================
+		Header
+	=============================================================== -->
+	
+	<div
+	class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+		
+		<div>
+			
+			<h1 class="h4 mb-1">
+				Agreement Overview
+			</h1>
+			
+			<div class="text-muted small">
+				Monitor the current agreement portfolio,
+				expiry exposure and upcoming agreement end dates.
+			</div>
+			
+			<div
+			*ngIf="overview"
+			class="text-muted small mt-1">
+				
+				<i class="bi bi-calendar3 me-1"></i>
+				
+				As of
+				{{ formatDate(overview.scope.as_of_date) }}
+				
+			</div>
+			
+		</div>
+		
+		
+		<div class="d-flex gap-2">
+			
+			<button
+			type="button"
+			class="btn btn-outline-secondary"
+			[disabled]="loading"
+			(click)="load()">
+				
+				<i class="bi bi-arrow-clockwise"></i>
+				
+				<span class="ms-2">
+					Refresh
+				</span>
+				
+			</button>
+			
+			
+			<button
+			type="button"
+			class="btn btn-primary"
+			(click)="openManagement()">
+				
+				<i class="bi bi-file-earmark-text"></i>
+				
+				<span class="ms-2">
+					Agreement Management
+				</span>
+				
+			</button>
+			
+		</div>
+		
+	</div>
+	
+	
+	<!-- ===============================================================
+		Error
+	=============================================================== -->
+	
+	<div
+	*ngIf="error"
+	class="alert alert-danger">
+		
+		<i class="bi bi-exclamation-triangle me-2"></i>
+		
+		{{ error }}
+		
+	</div>
+	
+	
+	<ng-container *ngIf="overview">
+		
+		
+		<!-- ===========================================================
+			Summary Cards
+		=========================================================== -->
+		<div class="row g-3 mb-3">
+			<!-- =======================================================
+				Current Agreements
+			======================================================= -->
+			<div class="col-12 col-sm-6 col-lg-4 col-xxl-2">
+				<button type="button" class="card shadow-sm border-0 h-100 w-100 dashboard-stat-card dashboard-stat-button"
+				(click)="openManagementPreset('current')">
+					<div class="card-body">
+						<div class="d-flex align-items-start justify-content-between gap-3">
+							<div>
+								<div class="metric-label">
+									Current Agreements
+								</div>
+								<div class="metric-value">
+									{{ overview.summary.total_current }}
+								</div>
+								
+							</div>
+							
+							
+							<div class="metric-icon metric-icon-primary">
+								
+								<i class="bi bi-files"></i>
+								
+							</div>
+							
+						</div>
+						
+						
+						<div class="metric-help">
+							
+							Latest current versions including
+							all lifecycle statuses
+							
+						</div>
+						
+					</div>
+					
+				</button>
+				
+			</div>
+			
+			
+			<!-- =======================================================
+				Ongoing
+			======================================================= -->
+			
+			<div class="col-12 col-sm-6 col-lg-4 col-xxl-2">
+				
+				<button
+				type="button"
+				class="card shadow-sm border-0 h-100 w-100 dashboard-stat-card dashboard-stat-button"
+				(click)="openManagementPreset('ongoing')">
+					
+					<div class="card-body">
+						
+						<div
+						class="d-flex align-items-start justify-content-between gap-3">
+							
+							<div>
+								
+								<div class="metric-label">
+									Ongoing
+								</div>
+								
+								<div class="metric-value">
+									{{
+									overview.summary
+									.ongoing
+									}}
+								</div>
+								
+							</div>
+							
+							
+							<div class="metric-icon metric-icon-success">
+								
+								<i class="bi bi-play-circle"></i>
+								
+							</div>
+							
+						</div>
+						
+						
+						<div class="metric-help">
+							
+							Currently effective agreements
+							
+						</div>
+						
+					</div>
+					
+				</button>
+				
+			</div>
+			
+			
+			<!-- =======================================================
+				Expiring Soon
+			======================================================= -->
+			
+			<div class="col-12 col-sm-6 col-lg-4 col-xxl-2">
+				
+				<button
+				type="button"
+				class="card shadow-sm border-0 h-100 w-100 dashboard-stat-card dashboard-stat-button"
+				(click)="openManagementPreset('expiring_soon')">
+					
+					<div class="card-body">
+						
+						<div
+						class="d-flex align-items-start justify-content-between gap-3">
+							
+							<div>
+								
+								<div class="metric-label">
+									Expiring Soon
+								</div>
+								
+								<div class="metric-value">
+									{{
+									expiringSoonCount()
+									}}
+								</div>
+								
+							</div>
+							
+							
+							<div class="metric-icon metric-icon-warning">
+								
+								<i class="bi bi-alarm"></i>
+								
+							</div>
+							
+						</div>
+						
+						
+						<div class="metric-help">
+							
+							Expires within the next 90 days
+							
+						</div>
+						
+					</div>
+					
+				</button>
+				
+			</div>
+			
+			
+			<!-- =======================================================
+				Expired
+			======================================================= -->
+			
+			<div class="col-12 col-sm-6 col-lg-4 col-xxl-2">
+				
+				<button
+				type="button"
+				class="card shadow-sm border-0 h-100 w-100 dashboard-stat-card dashboard-stat-button"
+				(click)="openManagementPreset('expired')">
+					
+					<div class="card-body">
+						
+						<div
+						class="d-flex align-items-start justify-content-between gap-3">
+							
+							<div>
+								
+								<div class="metric-label">
+									Expired
+								</div>
+								
+								<div class="metric-value">
+									{{
+									expiredCount()
+									}}
+								</div>
+								
+							</div>
+							
+							
+							<div class="metric-icon metric-icon-danger">
+								
+								<i class="bi bi-calendar-x"></i>
+								
+							</div>
+							
+						</div>
+						
+						
+						<div class="metric-help">
+							
+							Expired or overdue unclosed agreements
+							
+						</div>
+						
+					</div>
+					
+				</button>
+				
+			</div>
+			
+			
+			<!-- =======================================================
+				Pending Approval
+			======================================================= -->
+			
+			<div class="col-12 col-sm-6 col-lg-4 col-xxl-2">
+				
+				<button
+				type="button"
+				class="card shadow-sm border-0 h-100 w-100 dashboard-stat-card dashboard-stat-button"
+				(click)="openManagementPreset('pending_approval')">
+					
+					<div class="card-body">
+						
+						<div
+						class="d-flex align-items-start justify-content-between gap-3">
+							
+							<div>
+								
+								<div class="metric-label">
+									Pending Approval
+								</div>
+								
+								<div class="metric-value">
+									{{
+									overview.summary
+									.pending_approval
+									}}
+								</div>
+								
+							</div>
+							
+							
+							<div class="metric-icon metric-icon-info">
+								
+								<i class="bi bi-hourglass-split"></i>
+								
+							</div>
+							
+						</div>
+						
+						
+						<div class="metric-help">
+							
+							Waiting for approval action
+							
+						</div>
+						
+					</div>
+					
+				</button>
+				
+			</div>
+			
+			
+			<!-- =======================================================
+				Auto Renewal
+			======================================================= -->
+			
+			<div class="col-12 col-sm-6 col-lg-4 col-xxl-2">
+				
+				<button
+				type="button"
+				class="card shadow-sm border-0 h-100 w-100 dashboard-stat-card dashboard-stat-button"
+				(click)="openManagementPreset('auto_renewal')">
+					
+					<div class="card-body">
+						
+						<div
+						class="d-flex align-items-start justify-content-between gap-3">
+							
+							<div>
+								
+								<div class="metric-label">
+									Auto Renewal
+								</div>
+								
+								<div class="metric-value">
+									{{
+									overview.summary
+									.auto_renewal
+									}}
+								</div>
+								
+							</div>
+							
+							
+							<div class="metric-icon metric-icon-secondary">
+								
+								<i class="bi bi-arrow-repeat"></i>
+								
+							</div>
+							
+						</div>
+						
+						
+						<div class="metric-help">
+							
+							Ongoing auto-renewing agreements
+							
+						</div>
+						
+					</div>
+					
+				</button>
+				
+			</div>
+			
+		</div>
+		
+		
+		<!-- ===========================================================
+			Expiry Exposure
+		=========================================================== -->
+		
+		<div
+		class="card shadow-sm border-0 mb-3">
+			
+			<div class="card-header bg-white">
+				
+				<div
+				class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+					
+					<div>
+						
+						<div class="fw-semibold">
+							Expiry Exposure
+						</div>
+						
+						<div class="text-muted small">
+							Current agreements grouped by
+							remaining time before expiry.
+						</div>
+						
+					</div>
+					
+					
+					<div class="text-muted small">
+						
+						<i class="bi bi-info-circle me-1"></i>
+						
+						No Expiry:
+						
+						{{
+						overview.summary
+						.without_expiry_date
+						}}
+						
+					</div>
+					
+				</div>
+				
+			</div>
+			
+			
+			<div class="card-body">
+				
+				<div class="expiry-bucket-grid">
+					
+					
+					<!-- Expired -->
+					
+					<div
+					class="expiry-bucket expiry-bucket-danger">
+						
+						<div class="expiry-bucket-label">
+							Expired / Overdue
+						</div>
+						
+						<div class="expiry-bucket-value">
+							{{
+							expiryBucketCount(
+							'expired'
+							)
+							}}
+						</div>
+						
+					</div>
+					
+					
+					<!-- 0 - 30 -->
+					
+					<div
+					class="expiry-bucket expiry-bucket-danger-soft">
+						
+						<div class="expiry-bucket-label">
+							0 – 30 Days
+						</div>
+						
+						<div class="expiry-bucket-value">
+							{{
+							expiryBucketCount(
+							'0_30'
+							)
+							}}
+						</div>
+						
+					</div>
+					
+					
+					<!-- 31 - 60 -->
+					
+					<div
+					class="expiry-bucket expiry-bucket-warning">
+						
+						<div class="expiry-bucket-label">
+							31 – 60 Days
+						</div>
+						
+						<div class="expiry-bucket-value">
+							{{
+							expiryBucketCount(
+							'31_60'
+							)
+							}}
+						</div>
+						
+					</div>
+					
+					
+					<!-- 61 - 90 -->
+					
+					<div
+					class="expiry-bucket expiry-bucket-warning-soft">
+						
+						<div class="expiry-bucket-label">
+							61 – 90 Days
+						</div>
+						
+						<div class="expiry-bucket-value">
+							{{
+							expiryBucketCount(
+							'61_90'
+							)
+							}}
+						</div>
+						
+					</div>
+					
+					
+					<!-- 91 - 180 -->
+					
+					<div class="expiry-bucket">
+						
+						<div class="expiry-bucket-label">
+							91 – 180 Days
+						</div>
+						
+						<div class="expiry-bucket-value">
+							{{
+							expiryBucketCount(
+							'91_180'
+							)
+							}}
+						</div>
+						
+					</div>
+					
+					
+					<!-- 181 - 365 -->
+					
+					<div class="expiry-bucket">
+						
+						<div class="expiry-bucket-label">
+							181 – 365 Days
+						</div>
+						
+						<div class="expiry-bucket-value">
+							{{
+							expiryBucketCount(
+							'181_365'
+							)
+							}}
+						</div>
+						
+					</div>
+					
+					
+					<!-- No Expiry -->
+					
+					<div class="expiry-bucket">
+						
+						<div class="expiry-bucket-label">
+							No Expiry Date
+						</div>
+						
+						<div class="expiry-bucket-value">
+							{{
+							expiryBucketCount(
+							'no_expiry'
+							)
+							}}
+						</div>
+						
+					</div>
+					
+				</div>
+				
+			</div>
+			
+		</div>
+		
+		
+		<!-- ===========================================================
+			Agreement Expiry Timeline
+		=========================================================== -->
+		
+		<div class="card shadow-sm border-0 mb-3">
+			<div class="card-header bg-white">
+				<div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+					<div>
+						<div class="fw-semibold">
+							Agreement Expiry Timeline
+						</div>
+						<div class="text-muted small">
+							Current ongoing agreements and their
+							upcoming expiry dates.
+						</div>
+					</div>
+					<div class="d-flex align-items-center gap-2">
+						<span *ngIf="timelineLoading" class="spinner-border spinner-border-sm text-primary">
+						</span>
+						<div class="btn-group btn-group-sm">
+							<button *ngFor="let range of timelineRanges"
+							type="button"
+							class="btn"
+							[disabled]="timelineLoading"
+							[class.btn-primary]="timelineRange === range"
+							[class.btn-outline-secondary]="timelineRange !== range"
+							(click)="setTimelineRange(range)">
+								{{ range === 'all' ? 'All' : range + ' Months' }}
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- Legend -->
+			<div class="card-body pb-2">
+				<div class="d-flex align-items-center flex-wrap gap-3 small mb-3">
+					<div class="timeline-legend">
+						<span class="timeline-legend-box legend-normal"></span>
+						More than 90 days
+					</div>
+					<div class="timeline-legend">
+						<span class="timeline-legend-box legend-warning">
+						</span>
+						31 – 90 days
+					</div>
+					<div class="timeline-legend">
+						<span class="timeline-legend-box legend-danger"></span>
+						0 – 30 days
+					</div>
+					<div class="timeline-legend">
+						<span class="timeline-legend-line"></span>
+						Today
+					</div>
+				</div>
+			</div>
+			<!-- Timeline -->
+			
+			<div *ngIf="visibleTimeline.length > 0" class="timeline-scroll">
+				<div class="agreement-timeline" [style.min-width.px]="timelineMinWidthPx">
+					<!-- Header row -->
+					<div class="timeline-header-row">
+						<div class="timeline-name-cell timeline-sticky-cell">
+							Agreement
+						</div>
+						<div class="timeline-header-track">
+							<div class="timeline-month-grid" [style.grid-template-columns]="timelineGridTemplate">
+								<div *ngFor="let month of timelineMonthLabels" class="timeline-month-header">
+									{{ month }}
+								</div>
+							</div>
+							<!-- Today line -->
+							<div class="timeline-today-line timeline-today-header" [style.left.%]="todayPosition()">
+								<span class="timeline-today-label">
+									Today
+								</span>
+							</div>
+						</div>
+					</div>
+					<!-- Agreement rows -->
+					<div *ngFor="let item of visibleTimeline" class="timeline-data-row">
+						<!-- Agreement information -->
+						<div class="timeline-name-cell timeline-sticky-cell">
+							<div class="d-flex align-items-center justify-content-between gap-2">
+								<button type="button" class="agreement-number-link" (click)="openAgreement(item.id)">
+									{{ item.agreement_no }}
+								</button>
+								<span class="badge" [ngClass]="statusBadgeClass(item.status_code)">
+									{{ item.status_name }}
+								</span>
+							</div>
+							<div class="timeline-agreement-title" [title]="item.title">
+								{{ item.title }}
+							</div>
+							<div class="text-muted small text-truncate">
+								{{ item.counterparty || 'No counterparty' }}
+							</div>
+							<div class="small mt-1" [ngClass]="daysRemainingClass(item)">
+								{{ daysRemainingLabel(item) }}
+							</div>
+						</div>
+						<!-- Graph area -->
+						<div class="timeline-track">
+							<!-- Month grid -->
+							<div class="timeline-month-grid timeline-month-grid-body"
+							[style.grid-template-columns]="timelineGridTemplate">
+								<div *ngFor="let month of timelineMonthLabels" class="timeline-month-column">
+								</div>
+							</div>
+							<!-- Today marker -->
+							<div class="timeline-today-line" [style.left.%]="todayPosition()">
+							</div>
+							<!-- Agreement duration bar -->
+							<button type="button" class="timeline-bar" [ngClass]="timelineBarClass(item)"
+							[style.left.%]="timelineLeft(item)"
+							[style.width.%]="timelineWidth(item)"
+							[title]="timelineTooltip(item)"
+							[attr.aria-label]="'Open ' + item.agreement_no + ', expires ' + formatDate(item.expiry_date)"
+							(click)="openAgreement(item.id)">
+								<span class="timeline-bar-end">
+								</span>
+							</button>
+							<!-- Expiry date -->
+							<div class="timeline-expiry-text" [style.left.%]="timelineLeft(item) + timelineWidth(item)">
+								{{ formatDateShort(item.expiry_date) }}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- Empty timeline -->
+			<div *ngIf="visibleTimeline.length === 0" class="text-center text-muted py-5">
+				<i class="bi bi-calendar2-check fs-2 d-block mb-2">
+				</i>
+				<div class="fw-semibold">
+					No upcoming expiry within this period
+				</div>
+				<div class="small mt-1">
+					No ongoing agreements are due to expire
+					within the selected
+					{{ visibleTimeline }}-month timeline.
+				</div>
+			</div>
+			<!-- ===============================================================
+				No Expiry Agreements
+			================================================================ -->
+			<div *ngIf="timelineRange === 'all' && noExpiryTimeline.length > 0" class="border-top">
+				<div class="p-3">
+					<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+						<div>
+							<div class="fw-semibold">
+								No Expiry Agreements
+							</div>
+							<div class="small text-muted">
+								Current agreements without a defined
+								expiry date cannot be plotted on the
+								expiry timeline.
+							</div>
+						</div>
+						<span class="badge bg-secondary">
+							{{ noExpiryTimeline.length }}
+						</span>
+					</div>
+					<div class="table-responsive">
+						<table class="table table-hover align-middle mb-0">
+							<thead class="table-light">
+								<tr>
+									<th>Agreement</th>
+									<th>Counterparty</th>
+									<th>Department</th>
+									<th>Effective Date</th>
+									<th>Status</th>
+									<th class="text-end">Action</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr *ngFor="let item of noExpiryTimeline">
+									<td>
+										<div class="fw-semibold">
+											{{ item.agreement_no }}
+										</div>
+										<div class="small text-muted">
+											{{ item.title }}
+										</div>
+									</td>
+									<td>
+										{{ item.counterparty || '—' }}
+									</td>
+									<td>
+										{{ item.department || '—' }}
+									</td>
+									<td>
+										{{ formatDate(item.effective_date) }}
+									</td>
+									<td>
+										<span class="badge" [ngClass]="statusBadgeClass(item.status_code)">
+											{{ item.status_name }}
+										</span>
+									</td>
+									<td class="text-end">
+										<button type="button" class="btn btn-sm btn-outline-primary" (click)="openAgreement(item.id)">
+											<i class="bi bi-eye me-1"></i>
+											View
+										</button>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		
+		<!-- ===========================================================
+			Upcoming Expiries + Requires Attention
+		=========================================================== -->
+		
+		<div class="row g-3">
+			
+			
+			<!-- =======================================================
+				Upcoming Expiries
+			======================================================= -->
+			
+			<div class="col-12 col-xl-8">
+				
+				<div
+				class="card shadow-sm border-0 h-100">
+					
+					<div class="card-header bg-white">
+						
+						<div class="fw-semibold">
+							Upcoming Expiries
+						</div>
+						
+						<div class="text-muted small">
+							Nearest agreement expiry dates
+							within the dashboard timeline.
+						</div>
+						
+					</div>
+					
+					
+					<div class="card-body">
+						
+						<div class="table-responsive">
+							
+							<table
+							class="table table-hover align-middle mb-0">
+								
+								<thead>
+									
+									<tr>
+										
+										<th>
+											Agreement
+										</th>
+										
+										<th>
+											Counterparty
+										</th>
+										
+										<th>
+											Department
+										</th>
+										
+										<th>
+											Expiry
+										</th>
+										
+										<th>
+											Remaining
+										</th>
+										
+										<th>
+											Status
+										</th>
+										
+										<th class="text-end">
+											Action
+										</th>
+										
+									</tr>
+									
+								</thead>
+								
+								
+								<tbody>
+									
+									
+									<tr
+									*ngFor="
+									let item of
+									upcomingExpiries
+									">
+										
+										<td>
+											
+											<div class="fw-semibold">
+												{{ item.agreement_no }}
+											</div>
+											
+											<div
+											class="text-muted small upcoming-title"
+											[title]="item.title">
+												
+												{{ item.title }}
+												
+											</div>
+											
+										</td>
+										
+										
+										<td>
+											
+											{{
+											item.counterparty ||
+											'—'
+											}}
+											
+										</td>
+										
+										
+										<td>
+											
+											{{
+											item.department ||
+											'—'
+											}}
+											
+										</td>
+										
+										
+										<td class="text-nowrap">
+											
+											{{
+											formatDate(
+											item.expiry_date
+											)
+											}}
+											
+										</td>
+										
+										
+										<td class="text-nowrap">
+											
+											<span
+											[ngClass]="
+											daysRemainingClass(
+											item
+											)
+											">
+												
+												{{
+												daysRemainingLabel(
+												item
+												)
+												}}
+												
+											</span>
+											
+										</td>
+										
+										
+										<td>
+											
+											<span
+											class="badge"
+											[ngClass]="
+											statusBadgeClass(
+											item.status_code
+											)
+											">
+												
+												{{ item.status_name }}
+												
+											</span>
+											
+										</td>
+										
+										
+										<td class="text-end">
+											
+											<button
+											type="button"
+											class="btn btn-sm btn-outline-primary"
+											(click)="
+											openAgreement(
+											item.id
+											)
+											">
+												
+												<i class="bi bi-eye me-1"></i>
+												
+												View
+												
+											</button>
+											
+										</td>
+										
+									</tr>
+									
+									
+									<!-- Empty state -->
+									
+									<tr
+									*ngIf="
+									upcomingExpiries.length === 0
+									">
+										
+										<td
+										colspan="7"
+										class="text-center text-muted py-4">
+											
+											<i
+											class="bi bi-calendar-check d-block fs-4 mb-2">
+											</i>
+											
+											No upcoming agreement expiries
+											were found in the dashboard
+											timeline.
+											
+										</td>
+										
+									</tr>
+									
+								</tbody>
+								
+							</table>
+							
+						</div>
+						
+					</div>
+					
+				</div>
+				
+			</div>
+			
+			
+			<!-- =======================================================
+				Requires Attention
+			======================================================= -->
+			
+			<div class="col-12 col-xl-4">
+				
+				<div
+				class="card shadow-sm border-0 h-100">
+					
+					<div class="card-header bg-white">
+						
+						<div class="fw-semibold">
+							Requires Attention
+						</div>
+						
+						<div class="text-muted small">
+							Agreement conditions requiring
+							operational review.
+						</div>
+						
+					</div>
+					
+					
+					<div class="card-body">
+						
+						<div class="attention-list">
+							
+							
+							<!-- Expired -->
+							
+							<div class="attention-item">
+								
+								<div
+								class="attention-icon attention-danger">
+									
+									<i class="bi bi-calendar-x"></i>
+									
+								</div>
+								
+								
+								<div class="flex-grow-1">
+									
+									<div class="fw-semibold">
+										Expired / Overdue
+									</div>
+									
+									<div class="text-muted small">
+										Expiry date has already passed.
+									</div>
+									
+								</div>
+								
+								
+								<div class="attention-value">
+									
+									{{
+									expiredCount()
+									}}
+									
+								</div>
+								
+							</div>
+							
+							
+							<!-- Expiring Soon -->
+							
+							<div class="attention-item">
+								
+								<div
+								class="attention-icon attention-warning">
+									
+									<i class="bi bi-alarm"></i>
+									
+								</div>
+								
+								
+								<div class="flex-grow-1">
+									
+									<div class="fw-semibold">
+										Expiring Within 90 Days
+									</div>
+									
+									<div class="text-muted small">
+										Agreement expiry is approaching.
+									</div>
+									
+								</div>
+								
+								
+								<div class="attention-value">
+									
+									{{
+									expiringSoonCount()
+									}}
+									
+								</div>
+								
+							</div>
+							
+							
+							<!-- Pending Approval -->
+							
+							<div class="attention-item">
+								
+								<div
+								class="attention-icon attention-primary">
+									
+									<i class="bi bi-hourglass-split"></i>
+									
+								</div>
+								
+								
+								<div class="flex-grow-1">
+									
+									<div class="fw-semibold">
+										Pending Approval
+									</div>
+									
+									<div class="text-muted small">
+										Awaiting approval workflow.
+									</div>
+									
+								</div>
+								
+								
+								<div class="attention-value">
+									
+									{{
+									overview.summary
+									.pending_approval
+									}}
+									
+								</div>
+								
+							</div>
+							
+							
+							<!-- Approved not started -->
+							
+							<div class="attention-item">
+								
+								<div
+								class="attention-icon attention-primary">
+									
+									<i class="bi bi-calendar-event"></i>
+									
+								</div>
+								
+								
+								<div class="flex-grow-1">
+									
+									<div class="fw-semibold">
+										Approved Not Started
+									</div>
+									
+									<div class="text-muted small">
+										Approved agreements with a
+										future effective date.
+									</div>
+									
+								</div>
+								
+								
+								<div class="attention-value">
+									
+									{{
+									overview.summary
+									.approved_not_started
+									}}
+									
+								</div>
+								
+							</div>
+							
+							
+							<!-- No Expiry Date -->
+							
+							<div class="attention-item">
+								
+								<div
+								class="attention-icon attention-secondary">
+									
+									<i class="bi bi-calendar-minus"></i>
+									
+								</div>
+								
+								
+								<div class="flex-grow-1">
+									
+									<div class="fw-semibold">
+										No Expiry Date
+									</div>
+									
+									<div class="text-muted small">
+										Ongoing agreements without an
+										expiry date.
+									</div>
+									
+								</div>
+								
+								
+								<div class="attention-value">
+									
+									{{
+									overview.summary
+									.without_expiry_date
+									}}
+									
+								</div>
+								
+							</div>
+							
+							
+							<!-- Auto Renewal -->
+							
+							<div class="attention-item">
+								
+								<div
+								class="attention-icon attention-success">
+									
+									<i class="bi bi-arrow-repeat"></i>
+									
+								</div>
+								
+								
+								<div class="flex-grow-1">
+									
+									<div class="fw-semibold">
+										Auto Renewal
+									</div>
+									
+									<div class="text-muted small">
+										Review before renewal notice
+										period.
+									</div>
+									
+								</div>
+								
+								
+								<div class="attention-value">
+									
+									{{
+									overview.summary
+									.auto_renewal
+									}}
+									
+								</div>
+								
+							</div>
+							
+						</div>
+						
+					</div>
+					
+				</div>
+				
+			</div>
+			
+		</div>
+		
+	</ng-container>
+	
+</div>

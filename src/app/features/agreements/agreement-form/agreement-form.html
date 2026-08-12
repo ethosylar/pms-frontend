@@ -117,21 +117,19 @@
 							<span class="text-danger">*</span>
 						</label>
 						
-						<select
-						class="form-select"
-						formControlName="department_id">
-							
+						<select class="form-select" formControlName="department_id">
 							<option [ngValue]="null">
 								Select department…
 							</option>
-							
-							<option
-							*ngFor="let department of departments"
+							<option *ngFor="let department of departments"
 							[ngValue]="department.id">
-								
 								{{ department.code }} - {{ department.name }}
 							</option>
 						</select>
+						<div *ngIf="!canSelectAnyAgreementScope()" class="form-text">
+							Department is restricted to your
+							assigned Department.
+						</div>
 					</div>
 					
 					<div class="col-12 col-md-6">
@@ -139,22 +137,18 @@
 							Agreement Owner
 							<span class="text-danger">*</span>
 						</label>
-						
-						<select
-						class="form-select"
-						formControlName="owner_user_id">
-							
+						<select class="form-select" formControlName="owner_user_id">
 							<option [ngValue]="null">
 								Select owner…
 							</option>
-							
-							<option
-							*ngFor="let owner of owners"
-							[ngValue]="owner.id">
-								
+							<option *ngFor="let owner of owners" [ngValue]="owner.id">
 								{{ owner.name }}
 							</option>
 						</select>
+						<div *ngIf="!canSelectAnyAgreementScope()" class="form-text">
+							Agreement Owner is restricted to
+							your user account.
+						</div>
 					</div>
 					
 					<div class="col-12 col-md-6">
@@ -414,15 +408,7 @@
 						class="spinner-border spinner-border-sm me-2">
 						</span>
 						
-						{{
-						saving
-						? 'Saving…'
-						: (
-						isCreate
-						? 'Create Draft Agreement'
-						: 'Save Changes'
-						)
-						}}
+						{{ saving ? 'Saving…' : (isCreate ? 'Create Draft Agreement' : 'Save Changes') }}
 					</button>
 				</div>
 			</div>

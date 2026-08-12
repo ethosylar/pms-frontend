@@ -384,6 +384,18 @@
 		</div>
 	</div>
 	
+	<div *ngIf="dashboardFilter" class="alert alert-primary d-flex align-items-center justify-content-between flex-wrap gap-2">
+		<div><i class="bi bi-speedometer2 me-2"></i>
+			Showing agreements from dashboard filter:
+			<strong>
+				{{ dashboardFilterLabel() }}
+			</strong>
+		</div>
+		<button type="button" class="btn btn-sm btn-outline-primary" (click)="clearDashboardFilter()">
+			Clear Dashboard Filter
+		</button>
+	</div>
+	
 	<div class="card shadow-sm border-0">
 		<div class="card-body">
 			

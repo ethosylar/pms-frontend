@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit, } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule, } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule, } from '@angular/router';
 import { catchError, finalize, } from 'rxjs/operators';
 import { forkJoin, of, } from 'rxjs';
 
@@ -16,10 +16,12 @@ import {
 	CounterpartyDto,
 	DepartmentDto,
 	UserDto,
+	AgreementDashboardDrilldownFilter,
 } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/auth/auth';
 
 type BooleanFilter = '' | '1' | '0';
+
 
 @Component({
 	standalone: true,
@@ -46,6 +48,7 @@ export class AgreementsComponent implements OnInit {
 	lastPage = 1;
 	
 	showAdvancedFilters = false;
+	dashboardFilter: AgreementDashboardDrilldownFilter | '' = '';
 	
 	search = '';
 	departmentId: number | null = null;
@@ -88,11 +91,13 @@ export class AgreementsComponent implements OnInit {
 	constructor(
 		private api: ApiService,
 		private auth: AuthService,
+		private route: ActivatedRoute,
 		private router: Router,
 		private cdr: ChangeDetectorRef,
 	) {}
 	
 	ngOnInit(): void {
+		this.applyDashboardRoutePreset();
 		this.loadLookups();
 		this.fetch();
 	}
@@ -199,8 +204,8 @@ export class AgreementsComponent implements OnInit {
 		this.error = null;
 		
 		const params: AgreementQueryParams = {
-			search:
-			this.search.trim() || undefined,
+			dashboard_filter: this.dashboardFilter || undefined,
+			search: this.search.trim() || undefined,
 			department_id: this.departmentId ?? undefined,
 			owner_user_id: this.ownerUserId ?? undefined,
 			counterparty_id: this.counterpartyId ?? undefined,
@@ -292,9 +297,9 @@ export class AgreementsComponent implements OnInit {
 	
 	isDirectlyEditable(row: AgreementDto): boolean {
 		return (this.canEdit() && [
-				'DRAFT',
-				'UNDER_REVIEW',
-				].includes(row.status?.code ?? ''));
+			'DRAFT',
+			'UNDER_REVIEW',
+		].includes(row.status?.code ?? ''));
 	}
 	
 	statusBadgeClass(
@@ -344,9 +349,9 @@ export class AgreementsComponent implements OnInit {
 		}
 		
 		return new Intl.NumberFormat('en-MY',{
-				style: 'currency',
-				currency: row.currency_code || 'MYR',
-			}).format(Number(row.contract_value));
+			style: 'currency',
+			currency: row.currency_code || 'MYR',
+		}).format(Number(row.contract_value));
 	}
 	
 	private booleanFilterValue(value: BooleanFilter): boolean | undefined {
@@ -371,5 +376,79 @@ export class AgreementsComponent implements OnInit {
 		if (statusCode !== 'ARCHIVED') {
 			this.includeArchived = false;
 		}
+	}
+	
+	private applyDashboardRoutePreset(): void {
+		const value = this.route.snapshot.queryParamMap.get('dashboard_filter');
+		const allowed: AgreementDashboardDrilldownFilter[] = [
+			'current',
+			'ongoing',
+			'expiring_soon',
+			'expired',
+			'pending_approval',
+			'auto_renewal',
+		];
+		if (!value || !allowed.includes(value as AgreementDashboardDrilldownFilter)) {
+			return;
+		}
+		this.dashboardFilter = value as AgreementDashboardDrilldownFilter;
+		this.currentVersionFilter = '1';
+		this.includeArchived = this.dashboardFilter === 'current';
+		switch (this.dashboardFilter) {
+			case 'pending_approval':
+			this.statusCode = 'PENDING_APPROVAL';
+			break;
+			
+			case 'ongoing':
+			this.statusCode = 'ACTIVE';
+			break;
+			
+			default:
+			this.statusCode = '';
+			break;
+		}
+	}
+	
+	dashboardFilterLabel():
+	string {
+		
+		switch (
+			this.dashboardFilter
+			) {
+			
+			case 'current':
+			return 'Current Agreements';
+			
+			case 'ongoing':
+			return 'Ongoing / Active Agreements';
+			
+			case 'expiring_soon':
+			return 'Expiring Soon';
+			
+			case 'expired':
+			return 'Expired / Overdue';
+			
+			case 'pending_approval':
+			return 'Pending Approval';
+			
+			case 'auto_renewal':
+			return 'Auto Renewal';
+			
+			default:
+			return '';
+		}
+	}
+	
+	clearDashboardFilter(): void {
+		this.dashboardFilter = '';
+		this.router.navigate([], {
+				relativeTo: this.route,
+				queryParams: { dashboard_filter: null, },
+				queryParamsHandling: 'merge',
+				replaceUrl: true,
+			}
+		);
+		this.page = 1;
+		this.fetch();
 	}
 }
