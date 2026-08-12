@@ -42,6 +42,8 @@ export class AgreementFormComponent implements OnInit {
 	agreementId: number | null = null;
 	
 	original: AgreementDto | null = null;
+	currentUserId: number | null = null;
+	currentDepartmentId: number | null = null;
 	
 	departments: LookupDepartmentDto[] = [];
 	owners: LookupUserDto[] = [];
@@ -166,6 +168,13 @@ export class AgreementFormComponent implements OnInit {
 		]);
 	}
 	
+	canSelectAnyAgreementScope(): boolean {
+		return this.auth.hasAnyPermission([
+			'system.all',
+			'agreements.view.all',
+		]);
+	}
+	
 	loadForm(): void {
 		this.loading = true;
 		
@@ -207,7 +216,7 @@ export class AgreementFormComponent implements OnInit {
 				this.counterparties = result.counterparties.data ?? [];
 				this.categories = result.categories.data ?? [];
 				this.allTypes = result.types.data ?? [];
-				this.applyCurrentUserFallback(result.me);
+				this.applyAgreementScope(result.me);
 				if (this.isCreate) {
 					this.onCategoryChange();
 					return of(null);
@@ -396,60 +405,131 @@ export class AgreementFormComponent implements OnInit {
 		return changed;
 	}
 	
-	private applyCurrentUserFallback(response: any): void {
-		const me = response?.data ?? response;
-		
+	private applyAgreementScope(response: any): void {
+		const me = response?.user ?? response?.data?.user ?? response?.data ?? response;
 		if (!me?.id) {
+			this.lookupWarning = 'Your user information could not be loaded.';
 			return;
 		}
-		
-		if (!this.owners.length) {
-			this.owners = [
-				{
-					id: Number(me.id),
-					
-					name: me.name || 'Current User',
-					
-					department_id: me.department_id ?? me.department?.id ?? null,
-				},
-			];
+		this.lookupWarning = null;
+		this.currentUserId = Number(me.id);
+		const departmentId = me.department_id ?? me.department?.id ?? null;
+		this.currentDepartmentId = departmentId !== null && departmentId !== undefined ? Number(departmentId) : null;
+		// ================================================================
+		// Current owner
+		// ================================================================
+		const existingOwner = this.owners.find(owner => Number(owner.id) === this.currentUserId);
+		const currentOwner: LookupUserDto = existingOwner ?? 
+		{
+			id: this.currentUserId,
+			name: me.name || 'Current User',
+			department_id: this.currentDepartmentId,
+		};
+		// ================================================================
+		// Current department
+		// ================================================================
+		let currentDepartment: LookupDepartmentDto | null = null;
+		if (this.currentDepartmentId !== null) {
+			currentDepartment = this.departments.find(department => Number(department.id) === this.currentDepartmentId) ?? null;
+			if (!currentDepartment && me.department?.id) {
+				currentDepartment = {
+					id: Number(me.department.id),
+					code: String(me.department.code ?? ''),
+					name: String(me.department.name ?? 'Department'),
+				};
+			}
 		}
-		
-		const department = me.department;
-		
-		if (!this.departments.length && department?.id) {
-			this.departments = [
-				department,
-			];
+		// ================================================================
+		// Agreement Admin / View All
+		// ================================================================
+		if (this.canSelectAnyAgreementScope()) {
+			if (!this.owners.some(owner => Number(owner.id) === this.currentUserId)) {
+				this.owners = [...this.owners, currentOwner,];
+			}
+			if (currentDepartment && !this.departments.some(department => Number(department.id) === currentDepartment.id)) {
+				this.departments = [...this.departments, currentDepartment,];
+			}
+			this.form.get('department_id')?.enable({emitEvent: false,});
+			this.form.get('owner_user_id')?.enable({emitEvent: false,});
+			if (this.isCreate) {
+				this.form.patchValue(
+					{
+						department_id: this.currentDepartmentId,
+						owner_user_id: this.currentUserId,
+					},
+					{
+						emitEvent: false,
+					}
+				);
+			}
+			return;
 		}
-		
+		// ================================================================
+		// Normal Agreement Owner / restricted user
+		// ================================================================
+		this.owners = [currentOwner,];
+		this.departments = currentDepartment ? [currentDepartment,] : [];
 		if (this.isCreate) {
-			this.form.patchValue({
-				owner_user_id: Number(me.id),
-				department_id: me.department_id ?? department?.id ?? null,
-			});
+			this.form.patchValue(
+				{
+					department_id: this.currentDepartmentId,
+					owner_user_id: this.currentUserId,
+				},
+				{
+					emitEvent: false,
+				}
+			);
 		}
-		
-		if (!this.departments.length || !this.owners.length) {
-			this.lookupWarning = 'The complete Department or Owner list is unavailable for your current permissions.';
+		this.form.get('department_id')?.disable({emitEvent: false,});
+		this.form.get('owner_user_id')?.disable({emitEvent: false,});
+		if (!currentDepartment) {
+			this.lookupWarning =
+			'Your account does not have an assigned Department. Please contact an administrator before creating an Agreement.';
 		}
 	}
 	
 	private ensureExistingOptions(agreement: AgreementDto): void {
-		if (agreement.department && !this.departments.some(item => item.id === agreement.department_id)) {
-			this.departments.push({
-				id: agreement.department.id,
-				code: agreement.department.code,
-				name: agreement.department.name,
-			});
+		// ================================================================
+		// Admin / View All
+		// ================================================================
+		if (this.canSelectAnyAgreementScope()) {
+			if (agreement.department && !this.departments.some(item => item.id === agreement.department_id)) {
+				this.departments.push({
+					id: agreement.department.id,
+					code: agreement.department.code,
+					name: agreement.department.name,
+				});
+			}
+			if (agreement.owner && !this.owners.some(item => item.id === agreement.owner_user_id)) {
+				this.owners.push({
+					id: agreement.owner.id,
+					name: agreement.owner.name,
+				});
+			}
+			return;
 		}
-		
-		if (agreement.owner && !this.owners.some(item => item.id === agreement.owner_user_id)) {
-			this.owners.push({
-				id: agreement.owner.id,
-				name: agreement.owner.name,
-			});
+		// ================================================================
+		// Restricted user
+		// ================================================================
+		if (agreement.department) {
+			this.departments = [
+				{
+					id: agreement.department.id,
+					code: agreement.department.code,
+					name: agreement.department.name,
+				},
+			];
 		}
+		if (agreement.owner) {
+			this.owners = [
+				{
+					id: agreement.owner.id,
+					name: agreement.owner.name,
+				},
+			];
+		}
+		this.form.get('department_id')?.disable({emitEvent: false,});
+		this.form.get('owner_user_id')?.disable({emitEvent: false,});
 	}
 	
 	private nullText(value: unknown): string | null {
