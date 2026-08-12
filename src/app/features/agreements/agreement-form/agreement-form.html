@@ -1,21 +1,18 @@
 <div class="position-relative agreement-form-wrap">
-	
-	<div
-	*ngIf="loading"
-	class="loading-overlay">
-		
+
+	<div *ngIf="loading" class="loading-overlay">
+
 		<div class="text-center">
 			<div class="spinner-border"></div>
-			
+
 			<div class="mt-2 fw-semibold">
 				Loading agreement form…
 			</div>
 		</div>
 	</div>
-	
-	<div
-	class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
-		
+
+	<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+
 		<div>
 			<h1 class="h4 mb-0">
 				{{
@@ -24,7 +21,7 @@
 				: 'Edit Agreement'
 				}}
 			</h1>
-			
+
 			<div class="text-muted small">
 				{{
 				isCreate
@@ -33,96 +30,80 @@
 				}}
 			</div>
 		</div>
-		
-		<button
-		type="button"
-		class="btn btn-outline-secondary"
-		(click)="cancel()">
-			
+
+		<button type="button" class="btn btn-outline-secondary" (click)="cancel()">
+
 			<i class="bi bi-arrow-left"></i>
-			
+
 			<span class="ms-2">
 				Back
 			</span>
 		</button>
 	</div>
-	
-	<div
-	*ngIf="lookupWarning"
-	class="alert alert-warning">
-		
+
+	<div *ngIf="lookupWarning" class="alert alert-warning">
+
 		{{ lookupWarning }}
 	</div>
-	
-	<div
-	*ngIf="error"
-	class="alert alert-danger">
-		
+
+	<div *ngIf="error" class="alert alert-danger">
+
 		{{ error }}
 	</div>
-	
-	<form
-	[formGroup]="form"
-	(ngSubmit)="save()">
-		
+
+	<form [formGroup]="form" (ngSubmit)="save()">
+
 		<div class="card shadow-sm border-0 mb-3">
 			<div class="card-header bg-white">
 				<div class="fw-semibold">
 					Agreement Identity
 				</div>
 			</div>
-			
+
 			<div class="card-body">
 				<div class="row g-3">
-					
+
 					<div class="col-12 col-md-4">
 						<label class="form-label">
 							Agreement Number
 						</label>
-						
-						<input
-						class="form-control"
-						formControlName="agreement_no"
-						(blur)="normaliseAgreementNo()"
-						placeholder="Leave blank to auto-generate">
-						
+
+						<input class="form-control" formControlName="agreement_no" (blur)="normaliseAgreementNo()"
+							placeholder="Leave blank to auto-generate">
+
 						<div class="form-text">
 							Uppercase letters, numbers, underscores,
 							slashes and hyphens.
 						</div>
 					</div>
-					
+
 					<div class="col-12 col-md-8">
 						<label class="form-label">
 							Title
 							<span class="text-danger">*</span>
 						</label>
-						
-						<input
-						class="form-control"
-						formControlName="title"
-						[class.is-invalid]="
+
+						<input class="form-control" formControlName="title" [class.is-invalid]="
 						form.get('title')?.touched &&
 						form.get('title')?.invalid
 						">
-						
+
 						<div class="invalid-feedback">
 							Title is required.
 						</div>
 					</div>
-					
+
 					<div class="col-12 col-md-6">
 						<label class="form-label">
 							Department
 							<span class="text-danger">*</span>
 						</label>
-						
+
 						<select class="form-select" formControlName="department_id">
 							<option [ngValue]="null">
 								Select department…
 							</option>
-							<option *ngFor="let department of departments"
-							[ngValue]="department.id">
+							<option *ngFor="let department of departments" [ngValue]="department.id">
 								{{ department.code }} - {{ department.name }}
 							</option>
 						</select>
@@ -131,7 +112,7 @@
 							assigned Department.
 						</div>
 					</div>
-					
+
 					<div class="col-12 col-md-6">
 						<label class="form-label">
 							Agreement Owner
@@ -150,74 +131,61 @@
 							your user account.
 						</div>
 					</div>
-					
+
 					<div class="col-12 col-md-6">
 						<label class="form-label">
 							Counterparty
 							<span class="text-danger">*</span>
 						</label>
-						
-						<select
-						class="form-select"
-						formControlName="counterparty_id">
-							
+
+						<select class="form-select" formControlName="counterparty_id">
+
 							<option [ngValue]="null">
 								Select counterparty…
 							</option>
-							
-							<option
-							*ngFor="let party of counterparties"
-							[ngValue]="party.id">
-								
+
+							<option *ngFor="let party of counterparties" [ngValue]="party.id">
+
 								{{ party.code }} - {{ party.legal_name }}
 							</option>
 						</select>
 					</div>
-					
+
 					<div class="col-12 col-md-3">
 						<label class="form-label">
 							Category
 							<span class="text-danger">*</span>
 						</label>
-						
-						<select
-						class="form-select"
-						formControlName="agreement_category_id"
-						(change)="onCategoryChange()">
-							
+
+						<select class="form-select" formControlName="agreement_category_id"
+							(change)="onCategoryChange()">
+
 							<option [ngValue]="null">
 								Select category…
 							</option>
-							
-							<option
-							*ngFor="let category of categories"
-							[ngValue]="category.id">
-								
+
+							<option *ngFor="let category of categories" [ngValue]="category.id">
+
 								{{ category.code }} - {{ category.name }}
 							</option>
 						</select>
 					</div>
-					
+
 					<div class="col-12 col-md-3">
 						<label class="form-label">
 							Agreement Type
 						</label>
-						
-						<select
-						class="form-select"
-						formControlName="agreement_type_id"
-						[disabled]="
+
+						<select class="form-select" formControlName="agreement_type_id" [disabled]="
 						!form.get('agreement_category_id')?.value
 						">
-							
+
 							<option [ngValue]="null">
 								No specific type
 							</option>
-							
-							<option
-							*ngFor="let type of filteredTypes"
-							[ngValue]="type.id">
-								
+
+							<option *ngFor="let type of filteredTypes" [ngValue]="type.id">
+
 								{{ type.code }} - {{ type.name }}
 							</option>
 						</select>
@@ -225,124 +193,97 @@
 				</div>
 			</div>
 		</div>
-		
+
 		<div class="card shadow-sm border-0 mb-3">
 			<div class="card-header bg-white">
 				<div class="fw-semibold">
 					Description and Scope
 				</div>
 			</div>
-			
+
 			<div class="card-body">
 				<div class="row g-3">
-					
+
 					<div class="col-12">
 						<label class="form-label">
 							Description
 						</label>
-						
-						<textarea
-						rows="4"
-						class="form-control"
-						formControlName="description">
+
+						<textarea rows="4" class="form-control" formControlName="description">
 						</textarea>
 					</div>
-					
+
 					<div class="col-12 col-xl-6">
 						<label class="form-label">
 							Purpose
 						</label>
-						
-						<textarea
-						rows="4"
-						class="form-control"
-						formControlName="purpose">
+
+						<textarea rows="4" class="form-control" formControlName="purpose">
 						</textarea>
 					</div>
-					
+
 					<div class="col-12 col-xl-6">
 						<label class="form-label">
 							Scope
 						</label>
-						
-						<textarea
-						rows="4"
-						class="form-control"
-						formControlName="scope">
+
+						<textarea rows="4" class="form-control" formControlName="scope">
 						</textarea>
 					</div>
 				</div>
 			</div>
 		</div>
-		
+
 		<div class="card shadow-sm border-0 mb-3">
 			<div class="card-header bg-white">
 				<div class="fw-semibold">
 					Dates and Renewal
 				</div>
 			</div>
-			
+
 			<div class="card-body">
 				<div class="row g-3">
-					
+
 					<div class="col-12 col-md-4">
 						<label class="form-label">
 							Effective Date
 						</label>
-						
-						<input
-						type="date"
-						class="form-control"
-						formControlName="effective_date">
+
+						<input type="date" class="form-control" formControlName="effective_date">
 					</div>
-					
+
 					<div class="col-12 col-md-4">
 						<label class="form-label">
 							Expiry Date
 						</label>
-						
-						<input
-						type="date"
-						class="form-control"
-						formControlName="expiry_date">
+
+						<input type="date" class="form-control" formControlName="expiry_date">
 					</div>
-					
+
 					<div class="col-12 col-md-4">
 						<label class="form-label">
 							Signed Date
 						</label>
-						
-						<input
-						type="date"
-						class="form-control"
-						formControlName="signed_date">
+
+						<input type="date" class="form-control" formControlName="signed_date">
 					</div>
-					
+
 					<div class="col-12 col-md-4">
 						<label class="form-label">
 							Notice Period (Days)
 						</label>
-						
-						<input
-						type="number"
-						min="0"
-						max="3650"
-						class="form-control"
-						formControlName="notice_period_days">
+
+						<input type="number" min="0" max="3650" class="form-control"
+							formControlName="notice_period_days">
 					</div>
-					
+
 					<div class="col-12 col-md-4">
 						<div class="form-check form-switch mt-md-4 pt-md-2">
-							<input
-							id="autoRenewal"
-							type="checkbox"
-							class="form-check-input"
-							formControlName="auto_renewal">
-							
-							<label
-							for="autoRenewal"
-							class="form-check-label">
-								
+							<input id="autoRenewal" type="checkbox" class="form-check-input"
+								formControlName="auto_renewal">
+
+							<label for="autoRenewal" class="form-check-label">
+
 								Auto Renewal
 							</label>
 						</div>
@@ -350,64 +291,47 @@
 				</div>
 			</div>
 		</div>
-		
+
 		<div class="card shadow-sm border-0">
 			<div class="card-header bg-white">
 				<div class="fw-semibold">
 					Financial Information
 				</div>
 			</div>
-			
+
 			<div class="card-body">
 				<div class="row g-3">
-					
+
 					<div class="col-12 col-md-4">
 						<label class="form-label">
 							Currency
 						</label>
-						
-						<input
-						class="form-control text-uppercase"
-						maxlength="3"
-						formControlName="currency_code"
-						(blur)="normaliseCurrency()">
+
+						<input class="form-control text-uppercase" maxlength="3" formControlName="currency_code"
+							(blur)="normaliseCurrency()">
 					</div>
-					
+
 					<div class="col-12 col-md-8">
 						<label class="form-label">
 							Contract Value
 						</label>
-						
-						<input
-						type="number"
-						min="0"
-						step="0.01"
-						class="form-control"
-						formControlName="contract_value">
+
+						<input type="number" min="0" step="0.01" class="form-control" formControlName="contract_value">
 					</div>
 				</div>
-				
+
 				<div class="d-flex justify-content-end gap-2 mt-4">
-					
-					<button
-					type="button"
-					class="btn btn-outline-secondary"
-					[disabled]="saving"
-					(click)="cancel()">
-						
+
+					<button type="button" class="btn btn-outline-secondary" [disabled]="saving" (click)="cancel()">
+
 						Cancel
 					</button>
-					
-					<button
-					type="submit"
-					class="btn btn-primary"
-					[disabled]="saving || form.disabled">
-						
-						<span
-						*ngIf="saving"
-						class="spinner-border spinner-border-sm me-2">
+
+					<button type="submit" class="btn btn-primary" [disabled]="saving || form.disabled">
+
+						<span *ngIf="saving" class="spinner-border spinner-border-sm me-2">
 						</span>
-						
+
 						{{ saving ? 'Saving…' : (isCreate ? 'Create Draft Agreement' : 'Save Changes') }}
 					</button>
 				</div>
