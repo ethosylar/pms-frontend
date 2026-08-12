@@ -205,7 +205,7 @@
 							<i
 							class="bi"
 							[ngClass]="
-							workflowStepClass(step.code) === 'completed'
+							workflowStepIsChecked(step.code) 
 							? 'bi-check-lg'
 							: 'bi-circle-fill'
 							">
