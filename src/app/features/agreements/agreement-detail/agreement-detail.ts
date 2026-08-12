@@ -644,6 +644,26 @@ export class AgreementDetailComponent implements OnInit {
 		return 'future';
 	}
 	
+	workflowStepIsChecked(stepCode: string): boolean {
+		const state = this.workflowStepClass(stepCode);
+		if (state === 'completed') {
+			return true;
+		}
+		
+		if (stepCode === 'ACTIVE') {
+			const currentCode = this.statusCode();
+			return [
+				'ACTIVE',
+				'EXPIRING_SOON',
+				'EXPIRED',
+				'RENEWED',
+				'TERMINATED',
+				'ARCHIVED',
+			].includes(currentCode);
+		}
+		return false;
+	}
+	
 	statusBadgeClass(): string {
 		switch (this.statusCode()) {
 			case 'ACTIVE':
