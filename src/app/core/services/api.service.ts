@@ -1,11 +1,11 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { HttpParams } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
-import { DashboardOverviewResponse } from '../../features/dashboard/dashboard/dashboard.models';
-import { Observable } from 'rxjs';
+import { Injectable } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { HttpParams } from "@angular/common/http";
+import { environment } from "../../../environments/environment";
+import { DashboardOverviewResponse } from "../../features/dashboard/dashboard/dashboard.models";
+import { Observable } from "rxjs";
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class ApiService {
 	constructor(private http: HttpClient) {}
 	
@@ -107,11 +107,15 @@ export class ApiService {
 		let httpParams = new HttpParams();
 		
 		if (agreementCategoryId != null) {
-			httpParams = httpParams.set('agreement_category_id', String(agreementCategoryId));
+			httpParams = httpParams.set(
+				"agreement_category_id",
+				String(agreementCategoryId)
+			);
 		}
 		
 		return this.http.get<ApiCollection<LookupAgreementTypeDto>>(
-			`${environment.apiBaseUrl}/lookup/agreement-types`, { params: httpParams,}
+			`${environment.apiBaseUrl}/lookup/agreement-types`,
+			{ params: httpParams }
 		);
 	}
 	
@@ -143,44 +147,67 @@ export class ApiService {
 	
 	getUsers(params?: { search?: string; page?: number; per_page?: number }) {
 		let httpParams = new HttpParams();
-		if (params?.search) httpParams = httpParams.set('search', params.search);
-		if (params?.page) httpParams = httpParams.set('page', params.page);
-		if (params?.per_page) httpParams = httpParams.set('per_page', params.per_page);
-		return this.http.get<ApiCollection<UserDto>>(`${environment.apiBaseUrl}/users`, { params: httpParams });
+		if (params?.search) httpParams = httpParams.set("search", params.search);
+		if (params?.page) httpParams = httpParams.set("page", params.page);
+		if (params?.per_page)
+		httpParams = httpParams.set("per_page", params.per_page);
+		return this.http.get<ApiCollection<UserDto>>(
+			`${environment.apiBaseUrl}/users`,
+			{ params: httpParams }
+		);
 	}
 	
 	getUser(id: number) {
-		return this.http.get<ApiResource<UserDto>>(`${environment.apiBaseUrl}/users/${id}`);
+		return this.http.get<ApiResource<UserDto>>(
+			`${environment.apiBaseUrl}/users/${id}`
+		);
 	}
 	
-	createUser(payload: { name: string; username: string; email: string; password: string; role_ids: number[]; department_id?: number | null; }) {
-		return this.http.post<ApiResource<UserDto>>(`${environment.apiBaseUrl}/users`, payload);
-	}
-	
-	updateUser(id: number, payload: {
-		name?: string;
-		username?: string;
-		email?: string;
-		password?: string;
+	createUser(payload: {
+		name: string;
+		username: string;
+		email: string;
+		password: string;
+		role_ids: number[];
 		department_id?: number | null;
 	}) {
-	return this.http.put<{ ok: true; message?: string }>(`${environment.apiBaseUrl}/users/${id}`, payload);
+    return this.http.post<ApiResource<UserDto>>(
+		`${environment.apiBaseUrl}/users`,
+		payload
+	);
+	}
+	
+	updateUser(
+		id: number,
+		payload: {
+			name?: string;
+			username?: string;
+			email?: string;
+			password?: string;
+			department_id?: number | null;
+		}
+		) {
+		return this.http.put<{ ok: true; message?: string }>(
+			`${environment.apiBaseUrl}/users/${id}`,
+			payload
+		);
 	}
 	
 	deleteUser(id: number) {
-		return this.http.delete<{ ok: true }>(`${environment.apiBaseUrl}/users/${id}`);
+		return this.http.delete<{ ok: true }>(
+			`${environment.apiBaseUrl}/users/${id}`
+		);
 	}
 	
 	syncUserRoles(userId: number, roleIds: number[]) {
 		return this.http.put(`${environment.apiBaseUrl}/users/${userId}/roles`, {
-			role_ids: roleIds
+			role_ids: roleIds,
 		});
 	}
 	
 	// ******************************************************************************************************************************
 	// Roles's Section
 	// ******************************************************************************************************************************
-	
 	
 	getRoles(params?: {
 		search?: string;
@@ -189,20 +216,22 @@ export class ApiService {
 		page?: number;
 		per_page?: number;
 	}) {
-	let httpParams = new HttpParams();
+    let httpParams = new HttpParams();
 	
-	if (params?.search) httpParams = httpParams.set('search', params.search);
-	if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
-	if (params?.include_permissions !== undefined) {
+    if (params?.search) httpParams = httpParams.set("search", params.search);
+    if (params?.is_active !== undefined)
+	httpParams = httpParams.set("is_active", String(params.is_active));
+    if (params?.include_permissions !== undefined) {
 		httpParams = httpParams.set(
-			'include_permissions',
-			params.include_permissions ? '1' : '0'
+			"include_permissions",
+			params.include_permissions ? "1" : "0"
 		);
 	}
-	if (params?.page) httpParams = httpParams.set('page', String(params.page));
-	if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
+    if (params?.page) httpParams = httpParams.set("page", String(params.page));
+    if (params?.per_page)
+	httpParams = httpParams.set("per_page", String(params.per_page));
 	
-	return this.http.get<ApiCollection<RoleDto>>(
+    return this.http.get<ApiCollection<RoleDto>>(
 		`${environment.apiBaseUrl}/roles`,
 		{ params: httpParams }
 	);
@@ -229,7 +258,7 @@ export class ApiService {
 	}
 	
 	deleteRole(id: number) {
-		return this.http.delete<{ ok: boolean; mode: 'SOFT' | 'HARD' }>(
+		return this.http.delete<{ ok: boolean; mode: "SOFT" | "HARD" }>(
 			`${environment.apiBaseUrl}/roles/${id}`
 		);
 	}
@@ -238,7 +267,7 @@ export class ApiService {
 		return this.http.put<ApiResource<RoleDto>>(
 			`${environment.apiBaseUrl}/roles/${roleId}/permissions`,
 			{
-				permission_ids: permissionIds
+				permission_ids: permissionIds,
 			}
 		);
 	}
@@ -247,7 +276,6 @@ export class ApiService {
 	// Permission's Section
 	// ******************************************************************************************************************************
 	
-	
 	getPermissions(params?: {
 		search?: string;
 		module?: string;
@@ -255,15 +283,17 @@ export class ApiService {
 		page?: number;
 		per_page?: number;
 	}) {
-	let httpParams = new HttpParams();
+    let httpParams = new HttpParams();
 	
-	if (params?.search) httpParams = httpParams.set('search', params.search);
-	if (params?.module) httpParams = httpParams.set('module', params.module);
-	if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
-	if (params?.page) httpParams = httpParams.set('page', String(params.page));
-	if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
+    if (params?.search) httpParams = httpParams.set("search", params.search);
+    if (params?.module) httpParams = httpParams.set("module", params.module);
+    if (params?.is_active !== undefined)
+	httpParams = httpParams.set("is_active", String(params.is_active));
+    if (params?.page) httpParams = httpParams.set("page", String(params.page));
+    if (params?.per_page)
+	httpParams = httpParams.set("per_page", String(params.per_page));
 	
-	return this.http.get<ApiCollection<PermissionDto>>(
+    return this.http.get<ApiCollection<PermissionDto>>(
 		`${environment.apiBaseUrl}/permissions`,
 		{ params: httpParams }
 	);
@@ -283,14 +313,13 @@ export class ApiService {
 	}
 	
 	updatePermission(id: number, payload: PermissionUpsertPayload) {
-		return this.http.put<ApiResource<PermissionDto> | { ok: true; message?: string }>(
-			`${environment.apiBaseUrl}/permissions/${id}`,
-			payload
-		);
+		return this.http.put<
+		ApiResource<PermissionDto> | { ok: true; message?: string }
+		>(`${environment.apiBaseUrl}/permissions/${id}`, payload);
 	}
 	
 	deletePermission(id: number) {
-		return this.http.delete<{ ok: boolean; mode: 'SOFT' | 'HARD' }>(
+		return this.http.delete<{ ok: boolean; mode: "SOFT" | "HARD" }>(
 			`${environment.apiBaseUrl}/permissions/${id}`
 		);
 	}
@@ -299,107 +328,178 @@ export class ApiService {
 	// Department's Section
 	// ******************************************************************************************************************************
 	
-	getDepartments(params?: { search?: string; page?: number; per_page?: number }) {
-		let httpParams = new HttpParams();
-		if (params?.search) httpParams = httpParams.set('search', params.search);
-		if (params?.page) httpParams = httpParams.set('page', params.page);
-		if (params?.per_page) httpParams = httpParams.set('per_page', params.per_page);
-		
-		return this.http.get<ApiCollection<DepartmentDto>>(
-			`${environment.apiBaseUrl}/departments`,
-			{ params: httpParams }
-		);
+	getDepartments(params?: {
+		search?: string;
+		page?: number;
+		per_page?: number;
+	}) {
+    let httpParams = new HttpParams();
+    if (params?.search) httpParams = httpParams.set("search", params.search);
+    if (params?.page) httpParams = httpParams.set("page", params.page);
+    if (params?.per_page)
+	httpParams = httpParams.set("per_page", params.per_page);
+	
+    return this.http.get<ApiCollection<DepartmentDto>>(
+		`${environment.apiBaseUrl}/departments`,
+		{ params: httpParams }
+	);
 	}
 	
 	getDepartment(id: number) {
-		return this.http.get<ApiResource<DepartmentDto>>(`${environment.apiBaseUrl}/departments/${id}`);
+		return this.http.get<ApiResource<DepartmentDto>>(
+			`${environment.apiBaseUrl}/departments/${id}`
+		);
 	}
 	
 	createDepartment(payload: { code: string; name: string }) {
-		return this.http.post<ApiResource<DepartmentDto>>(`${environment.apiBaseUrl}/departments`, payload);
+		return this.http.post<ApiResource<DepartmentDto>>(
+			`${environment.apiBaseUrl}/departments`,
+			payload
+		);
 	}
 	
 	updateDepartment(id: number, payload: { code?: string; name?: string }) {
-		return this.http.put<{ ok: true; message?: string }>(`${environment.apiBaseUrl}/departments/${id}`, payload);
+		return this.http.put<{ ok: true; message?: string }>(
+			`${environment.apiBaseUrl}/departments/${id}`,
+			payload
+		);
 	}
 	
 	deleteDepartment(id: number) {
-		return this.http.delete<{ ok: true }>(`${environment.apiBaseUrl}/departments/${id}`);
+		return this.http.delete<{ ok: true }>(
+			`${environment.apiBaseUrl}/departments/${id}`
+		);
 	}
 	
 	// ******************************************************************************************************************************
 	// Audit Log's Section
 	// ******************************************************************************************************************************
 	
-	getAuditLogs(params?: { search?: string;entity_type?: string;entity_id?: number;action?: string;user_id?: number;from?: string;	to?: string;page?: number;per_page?: number;}): Observable<AuditLogListResponse> {
-		let httpParams = new HttpParams();
-		
-		if (params?.search) httpParams = httpParams.set('search', params.search);
-		if (params?.entity_type) httpParams = httpParams.set('entity_type', params.entity_type);
-		if (params?.entity_id != null) httpParams = httpParams.set('entity_id', String(params.entity_id));
-		if (params?.action) httpParams = httpParams.set('action', params.action);
-		if (params?.user_id != null) httpParams = httpParams.set('user_id', String(params.user_id));
-		if (params?.from) httpParams = httpParams.set('from', params.from);
-		if (params?.to) httpParams = httpParams.set('to', params.to);
-		
-		if (params?.page) httpParams = httpParams.set('page', String(params.page));
-		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
-		
-		return this.http.get<AuditLogListResponse>(`${environment.apiBaseUrl}/audit-logs`, { params: httpParams });
+	getAuditLogs(params?: {
+		search?: string;
+		entity_type?: string;
+		entity_id?: number;
+		action?: string;
+		user_id?: number;
+		from?: string;
+		to?: string;
+		page?: number;
+		per_page?: number;
+	}): Observable<AuditLogListResponse> {
+    let httpParams = new HttpParams();
+	
+    if (params?.search) httpParams = httpParams.set("search", params.search);
+    if (params?.entity_type)
+	httpParams = httpParams.set("entity_type", params.entity_type);
+    if (params?.entity_id != null)
+	httpParams = httpParams.set("entity_id", String(params.entity_id));
+    if (params?.action) httpParams = httpParams.set("action", params.action);
+    if (params?.user_id != null)
+	httpParams = httpParams.set("user_id", String(params.user_id));
+    if (params?.from) httpParams = httpParams.set("from", params.from);
+    if (params?.to) httpParams = httpParams.set("to", params.to);
+	
+    if (params?.page) httpParams = httpParams.set("page", String(params.page));
+    if (params?.per_page)
+	httpParams = httpParams.set("per_page", String(params.per_page));
+	
+    return this.http.get<AuditLogListResponse>(
+		`${environment.apiBaseUrl}/audit-logs`,
+		{ params: httpParams }
+	);
 	}
 	
 	getAuditLog(id: number): Observable<AuditLogShowResponse> {
-		return this.http.get<AuditLogShowResponse>(`${environment.apiBaseUrl}/audit-logs/${id}`);
+		return this.http.get<AuditLogShowResponse>(
+			`${environment.apiBaseUrl}/audit-logs/${id}`
+		);
 	}
 	
 	// ******************************************************************************************************************************
 	// Priorities's Section
 	// ******************************************************************************************************************************
 	
-	getPriorities(params?: { search?: string; is_active?: number; page?: number; per_page?: number }) {
-		let httpParams = new HttpParams();
-		if (params?.search) httpParams = httpParams.set('search', params.search);
-		if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
-		if (params?.page) httpParams = httpParams.set('page', String(params.page));
-		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
-		
-		return this.http.get<ApiCollection<PriorityDto>>(
-			`${environment.apiBaseUrl}/priorities`,
-			{ params: httpParams }
-		);
+	getPriorities(params?: {
+		search?: string;
+		is_active?: number;
+		page?: number;
+		per_page?: number;
+	}) {
+    let httpParams = new HttpParams();
+    if (params?.search) httpParams = httpParams.set("search", params.search);
+    if (params?.is_active !== undefined)
+	httpParams = httpParams.set("is_active", String(params.is_active));
+    if (params?.page) httpParams = httpParams.set("page", String(params.page));
+    if (params?.per_page)
+	httpParams = httpParams.set("per_page", String(params.per_page));
+	
+    return this.http.get<ApiCollection<PriorityDto>>(
+		`${environment.apiBaseUrl}/priorities`,
+		{ params: httpParams }
+	);
 	}
 	
 	getPriority(id: number) {
-		return this.http.get<ApiResource<PriorityDto>>(`${environment.apiBaseUrl}/priorities/${id}`);
+		return this.http.get<ApiResource<PriorityDto>>(
+			`${environment.apiBaseUrl}/priorities/${id}`
+		);
 	}
 	
-	createPriority(payload: { code: string; name: string; sort_order?: number; is_active?: boolean }) {
-		return this.http.post<ApiResource<PriorityDto>>(`${environment.apiBaseUrl}/priorities`, payload);
+	createPriority(payload: {
+		code: string;
+		name: string;
+		sort_order?: number;
+		is_active?: boolean;
+	}) {
+    return this.http.post<ApiResource<PriorityDto>>(
+		`${environment.apiBaseUrl}/priorities`,
+		payload
+	);
 	}
 	
-	updatePriority(id: number, payload: { code?: string; name?: string; sort_order?: number; is_active?: boolean }) {
-		return this.http.put<ApiResource<PriorityDto>>(`${environment.apiBaseUrl}/priorities/${id}`, payload);
+	updatePriority(
+		id: number,
+		payload: {
+			code?: string;
+			name?: string;
+			sort_order?: number;
+			is_active?: boolean;
+		}
+		) {
+		return this.http.put<ApiResource<PriorityDto>>(
+			`${environment.apiBaseUrl}/priorities/${id}`,
+			payload
+		);
 	}
 	
 	deletePriority(id: number) {
-		return this.http.delete<{ ok: boolean; mode: 'SOFT' | 'HARD' }>(`${environment.apiBaseUrl}/priorities/${id}`);
+		return this.http.delete<{ ok: boolean; mode: "SOFT" | "HARD" }>(
+			`${environment.apiBaseUrl}/priorities/${id}`
+		);
 	}
 	
 	// ******************************************************************************************************************************
 	// Risk Issue Type's Section
 	// ******************************************************************************************************************************
 	
-	getRiskIssueTypes(params?: { search?: string; is_active?: number; page?: number; per_page?: number }) {
-		let httpParams = new HttpParams();
-		if (params?.search) httpParams = httpParams.set('search', params.search);
-		if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
-		if (params?.page) httpParams = httpParams.set('page', String(params.page));
-		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
-		
-		return this.http.get<ApiCollection<RiskIssueTypeDto>>(
-			`${environment.apiBaseUrl}/risk-issue-types`,
-			{ params: httpParams }
-		);
+	getRiskIssueTypes(params?: {
+		search?: string;
+		is_active?: number;
+		page?: number;
+		per_page?: number;
+	}) {
+    let httpParams = new HttpParams();
+    if (params?.search) httpParams = httpParams.set("search", params.search);
+    if (params?.is_active !== undefined)
+	httpParams = httpParams.set("is_active", String(params.is_active));
+    if (params?.page) httpParams = httpParams.set("page", String(params.page));
+    if (params?.per_page)
+	httpParams = httpParams.set("per_page", String(params.per_page));
+	
+    return this.http.get<ApiCollection<RiskIssueTypeDto>>(
+		`${environment.apiBaseUrl}/risk-issue-types`,
+		{ params: httpParams }
+	);
 	}
 	
 	getRiskIssueType(id: number) {
@@ -408,14 +508,21 @@ export class ApiService {
 		);
 	}
 	
-	createRiskIssueType(payload: { code: string; name: string; is_active?: boolean }) {
-		return this.http.post<ApiResource<RiskIssueTypeDto>>(
-			`${environment.apiBaseUrl}/risk-issue-types`,
-			payload
-		);
+	createRiskIssueType(payload: {
+		code: string;
+		name: string;
+		is_active?: boolean;
+	}) {
+    return this.http.post<ApiResource<RiskIssueTypeDto>>(
+		`${environment.apiBaseUrl}/risk-issue-types`,
+		payload
+	);
 	}
 	
-	updateRiskIssueType(id: number, payload: { code?: string; name?: string; is_active?: boolean }) {
+	updateRiskIssueType(
+		id: number,
+		payload: { code?: string; name?: string; is_active?: boolean }
+		) {
 		return this.http.put<ApiResource<RiskIssueTypeDto>>(
 			`${environment.apiBaseUrl}/risk-issue-types/${id}`,
 			payload
@@ -424,7 +531,7 @@ export class ApiService {
 	
 	deleteRiskIssueType(id: number) {
 		// backend returns { ok: true, mode: 'SOFT' }
-		return this.http.delete<{ ok: boolean; mode: 'SOFT' }>(
+		return this.http.delete<{ ok: boolean; mode: "SOFT" }>(
 			`${environment.apiBaseUrl}/risk-issue-types/${id}`
 		);
 	}
@@ -433,17 +540,24 @@ export class ApiService {
 	// External Sources's Section
 	// ******************************************************************************************************************************
 	
-	getExternalSources(params?: { search?: string; is_active?: number; page?: number; per_page?: number }) {
-		let httpParams = new HttpParams();
-		if (params?.search) httpParams = httpParams.set('search', params.search);
-		if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
-		if (params?.page) httpParams = httpParams.set('page', String(params.page));
-		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
-		
-		return this.http.get<ApiCollection<ExternalSourceDto>>(
-			`${environment.apiBaseUrl}/external-sources`,
-			{ params: httpParams }
-		);
+	getExternalSources(params?: {
+		search?: string;
+		is_active?: number;
+		page?: number;
+		per_page?: number;
+	}) {
+    let httpParams = new HttpParams();
+    if (params?.search) httpParams = httpParams.set("search", params.search);
+    if (params?.is_active !== undefined)
+	httpParams = httpParams.set("is_active", String(params.is_active));
+    if (params?.page) httpParams = httpParams.set("page", String(params.page));
+    if (params?.per_page)
+	httpParams = httpParams.set("per_page", String(params.per_page));
+	
+    return this.http.get<ApiCollection<ExternalSourceDto>>(
+		`${environment.apiBaseUrl}/external-sources`,
+		{ params: httpParams }
+	);
 	}
 	
 	getExternalSource(id: number) {
@@ -452,14 +566,27 @@ export class ApiService {
 		);
 	}
 	
-	createExternalSource(payload: { code: string; name: string; base_url?: string | null; is_active?: boolean }) {
-		return this.http.post<ApiResource<ExternalSourceDto>>(
-			`${environment.apiBaseUrl}/external-sources`,
-			payload
-		);
+	createExternalSource(payload: {
+		code: string;
+		name: string;
+		base_url?: string | null;
+		is_active?: boolean;
+	}) {
+    return this.http.post<ApiResource<ExternalSourceDto>>(
+		`${environment.apiBaseUrl}/external-sources`,
+		payload
+	);
 	}
 	
-	updateExternalSource(id: number, payload: { code?: string; name?: string; base_url?: string | null; is_active?: boolean }) {
+	updateExternalSource(
+		id: number,
+		payload: {
+			code?: string;
+			name?: string;
+			base_url?: string | null;
+			is_active?: boolean;
+		}
+		) {
 		return this.http.put<ApiResource<ExternalSourceDto>>(
 			`${environment.apiBaseUrl}/external-sources/${id}`,
 			payload
@@ -467,7 +594,7 @@ export class ApiService {
 	}
 	
 	deleteExternalSource(id: number) {
-		return this.http.delete<{ ok: boolean; mode: 'SOFT' }>(
+		return this.http.delete<{ ok: boolean; mode: "SOFT" }>(
 			`${environment.apiBaseUrl}/external-sources/${id}`
 		);
 	}
@@ -476,17 +603,24 @@ export class ApiService {
 	// Project Statuses's Section
 	// ******************************************************************************************************************************
 	
-	getProjectStatuses(params?: { search?: string; is_active?: number; page?: number; per_page?: number }) {
-		let httpParams = new HttpParams();
-		if (params?.search) httpParams = httpParams.set('search', params.search);
-		if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
-		if (params?.page) httpParams = httpParams.set('page', String(params.page));
-		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
-		
-		return this.http.get<ApiCollection<ProjectStatusDto>>(
-			`${environment.apiBaseUrl}/project-statuses`,
-			{ params: httpParams }
-		);
+	getProjectStatuses(params?: {
+		search?: string;
+		is_active?: number;
+		page?: number;
+		per_page?: number;
+	}) {
+    let httpParams = new HttpParams();
+    if (params?.search) httpParams = httpParams.set("search", params.search);
+    if (params?.is_active !== undefined)
+	httpParams = httpParams.set("is_active", String(params.is_active));
+    if (params?.page) httpParams = httpParams.set("page", String(params.page));
+    if (params?.per_page)
+	httpParams = httpParams.set("per_page", String(params.per_page));
+	
+    return this.http.get<ApiCollection<ProjectStatusDto>>(
+		`${environment.apiBaseUrl}/project-statuses`,
+		{ params: httpParams }
+	);
 	}
 	
 	getProjectStatus(id: number) {
@@ -498,14 +632,27 @@ export class ApiService {
 	/**
 		* NOTE: backend returns { id: number } (not ApiResource)
 	*/
-	createProjectStatus(payload: { code: string; name: string; sort_order?: number; is_active?: boolean }) {
-		return this.http.post<{ id: number }>(
-			`${environment.apiBaseUrl}/project-statuses`,
-			payload
-		);
+	createProjectStatus(payload: {
+		code: string;
+		name: string;
+		sort_order?: number;
+		is_active?: boolean;
+	}) {
+    return this.http.post<{ id: number }>(
+		`${environment.apiBaseUrl}/project-statuses`,
+		payload
+	);
 	}
 	
-	updateProjectStatus(id: number, payload: { code?: string; name?: string; sort_order?: number; is_active?: boolean }) {
+	updateProjectStatus(
+		id: number,
+		payload: {
+			code?: string;
+			name?: string;
+			sort_order?: number;
+			is_active?: boolean;
+		}
+		) {
 		return this.http.put<{ ok: true; message?: string }>(
 			`${environment.apiBaseUrl}/project-statuses/${id}`,
 			payload
@@ -513,7 +660,7 @@ export class ApiService {
 	}
 	
 	deleteProjectStatus(id: number) {
-		return this.http.delete<{ ok: true; mode: 'SOFT' | 'HARD' }>(
+		return this.http.delete<{ ok: true; mode: "SOFT" | "HARD" }>(
 			`${environment.apiBaseUrl}/project-statuses/${id}`
 		);
 	}
@@ -522,17 +669,24 @@ export class ApiService {
 	// Risk Issue Statuses's Section
 	// ******************************************************************************************************************************
 	
-	getRiskIssueStatuses(params?: { search?: string; is_active?: number; page?: number; per_page?: number }) {
-		let httpParams = new HttpParams();
-		if (params?.search) httpParams = httpParams.set('search', params.search);
-		if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
-		if (params?.page) httpParams = httpParams.set('page', String(params.page));
-		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
-		
-		return this.http.get<ApiCollection<RiskIssueStatusDto>>(
-			`${environment.apiBaseUrl}/risk-statuses`,
-			{ params: httpParams }
-		);
+	getRiskIssueStatuses(params?: {
+		search?: string;
+		is_active?: number;
+		page?: number;
+		per_page?: number;
+	}) {
+    let httpParams = new HttpParams();
+    if (params?.search) httpParams = httpParams.set("search", params.search);
+    if (params?.is_active !== undefined)
+	httpParams = httpParams.set("is_active", String(params.is_active));
+    if (params?.page) httpParams = httpParams.set("page", String(params.page));
+    if (params?.per_page)
+	httpParams = httpParams.set("per_page", String(params.per_page));
+	
+    return this.http.get<ApiCollection<RiskIssueStatusDto>>(
+		`${environment.apiBaseUrl}/risk-statuses`,
+		{ params: httpParams }
+	);
 	}
 	
 	getRiskIssueStatus(id: number) {
@@ -541,14 +695,27 @@ export class ApiService {
 		);
 	}
 	
-	createRiskIssueStatus(payload: { code: string; name: string; sort_order?: number; is_active?: boolean }) {
-		return this.http.post<ApiResource<RiskIssueStatusDto>>(
-			`${environment.apiBaseUrl}/risk-statuses`,
-			payload
-		);
+	createRiskIssueStatus(payload: {
+		code: string;
+		name: string;
+		sort_order?: number;
+		is_active?: boolean;
+	}) {
+    return this.http.post<ApiResource<RiskIssueStatusDto>>(
+		`${environment.apiBaseUrl}/risk-statuses`,
+		payload
+	);
 	}
 	
-	updateRiskIssueStatus(id: number, payload: { code?: string; name?: string; sort_order?: number; is_active?: boolean }) {
+	updateRiskIssueStatus(
+		id: number,
+		payload: {
+			code?: string;
+			name?: string;
+			sort_order?: number;
+			is_active?: boolean;
+		}
+		) {
 		return this.http.put<ApiResource<RiskIssueStatusDto>>(
 			`${environment.apiBaseUrl}/risk-statuses/${id}`,
 			payload
@@ -556,7 +723,7 @@ export class ApiService {
 	}
 	
 	deleteRiskIssueStatus(id: number) {
-		return this.http.delete<{ ok: boolean; mode: 'SOFT' | 'HARD' }>(
+		return this.http.delete<{ ok: boolean; mode: "SOFT" | "HARD" }>(
 			`${environment.apiBaseUrl}/risk-statuses/${id}`
 		);
 	}
@@ -565,18 +732,25 @@ export class ApiService {
 	// Severities's Section
 	// ******************************************************************************************************************************
 	
-	getSeverities(params?: { search?: string; is_active?: number; page?: number; per_page?: number }) {
-		let httpParams = new HttpParams();
-		
-		if (params?.search) httpParams = httpParams.set('search', params.search);
-		if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
-		if (params?.page) httpParams = httpParams.set('page', String(params.page));
-		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
-		
-		return this.http.get<ApiCollection<SeverityDto>>(
-			`${environment.apiBaseUrl}/severities`,
-			{ params: httpParams }
-		);
+	getSeverities(params?: {
+		search?: string;
+		is_active?: number;
+		page?: number;
+		per_page?: number;
+	}) {
+    let httpParams = new HttpParams();
+	
+    if (params?.search) httpParams = httpParams.set("search", params.search);
+    if (params?.is_active !== undefined)
+	httpParams = httpParams.set("is_active", String(params.is_active));
+    if (params?.page) httpParams = httpParams.set("page", String(params.page));
+    if (params?.per_page)
+	httpParams = httpParams.set("per_page", String(params.per_page));
+	
+    return this.http.get<ApiCollection<SeverityDto>>(
+		`${environment.apiBaseUrl}/severities`,
+		{ params: httpParams }
+	);
 	}
 	
 	getSeverity(id: number) {
@@ -585,14 +759,27 @@ export class ApiService {
 		);
 	}
 	
-	createSeverity(payload: { code: string; name: string; sort_order?: number; is_active?: boolean }) {
-		return this.http.post<ApiResource<SeverityDto>>(
-			`${environment.apiBaseUrl}/severities`,
-			payload
-		);
+	createSeverity(payload: {
+		code: string;
+		name: string;
+		sort_order?: number;
+		is_active?: boolean;
+	}) {
+    return this.http.post<ApiResource<SeverityDto>>(
+		`${environment.apiBaseUrl}/severities`,
+		payload
+	);
 	}
 	
-	updateSeverity(id: number, payload: { code?: string; name?: string; sort_order?: number; is_active?: boolean }) {
+	updateSeverity(
+		id: number,
+		payload: {
+			code?: string;
+			name?: string;
+			sort_order?: number;
+			is_active?: boolean;
+		}
+		) {
 		return this.http.put<ApiResource<SeverityDto>>(
 			`${environment.apiBaseUrl}/severities/${id}`,
 			payload
@@ -600,7 +787,7 @@ export class ApiService {
 	}
 	
 	deleteSeverity(id: number) {
-		return this.http.delete<{ ok: boolean; mode: 'SOFT' | 'HARD' }>(
+		return this.http.delete<{ ok: boolean; mode: "SOFT" | "HARD" }>(
 			`${environment.apiBaseUrl}/severities/${id}`
 		);
 	}
@@ -609,18 +796,25 @@ export class ApiService {
 	// Task Statuses's Section
 	// ******************************************************************************************************************************
 	
-	getTaskStatuses(params?: { search?: string; is_active?: number; page?: number; per_page?: number }) {
-		let httpParams = new HttpParams();
-		
-		if (params?.search) httpParams = httpParams.set('search', params.search);
-		if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
-		if (params?.page) httpParams = httpParams.set('page', String(params.page));
-		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
-		
-		return this.http.get<ApiCollection<TaskStatusDto>>(
-			`${environment.apiBaseUrl}/task-statuses`,
-			{ params: httpParams }
-		);
+	getTaskStatuses(params?: {
+		search?: string;
+		is_active?: number;
+		page?: number;
+		per_page?: number;
+	}) {
+    let httpParams = new HttpParams();
+	
+    if (params?.search) httpParams = httpParams.set("search", params.search);
+    if (params?.is_active !== undefined)
+	httpParams = httpParams.set("is_active", String(params.is_active));
+    if (params?.page) httpParams = httpParams.set("page", String(params.page));
+    if (params?.per_page)
+	httpParams = httpParams.set("per_page", String(params.per_page));
+	
+    return this.http.get<ApiCollection<TaskStatusDto>>(
+		`${environment.apiBaseUrl}/task-statuses`,
+		{ params: httpParams }
+	);
 	}
 	
 	getTaskStatus(id: number) {
@@ -629,14 +823,27 @@ export class ApiService {
 		);
 	}
 	
-	createTaskStatus(payload: { code: string; name: string; sort_order?: number; is_active?: boolean }) {
-		return this.http.post<ApiResource<TaskStatusDto>>(
-			`${environment.apiBaseUrl}/task-statuses`,
-			payload
-		);
+	createTaskStatus(payload: {
+		code: string;
+		name: string;
+		sort_order?: number;
+		is_active?: boolean;
+	}) {
+    return this.http.post<ApiResource<TaskStatusDto>>(
+		`${environment.apiBaseUrl}/task-statuses`,
+		payload
+	);
 	}
 	
-	updateTaskStatus(id: number, payload: { code?: string; name?: string; sort_order?: number; is_active?: boolean }) {
+	updateTaskStatus(
+		id: number,
+		payload: {
+			code?: string;
+			name?: string;
+			sort_order?: number;
+			is_active?: boolean;
+		}
+		) {
 		return this.http.put<ApiResource<TaskStatusDto>>(
 			`${environment.apiBaseUrl}/task-statuses/${id}`,
 			payload
@@ -644,7 +851,7 @@ export class ApiService {
 	}
 	
 	deleteTaskStatus(id: number) {
-		return this.http.delete<{ ok: boolean; mode: 'SOFT' | 'HARD' }>(
+		return this.http.delete<{ ok: boolean; mode: "SOFT" | "HARD" }>(
 			`${environment.apiBaseUrl}/task-statuses/${id}`
 		);
 	}
@@ -653,178 +860,112 @@ export class ApiService {
 	// External Risk Issues's Section
 	// ******************************************************************************************************************************
 	
-	getExternalRiskIssues(
-		params: ExternalRiskIssueListParams = {}
-		) {
-		let httpParams =
-		new HttpParams();
+	getExternalRiskIssues(params: ExternalRiskIssueListParams = {}) {
+		let httpParams = new HttpParams();
 		
 		if (params.search) {
-			httpParams =
-			httpParams.set(
-				'search',
-				params.search
-			);
+			httpParams = httpParams.set("search", params.search);
 		}
 		
 		const intKeys = [
-			'project_id',
-			'task_id',
-			'milestone_id',
-			'permit_id',
-			'external_source_id',
-			'type_id',
-			'severity_id',
-			'risk_issue_status_id',
-		] as const satisfies ReadonlyArray<
-		keyof ExternalRiskIssueListParams
-		>;
+			"project_id",
+			"task_id",
+			"milestone_id",
+			"permit_id",
+			"external_source_id",
+			"type_id",
+			"severity_id",
+			"risk_issue_status_id",
+		] as const satisfies ReadonlyArray<keyof ExternalRiskIssueListParams>;
 		
 		for (const key of intKeys) {
 			const value = params[key];
 			
 			if (value != null) {
-				httpParams =
-				httpParams.set(
-					String(key),
-					String(value)
-				);
+				httpParams = httpParams.set(String(key), String(value));
 			}
 		}
 		
-		if (
-			params.source_updated_from
-			) {
-			httpParams =
-			httpParams.set(
-				'source_updated_from',
+		if (params.source_updated_from) {
+			httpParams = httpParams.set(
+				"source_updated_from",
 				params.source_updated_from
 			);
 		}
 		
-		if (
-			params.source_updated_to
-			) {
-			httpParams =
-			httpParams.set(
-				'source_updated_to',
+		if (params.source_updated_to) {
+			httpParams = httpParams.set(
+				"source_updated_to",
 				params.source_updated_to
 			);
 		}
 		
-		if (
-			params.include_links !==
-			undefined
-			) {
-			httpParams =
-			httpParams.set(
-				'include_links',
-				params.include_links
-				? '1'
-				: '0'
+		if (params.include_links !== undefined) {
+			httpParams = httpParams.set(
+				"include_links",
+				params.include_links ? "1" : "0"
 			);
 		}
 		
 		if (params.page) {
-			httpParams =
-			httpParams.set(
-				'page',
-				String(params.page)
-			);
+			httpParams = httpParams.set("page", String(params.page));
 		}
 		
 		if (params.per_page) {
-			httpParams =
-			httpParams.set(
-				'per_page',
-				String(params.per_page)
-			);
+			httpParams = httpParams.set("per_page", String(params.per_page));
 		}
 		
-		return this.http.get<
-		ApiCollection<ExternalRiskIssueDto>
-		>(
+		return this.http.get<ApiCollection<ExternalRiskIssueDto>>(
 			`${environment.apiBaseUrl}/external-risk-issues`,
 			{ params: httpParams }
 		);
 	}
 	
-	getExternalRiskIssue(
-		id: number,
-		includePayload = false
-		) {
-		let httpParams =
-		new HttpParams();
+	getExternalRiskIssue(id: number, includePayload = false) {
+		let httpParams = new HttpParams();
 		
 		if (includePayload) {
-			httpParams =
-			httpParams.set(
-				'include_payload',
-				'1'
-			);
+			httpParams = httpParams.set("include_payload", "1");
 		}
 		
-		return this.http.get<
-		ApiResource<ExternalRiskIssueDto>
-		>(
+		return this.http.get<ApiResource<ExternalRiskIssueDto>>(
 			`${environment.apiBaseUrl}/external-risk-issues/${id}`,
 			{ params: httpParams }
 		);
 	}
 	
-	createExternalRiskIssue(
-		payload:
-		ExternalRiskIssueUpsertPayload
-		) {
-		return this.http.post<
-		ApiResource<ExternalRiskIssueDto>
-		>(
+	createExternalRiskIssue(payload: ExternalRiskIssueUpsertPayload) {
+		return this.http.post<ApiResource<ExternalRiskIssueDto>>(
 			`${environment.apiBaseUrl}/external-risk-issues`,
 			payload
 		);
 	}
 	
-	updateExternalRiskIssue(
-		id: number,
-		payload:
-		ExternalRiskIssueUpsertPayload
-		) {
-		return this.http.put<
-		ApiResource<ExternalRiskIssueDto>
-		>(
+	updateExternalRiskIssue(id: number, payload: ExternalRiskIssueUpsertPayload) {
+		return this.http.put<ApiResource<ExternalRiskIssueDto>>(
 			`${environment.apiBaseUrl}/external-risk-issues/${id}`,
 			payload
 		);
 	}
 	
-	deleteExternalRiskIssue(
-		id: number
-		) {
+	deleteExternalRiskIssue(id: number) {
 		return this.http.delete<{
 			ok: boolean;
-			mode: 'HARD';
-			}>(
-			`${environment.apiBaseUrl}/external-risk-issues/${id}`
-		);
+			mode: "HARD";
+		}>(`${environment.apiBaseUrl}/external-risk-issues/${id}`);
 	}
 	
 	linkExternalRiskIssue(
 		issueId: number,
-		payload:
-		ExternalRiskIssueLinkPayload
+		payload: ExternalRiskIssueLinkPayload
 		) {
-		return this.http.post<
-		ApiResource<ExternalRiskIssueDto>
-		>(
+		return this.http.post<ApiResource<ExternalRiskIssueDto>>(
 			`${environment.apiBaseUrl}/external-risk-issues/${issueId}/links`,
 			payload
 		);
 	}
 	
-	unlinkExternalRiskIssue(
-		issueId: number,
-		linkId: number
-		) {
+	unlinkExternalRiskIssue(issueId: number, linkId: number) {
 		return this.http.delete<{
 			ok: boolean;
 			message?: string;
@@ -840,50 +981,74 @@ export class ApiService {
 	getProjects(params?: {
 		search?: string;
 		department_id?: number;
-		status_id?: number;     // NOTE: backend expects status_id
+		status_id?: number; // NOTE: backend expects status_id
 		priority_id?: number;
 		delayed?: boolean;
 		page?: number;
 		per_page?: number;
 	}) {
-	let httpParams = new HttpParams();
-	if (params?.search) httpParams = httpParams.set('search', params.search);
-	if (params?.department_id != null) httpParams = httpParams.set('department_id', String(params.department_id));
-	if (params?.status_id != null) httpParams = httpParams.set('status_id', String(params.status_id));
-	if (params?.priority_id != null) httpParams = httpParams.set('priority_id', String(params.priority_id));
-	if (params?.delayed) httpParams = httpParams.set('delayed', '1');
-	if (params?.page) httpParams = httpParams.set('page', String(params.page));
-	if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
+    let httpParams = new HttpParams();
+    if (params?.search) httpParams = httpParams.set("search", params.search);
+    if (params?.department_id != null)
+	httpParams = httpParams.set(
+        "department_id",
+        String(params.department_id)
+	);
+    if (params?.status_id != null)
+	httpParams = httpParams.set("status_id", String(params.status_id));
+    if (params?.priority_id != null)
+	httpParams = httpParams.set("priority_id", String(params.priority_id));
+    if (params?.delayed) httpParams = httpParams.set("delayed", "1");
+    if (params?.page) httpParams = httpParams.set("page", String(params.page));
+    if (params?.per_page)
+	httpParams = httpParams.set("per_page", String(params.per_page));
 	
-	return this.http.get<ApiCollection<ProjectDto>>(`${environment.apiBaseUrl}/projects`, { params: httpParams });
+    return this.http.get<ApiCollection<ProjectDto>>(
+		`${environment.apiBaseUrl}/projects`,
+		{ params: httpParams }
+	);
 	}
 	
 	getProject(id: number) {
-		return this.http.get<ApiResource<ProjectDto>>(`${environment.apiBaseUrl}/projects/${id}`);
+		return this.http.get<ApiResource<ProjectDto>>(
+			`${environment.apiBaseUrl}/projects/${id}`
+		);
 	}
 	
 	/** backend returns { id } */
 	createProject(payload: ProjectUpsertPayload) {
-		return this.http.post<{ id: number }>(`${environment.apiBaseUrl}/projects`, payload);
+		return this.http.post<{ id: number }>(
+			`${environment.apiBaseUrl}/projects`,
+			payload
+		);
 	}
 	
 	/** backend returns { ok:true } */
 	updateProject(id: number, payload: ProjectUpsertPayload) {
-		return this.http.put<{ ok: true; message?: string }>(`${environment.apiBaseUrl}/projects/${id}`, payload);
+		return this.http.put<{ ok: true; message?: string }>(
+			`${environment.apiBaseUrl}/projects/${id}`,
+			payload
+		);
 	}
 	
 	deleteProject(id: number) {
-		return this.http.delete<{ ok: true; mode: 'HARD' }>(`${environment.apiBaseUrl}/projects/${id}`);
+		return this.http.delete<{ ok: true; mode: "HARD" }>(
+			`${environment.apiBaseUrl}/projects/${id}`
+		);
 	}
 	
 	// ******************************************************************************************************************************
 	// Project Milestone's Section
 	// ******************************************************************************************************************************
 	
-	getProjectMilestones(projectId: number, params?: { page?: number; per_page?: number }) {
+	getProjectMilestones(
+		projectId: number,
+		params?: { page?: number; per_page?: number }
+		) {
 		let httpParams = new HttpParams();
-		if (params?.page) httpParams = httpParams.set('page', String(params.page));
-		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
+		if (params?.page) httpParams = httpParams.set("page", String(params.page));
+		if (params?.per_page)
+		httpParams = httpParams.set("per_page", String(params.per_page));
 		
 		return this.http.get<ApiCollection<ProjectMilestoneDto>>(
 			`${environment.apiBaseUrl}/projects/${projectId}/milestones`,
@@ -897,14 +1062,21 @@ export class ApiService {
 		);
 	}
 	
-	createProjectMilestone(projectId: number, payload: ProjectMilestoneUpsertPayload) {
+	createProjectMilestone(
+		projectId: number,
+		payload: ProjectMilestoneUpsertPayload
+		) {
 		return this.http.post<ApiResource<ProjectMilestoneDto>>(
 			`${environment.apiBaseUrl}/projects/${projectId}/milestones`,
 			payload
 		);
 	}
 	
-	updateProjectMilestone(projectId: number, milestoneId: number, payload: ProjectMilestoneUpsertPayload) {
+	updateProjectMilestone(
+		projectId: number,
+		milestoneId: number,
+		payload: ProjectMilestoneUpsertPayload
+		) {
 		return this.http.put<ApiResource<ProjectMilestoneDto>>(
 			`${environment.apiBaseUrl}/projects/${projectId}/milestones/${milestoneId}`,
 			payload
@@ -912,7 +1084,7 @@ export class ApiService {
 	}
 	
 	deleteProjectMilestone(projectId: number, milestoneId: number) {
-		return this.http.delete<{ ok: true; mode: 'HARD' }>(
+		return this.http.delete<{ ok: true; mode: "HARD" }>(
 			`${environment.apiBaseUrl}/projects/${projectId}/milestones/${milestoneId}`
 		);
 	}
@@ -926,7 +1098,6 @@ export class ApiService {
 			`${environment.apiBaseUrl}/projects/${projectId}/gantt`
 		);
 	}
-	
 	
 	/** backend returns { id } */
 	createProjectTask(projectId: number, payload: ProjectTaskUpsertPayload) {
@@ -945,7 +1116,7 @@ export class ApiService {
 	}
 	
 	deleteProjectTask(taskId: number) {
-		return this.http.delete<{ ok: true; mode: 'HARD' }>(
+		return this.http.delete<{ ok: true; mode: "HARD" }>(
 			`${environment.apiBaseUrl}/tasks/${taskId}`
 		);
 	}
@@ -954,10 +1125,14 @@ export class ApiService {
 	// Project File's Section
 	// ******************************************************************************************************************************
 	
-	getProjectFiles(projectId: number, params?: { page?: number; per_page?: number }) {
+	getProjectFiles(
+		projectId: number,
+		params?: { page?: number; per_page?: number }
+		) {
 		let httpParams = new HttpParams();
-		if (params?.page) httpParams = httpParams.set('page', String(params.page));
-		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
+		if (params?.page) httpParams = httpParams.set("page", String(params.page));
+		if (params?.per_page)
+		httpParams = httpParams.set("per_page", String(params.per_page));
 		
 		return this.http.get<ApiCollection<StoredFileDto>>(
 			`${environment.apiBaseUrl}/projects/${projectId}/files`,
@@ -967,11 +1142,17 @@ export class ApiService {
 	
 	uploadProjectFile(projectId: number, file: File) {
 		const fd = new FormData();
-		fd.append('file', file); // must match backend request field name
-		return this.http.post(`${environment.apiBaseUrl}/projects/${projectId}/files`, fd);
+		fd.append("file", file); // must match backend request field name
+		return this.http.post(
+			`${environment.apiBaseUrl}/projects/${projectId}/files`,
+			fd
+		);
 	}
 	
-	attachExistingProjectFile(projectId: number, payload: AttachExistingFilePayload) {
+	attachExistingProjectFile(
+		projectId: number,
+		payload: AttachExistingFilePayload
+		) {
 		return this.http.post<FileAttachResponse>(
 			`${environment.apiBaseUrl}/projects/${projectId}/files/attach`,
 			payload
@@ -987,7 +1168,7 @@ export class ApiService {
 	downloadProjectFile(projectId: number, fileId: number) {
 		return this.http.get(
 			`${environment.apiBaseUrl}/projects/${projectId}/files/${fileId}/download`,
-			{ responseType: 'blob' }
+			{ responseType: "blob" }
 		);
 	}
 	
@@ -997,8 +1178,9 @@ export class ApiService {
 	
 	getTaskFiles(taskId: number, params?: { page?: number; per_page?: number }) {
 		let httpParams = new HttpParams();
-		if (params?.page) httpParams = httpParams.set('page', String(params.page));
-		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
+		if (params?.page) httpParams = httpParams.set("page", String(params.page));
+		if (params?.per_page)
+		httpParams = httpParams.set("per_page", String(params.per_page));
 		
 		return this.http.get<ApiCollection<StoredFileDto>>(
 			`${environment.apiBaseUrl}/tasks/${taskId}/files`,
@@ -1008,7 +1190,7 @@ export class ApiService {
 	
 	uploadTaskFile(taskId: number, file: File) {
 		const formData = new FormData();
-		formData.append('file', file);
+		formData.append("file", file);
 		
 		return this.http.post<StoredFileDto>(
 			`${environment.apiBaseUrl}/tasks/${taskId}/files`,
@@ -1032,30 +1214,36 @@ export class ApiService {
 	downloadTaskFile(taskId: number, fileId: number) {
 		return this.http.get(
 			`${environment.apiBaseUrl}/tasks/${taskId}/files/${fileId}/download`,
-			{ responseType: 'blob' }
+			{ responseType: "blob" }
 		);
 	}
 	
 	// ******************************************************************************************************************************
 	// Project Budget Line's Section
 	// ******************************************************************************************************************************
-	getProjectBudgetLines(projectId: number, params?: {
-		line_type?: ProjectBudgetLineType;
-		is_active?: number;
-		page?: number;
-		per_page?: number;
-	}) {
-	let httpParams = new HttpParams();
-	
-	if (params?.line_type) httpParams = httpParams.set('line_type', params.line_type);
-	if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
-	if (params?.page) httpParams = httpParams.set('page', String(params.page));
-	if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
-	
-	return this.http.get<ApiCollection<ProjectBudgetLineDto>>(
-		`${environment.apiBaseUrl}/projects/${projectId}/budget-lines`,
-		{ params: httpParams }
-	);
+	getProjectBudgetLines(
+		projectId: number,
+		params?: {
+			line_type?: ProjectBudgetLineType;
+			is_active?: number;
+			page?: number;
+			per_page?: number;
+		}
+		) {
+		let httpParams = new HttpParams();
+		
+		if (params?.line_type)
+		httpParams = httpParams.set("line_type", params.line_type);
+		if (params?.is_active !== undefined)
+		httpParams = httpParams.set("is_active", String(params.is_active));
+		if (params?.page) httpParams = httpParams.set("page", String(params.page));
+		if (params?.per_page)
+		httpParams = httpParams.set("per_page", String(params.per_page));
+		
+		return this.http.get<ApiCollection<ProjectBudgetLineDto>>(
+			`${environment.apiBaseUrl}/projects/${projectId}/budget-lines`,
+			{ params: httpParams }
+		);
 	}
 	
 	getProjectBudgetLine(projectId: number, lineId: number) {
@@ -1064,22 +1252,31 @@ export class ApiService {
 		);
 	}
 	
-	createProjectBudgetLine(projectId: number, payload: ProjectBudgetLineUpsertPayload) {
+	createProjectBudgetLine(
+		projectId: number,
+		payload: ProjectBudgetLineUpsertPayload
+		) {
 		return this.http.post<ApiResource<ProjectBudgetLineDto>>(
 			`${environment.apiBaseUrl}/projects/${projectId}/budget-lines`,
 			payload
 		);
 	}
 	
-	updateProjectBudgetLine(projectId: number, lineId: number, payload: ProjectBudgetLineUpsertPayload) {
-		return this.http.put<ApiResource<ProjectBudgetLineDto> | { ok: true; message?: string }>(
+	updateProjectBudgetLine(
+		projectId: number,
+		lineId: number,
+		payload: ProjectBudgetLineUpsertPayload
+		) {
+		return this.http.put<
+		ApiResource<ProjectBudgetLineDto> | { ok: true; message?: string }
+		>(
 			`${environment.apiBaseUrl}/projects/${projectId}/budget-lines/${lineId}`,
 			payload
 		);
 	}
 	
 	deleteProjectBudgetLine(projectId: number, lineId: number) {
-		return this.http.delete<{ ok: boolean; mode: 'HARD' }>(
+		return this.http.delete<{ ok: boolean; mode: "HARD" }>(
 			`${environment.apiBaseUrl}/projects/${projectId}/budget-lines/${lineId}`
 		);
 	}
@@ -1088,29 +1285,41 @@ export class ApiService {
 	// Project Budget Allocation's Section
 	// ******************************************************************************************************************************
 	
-	getProjectBudgetAllocations(projectId: number, params?: {
-		budget_line_id?: number;
-		task_id?: number;
-		milestone_id?: number;
-		line_type?: ProjectBudgetLineType;
-		is_active?: number;
-		page?: number;
-		per_page?: number;
-	}) {
-	let httpParams = new HttpParams();
-	
-	if (params?.budget_line_id) httpParams = httpParams.set('budget_line_id', String(params.budget_line_id));
-	if (params?.task_id) httpParams = httpParams.set('task_id', String(params.task_id));
-	if (params?.milestone_id) httpParams = httpParams.set('milestone_id', String(params.milestone_id));
-	if (params?.line_type) httpParams = httpParams.set('line_type', params.line_type);
-	if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
-	if (params?.page) httpParams = httpParams.set('page', String(params.page));
-	if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
-	
-	return this.http.get<ApiCollection<ProjectBudgetAllocationDto>>(
-		`${environment.apiBaseUrl}/projects/${projectId}/budget-allocations`,
-		{ params: httpParams }
-	);
+	getProjectBudgetAllocations(
+		projectId: number,
+		params?: {
+			budget_line_id?: number;
+			task_id?: number;
+			milestone_id?: number;
+			line_type?: ProjectBudgetLineType;
+			is_active?: number;
+			page?: number;
+			per_page?: number;
+		}
+		) {
+		let httpParams = new HttpParams();
+		
+		if (params?.budget_line_id)
+		httpParams = httpParams.set(
+			"budget_line_id",
+			String(params.budget_line_id)
+		);
+		if (params?.task_id)
+		httpParams = httpParams.set("task_id", String(params.task_id));
+		if (params?.milestone_id)
+		httpParams = httpParams.set("milestone_id", String(params.milestone_id));
+		if (params?.line_type)
+		httpParams = httpParams.set("line_type", params.line_type);
+		if (params?.is_active !== undefined)
+		httpParams = httpParams.set("is_active", String(params.is_active));
+		if (params?.page) httpParams = httpParams.set("page", String(params.page));
+		if (params?.per_page)
+		httpParams = httpParams.set("per_page", String(params.per_page));
+		
+		return this.http.get<ApiCollection<ProjectBudgetAllocationDto>>(
+			`${environment.apiBaseUrl}/projects/${projectId}/budget-allocations`,
+			{ params: httpParams }
+		);
 	}
 	
 	getProjectBudgetAllocation(projectId: number, allocationId: number) {
@@ -1119,38 +1328,55 @@ export class ApiService {
 		);
 	}
 	
-	createProjectBudgetAllocation(projectId: number, payload: ProjectBudgetAllocationUpsertPayload) {
+	createProjectBudgetAllocation(
+		projectId: number,
+		payload: ProjectBudgetAllocationUpsertPayload
+		) {
 		return this.http.post<ApiResource<ProjectBudgetAllocationDto>>(
 			`${environment.apiBaseUrl}/projects/${projectId}/budget-allocations`,
 			payload
 		);
 	}
 	
-	updateProjectBudgetAllocation(projectId: number, allocationId: number, payload: ProjectBudgetAllocationUpsertPayload) {
-		return this.http.put<ApiResource<ProjectBudgetAllocationDto> | { ok: boolean; message?: string }>(
+	updateProjectBudgetAllocation(
+		projectId: number,
+		allocationId: number,
+		payload: ProjectBudgetAllocationUpsertPayload
+		) {
+		return this.http.put<
+		| ApiResource<ProjectBudgetAllocationDto>
+		| { ok: boolean; message?: string }
+		>(
 			`${environment.apiBaseUrl}/projects/${projectId}/budget-allocations/${allocationId}`,
 			payload
 		);
 	}
 	
 	deleteProjectBudgetAllocation(projectId: number, allocationId: number) {
-		return this.http.delete<{ ok: boolean; mode: 'HARD' }>(
+		return this.http.delete<{ ok: boolean; mode: "HARD" }>(
 			`${environment.apiBaseUrl}/projects/${projectId}/budget-allocations/${allocationId}`
 		);
 	}
 	
-	getProjectCategories(params?: { search?: string; is_active?: number; page?: number; per_page?: number }) {
-		let httpParams = new HttpParams();
-		
-		if (params?.search) httpParams = httpParams.set('search', params.search);
-		if (params?.is_active !== undefined) httpParams = httpParams.set('is_active', String(params.is_active));
-		if (params?.page) httpParams = httpParams.set('page', String(params.page));
-		if (params?.per_page) httpParams = httpParams.set('per_page', String(params.per_page));
-		
-		return this.http.get<ApiCollection<ProjectCategoryDto>>(
-			`${environment.apiBaseUrl}/project-categories`,
-			{ params: httpParams }
-		);
+	getProjectCategories(params?: {
+		search?: string;
+		is_active?: number;
+		page?: number;
+		per_page?: number;
+	}) {
+    let httpParams = new HttpParams();
+	
+    if (params?.search) httpParams = httpParams.set("search", params.search);
+    if (params?.is_active !== undefined)
+	httpParams = httpParams.set("is_active", String(params.is_active));
+    if (params?.page) httpParams = httpParams.set("page", String(params.page));
+    if (params?.per_page)
+	httpParams = httpParams.set("per_page", String(params.per_page));
+	
+    return this.http.get<ApiCollection<ProjectCategoryDto>>(
+		`${environment.apiBaseUrl}/project-categories`,
+		{ params: httpParams }
+	);
 	}
 	
 	// ******************************************************************************************************************************
@@ -1161,7 +1387,7 @@ export class ApiService {
 		return this.http.get<ApiPagedResponse<ExternalPermitDto>>(
 			`${environment.apiBaseUrl}/external-permits`,
 			{
-				params: this.hpmsHttpParams(params)
+				params: this.hpmsHttpParams(params),
 			}
 		);
 	}
@@ -1176,7 +1402,7 @@ export class ApiService {
 		return this.http.get<ApiPagedResponse<IntegrationSyncRunDto>>(
 			`${environment.apiBaseUrl}/integrations/eptw/sync-runs`,
 			{
-				params: this.hpmsHttpParams(params)
+				params: this.hpmsHttpParams(params),
 			}
 		);
 	}
@@ -1190,19 +1416,13 @@ export class ApiService {
 	startEptwSync(payload: EptwSyncPayload) {
 		return this.http.post<
 		EptwQueuedResponse | ApiResource<IntegrationSyncRunDto>
-		>(
-			`${environment.apiBaseUrl}/integrations/eptw/sync`,
-			payload
-		);
+		>(`${environment.apiBaseUrl}/integrations/eptw/sync`, payload);
 	}
 	
 	syncOneEptwPermit(payload: EptwSyncOnePayload) {
 		return this.http.post<
 		EptwQueuedResponse | ApiResource<IntegrationSyncRunDto>
-		>(
-			`${environment.apiBaseUrl}/integrations/eptw/sync-one`,
-			payload
-		);
+		>(`${environment.apiBaseUrl}/integrations/eptw/sync-one`, payload);
 	}
 	
 	importTestEptwPermits(payload: ImportEptwPermitsPayload) {
@@ -1247,16 +1467,12 @@ export class ApiService {
 		let httpParams = new HttpParams();
 		
 		Object.entries(params ?? {}).forEach(([key, value]) => {
-			if (
-				value === null ||
-				value === undefined ||
-				value === ''
-				) {
+			if (value === null || value === undefined || value === "") {
 				return;
 			}
 			
-			if (typeof value === 'boolean') {
-				httpParams = httpParams.set(key, value ? '1' : '0');
+			if (typeof value === "boolean") {
+				httpParams = httpParams.set(key, value ? "1" : "0");
 				return;
 			}
 			
@@ -1270,31 +1486,37 @@ export class ApiService {
 	// Agreemet Status Section (Agreement Module)
 	// ******************************************************************************************************************************
 	
-	getAgreementStatuses(params:AgreementStatusListParams = {}) {
+	getAgreementStatuses(params: AgreementStatusListParams = {}) {
 		let httpParams = new HttpParams();
 		
 		if (params.search) {
-			httpParams = httpParams.set('search',params.search);
+			httpParams = httpParams.set("search", params.search);
 		}
 		
 		if (params.is_active !== undefined) {
-			httpParams = httpParams.set('is_active',params.is_active ? '1' : '0');
+			httpParams = httpParams.set("is_active", params.is_active ? "1" : "0");
 		}
 		
 		if (params.is_terminal !== undefined) {
-			httpParams = httpParams.set('is_terminal', params.is_terminal ? '1' : '0');
+			httpParams = httpParams.set(
+				"is_terminal",
+				params.is_terminal ? "1" : "0"
+			);
 		}
 		
 		if (params.is_system_status !== undefined) {
-			httpParams = httpParams.set('is_system_status', params.is_system_status ? '1' : '0');
+			httpParams = httpParams.set(
+				"is_system_status",
+				params.is_system_status ? "1" : "0"
+			);
 		}
 		
 		if (params.page) {
-			httpParams = httpParams.set('page', String(params.page));
+			httpParams = httpParams.set("page", String(params.page));
 		}
 		
 		if (params.per_page) {
-			httpParams = httpParams.set('per_page', String(params.per_page));
+			httpParams = httpParams.set("per_page", String(params.per_page));
 		}
 		
 		return this.http.get<ApiCollection<AgreementStatusDto>>(
@@ -1309,14 +1531,14 @@ export class ApiService {
 		);
 	}
 	
-	createAgreementStatus(payload:AgreementStatusUpsertPayload) {
+	createAgreementStatus(payload: AgreementStatusUpsertPayload) {
 		return this.http.post<ApiResource<AgreementStatusDto>>(
 			`${environment.apiBaseUrl}/agreement-statuses`,
 			payload
 		);
 	}
 	
-	updateAgreementStatus(id: number,payload:AgreementStatusUpsertPayload) {
+	updateAgreementStatus(id: number, payload: AgreementStatusUpsertPayload) {
 		return this.http.put<ApiResource<AgreementStatusDto>>(
 			`${environment.apiBaseUrl}/agreement-statuses/${id}`,
 			payload
@@ -1324,11 +1546,10 @@ export class ApiService {
 	}
 	
 	deactivateAgreementStatus(id: number) {
-		return this.http.delete<{ok: boolean; mode: 'SOFT'; message?: string;}>(
+		return this.http.delete<{ ok: boolean; mode: "SOFT"; message?: string }>(
 			`${environment.apiBaseUrl}/agreement-statuses/${id}`
 		);
 	}
-	
 	
 	// ******************************************************************************************************************************
 	// Agreement Counterparty Section
@@ -1338,27 +1559,31 @@ export class ApiService {
 		let httpParams = new HttpParams();
 		
 		if (params.search) {
-			httpParams = httpParams.set('search',params.search);
+			httpParams = httpParams.set("search", params.search);
 		}
 		
 		if (params.counterparty_type) {
-			httpParams = httpParams.set('counterparty_type',params.counterparty_type);
+			httpParams = httpParams.set(
+				"counterparty_type",
+				params.counterparty_type
+			);
 		}
 		
 		if (params.is_active !== undefined) {
-			httpParams = httpParams.set('is_active',params.is_active ? '1' : '0');
+			httpParams = httpParams.set("is_active", params.is_active ? "1" : "0");
 		}
 		
 		if (params.page) {
-			httpParams = httpParams.set('page',String(params.page));
+			httpParams = httpParams.set("page", String(params.page));
 		}
 		
 		if (params.per_page) {
-			httpParams = httpParams.set('per_page',String(params.per_page));
+			httpParams = httpParams.set("per_page", String(params.per_page));
 		}
 		
 		return this.http.get<ApiCollection<CounterpartyDto>>(
-			`${environment.apiBaseUrl}/counterparties`,{params: httpParams,}
+			`${environment.apiBaseUrl}/counterparties`,
+			{ params: httpParams }
 		);
 	}
 	
@@ -1375,14 +1600,15 @@ export class ApiService {
 		);
 	}
 	
-	updateCounterparty(id: number,payload: CounterpartyUpsertPayload) {
+	updateCounterparty(id: number, payload: CounterpartyUpsertPayload) {
 		return this.http.put<ApiResource<CounterpartyDto>>(
-			`${environment.apiBaseUrl}/counterparties/${id}`,payload
+			`${environment.apiBaseUrl}/counterparties/${id}`,
+			payload
 		);
 	}
 	
 	deactivateCounterparty(id: number) {
-		return this.http.delete<{ ok: boolean; mode: 'SOFT'; message?: string; }>(
+		return this.http.delete<{ ok: boolean; mode: "SOFT"; message?: string }>(
 			`${environment.apiBaseUrl}/counterparties/${id}`
 		);
 	}
@@ -1391,28 +1617,28 @@ export class ApiService {
 	// Agreement Category Section
 	// ******************************************************************************************************************************
 	
-	getAgreementCategories( params: AgreementCategoryQueryParams = {} ) {
+	getAgreementCategories(params: AgreementCategoryQueryParams = {}) {
 		let httpParams = new HttpParams();
 		
 		if (params.search) {
-			httpParams = httpParams.set('search', params.search);
+			httpParams = httpParams.set("search", params.search);
 		}
 		
 		if (params.is_active !== undefined) {
-			httpParams = httpParams.set('is_active', params.is_active ? '1' : '0');
+			httpParams = httpParams.set("is_active", params.is_active ? "1" : "0");
 		}
 		
 		if (params.page) {
-			httpParams = httpParams.set('page', String(params.page));
+			httpParams = httpParams.set("page", String(params.page));
 		}
 		
 		if (params.per_page) {
-			httpParams = httpParams.set('per_page', String(params.per_page));
+			httpParams = httpParams.set("per_page", String(params.per_page));
 		}
 		
 		return this.http.get<ApiCollection<AgreementCategoryDto>>(
 			`${environment.apiBaseUrl}/agreement-categories`,
-			{params: httpParams,}
+			{ params: httpParams }
 		);
 	}
 	
@@ -1429,7 +1655,7 @@ export class ApiService {
 		);
 	}
 	
-	updateAgreementCategory(id: number,payload: AgreementCategoryUpsertPayload) {
+	updateAgreementCategory(id: number, payload: AgreementCategoryUpsertPayload) {
 		return this.http.put<ApiResource<AgreementCategoryDto>>(
 			`${environment.apiBaseUrl}/agreement-categories/${id}`,
 			payload
@@ -1437,7 +1663,7 @@ export class ApiService {
 	}
 	
 	deactivateAgreementCategory(id: number) {
-		return this.http.delete<{ ok: boolean; mode: 'SOFT'; message?: string; }>(
+		return this.http.delete<{ ok: boolean; mode: "SOFT"; message?: string }>(
 			`${environment.apiBaseUrl}/agreement-categories/${id}`
 		);
 	}
@@ -1450,28 +1676,31 @@ export class ApiService {
 		let httpParams = new HttpParams();
 		
 		if (params.search) {
-			httpParams = httpParams.set('search', params.search);
+			httpParams = httpParams.set("search", params.search);
 		}
 		
 		if (params.agreement_category_id != null) {
-			httpParams = httpParams.set('agreement_category_id', String(params.agreement_category_id));
+			httpParams = httpParams.set(
+				"agreement_category_id",
+				String(params.agreement_category_id)
+			);
 		}
 		
 		if (params.is_active !== undefined) {
-			httpParams = httpParams.set('is_active', params.is_active ? '1' : '0');
+			httpParams = httpParams.set("is_active", params.is_active ? "1" : "0");
 		}
 		
 		if (params.page) {
-			httpParams = httpParams.set('page', String(params.page));
+			httpParams = httpParams.set("page", String(params.page));
 		}
 		
 		if (params.per_page) {
-			httpParams = httpParams.set('per_page', String(params.per_page));
+			httpParams = httpParams.set("per_page", String(params.per_page));
 		}
 		
 		return this.http.get<ApiCollection<AgreementTypeDto>>(
 			`${environment.apiBaseUrl}/agreement-types`,
-			{ params: httpParams, }
+			{ params: httpParams }
 		);
 	}
 	
@@ -1496,7 +1725,7 @@ export class ApiService {
 	}
 	
 	deactivateAgreementType(id: number) {
-		return this.http.delete<{ ok: boolean; mode: 'SOFT'; message?: string; }>(
+		return this.http.delete<{ ok: boolean; mode: "SOFT"; message?: string }>(
 			`${environment.apiBaseUrl}/agreement-types/${id}`
 		);
 	}
@@ -1509,56 +1738,64 @@ export class ApiService {
 		let httpParams = new HttpParams();
 		
 		const textKeys = [
-			'search',
-			'status_code',
-			'lifecycle_type',
-			'effective_from',
-			'effective_to',
-			'expiry_from',
-			'expiry_to',
+			"search",
+			"status_code",
+			'dashboard_filter',
+			"lifecycle_type",
+			"effective_from",
+			"effective_to",
+			"expiry_from",
+			"expiry_to",
 		] as const;
 		
 		for (const key of textKeys) {
 			const value = params[key];
 			if (value) {
-				httpParams = httpParams.set(key,String(value));
+				httpParams = httpParams.set(key, String(value));
 			}
 		}
 		
 		const numberKeys = [
-			'department_id',
-			'owner_user_id',
-			'counterparty_id',
-			'agreement_category_id',
-			'agreement_type_id',
-			'agreement_status_id',
+			"department_id",
+			"owner_user_id",
+			"counterparty_id",
+			"agreement_category_id",
+			"agreement_type_id",
+			"agreement_status_id",
 		] as const;
 		
 		for (const key of numberKeys) {
 			const value = params[key];
 			if (value != null) {
-				httpParams = httpParams.set(key,String(value));
+				httpParams = httpParams.set(key, String(value));
 			}
 		}
 		
 		if (params.is_current_version !== undefined) {
-			httpParams = httpParams.set('is_current_version', params.is_current_version ? '1' : '0');
+			httpParams = httpParams.set(
+				"is_current_version",
+				params.is_current_version ? "1" : "0"
+			);
 		}
 		
 		if (params.include_archived !== undefined) {
-			httpParams = httpParams.set('include_archived', params.include_archived ? '1' : '0');
+			httpParams = httpParams.set(
+				"include_archived",
+				params.include_archived ? "1" : "0"
+			);
 		}
 		
 		if (params.page) {
-			httpParams = httpParams.set('page',String(params.page));
+			httpParams = httpParams.set("page", String(params.page));
 		}
 		
 		if (params.per_page) {
-			httpParams = httpParams.set('per_page', String(params.per_page));
+			httpParams = httpParams.set("per_page", String(params.per_page));
 		}
 		
 		return this.http.get<ApiCollection<AgreementDto>>(
-			`${environment.apiBaseUrl}/agreements`, { params: httpParams, }
+			`${environment.apiBaseUrl}/agreements`,
+			{ params: httpParams }
 		);
 	}
 	
@@ -1570,78 +1807,98 @@ export class ApiService {
 	
 	createAgreement(payload: AgreementUpsertPayload) {
 		return this.http.post<ApiResource<AgreementDto>>(
-			`${environment.apiBaseUrl}/agreements`, payload
+			`${environment.apiBaseUrl}/agreements`,
+			payload
 		);
 	}
 	
 	updateAgreement(id: number, payload: AgreementUpsertPayload) {
 		return this.http.put<ApiResource<AgreementDto>>(
-			`${environment.apiBaseUrl}/agreements/${id}`, payload
+			`${environment.apiBaseUrl}/agreements/${id}`,
+			payload
 		);
 	}
 	
 	reviewAgreement(id: number, payload: AgreementNotesPayload) {
 		return this.http.post<ApiResource<AgreementDto>>(
-			`${environment.apiBaseUrl}/agreements/${id}/review`, payload
+			`${environment.apiBaseUrl}/agreements/${id}/review`,
+			payload
 		);
 	}
 	
 	submitAgreement(id: number, payload: AgreementNotesPayload) {
 		return this.http.post<ApiResource<AgreementDto>>(
-			`${environment.apiBaseUrl}/agreements/${id}/submit`, payload
+			`${environment.apiBaseUrl}/agreements/${id}/submit`,
+			payload
 		);
 	}
 	
 	approveAgreement(id: number, payload: AgreementNotesPayload) {
 		return this.http.post<ApiResource<AgreementDto>>(
-			`${environment.apiBaseUrl}/agreements/${id}/approve`, payload
+			`${environment.apiBaseUrl}/agreements/${id}/approve`,
+			payload
 		);
 	}
 	
 	activateAgreement(id: number, payload: AgreementNotesPayload) {
 		return this.http.post<ApiResource<AgreementDto>>(
-			`${environment.apiBaseUrl}/agreements/${id}/activate`, payload
+			`${environment.apiBaseUrl}/agreements/${id}/activate`,
+			payload
 		);
 	}
 	
 	cancelAgreement(id: number, payload: AgreementNotesPayload) {
 		return this.http.post<ApiResource<AgreementDto>>(
-			`${environment.apiBaseUrl}/agreements/${id}/cancel`, payload
+			`${environment.apiBaseUrl}/agreements/${id}/cancel`,
+			payload
 		);
 	}
 	
 	archiveAgreement(id: number, payload: AgreementNotesPayload) {
 		return this.http.post<ApiResource<AgreementDto>>(
-			`${environment.apiBaseUrl}/agreements/${id}/archive`, payload
+			`${environment.apiBaseUrl}/agreements/${id}/archive`,
+			payload
 		);
 	}
 	
 	amendAgreement(id: number, payload: AmendAgreementPayload) {
 		return this.http.post<ApiResource<AgreementDto>>(
-			`${environment.apiBaseUrl}/agreements/${id}/amend`, payload
+			`${environment.apiBaseUrl}/agreements/${id}/amend`,
+			payload
 		);
 	}
 	
 	renewAgreement(id: number, payload: RenewAgreementPayload) {
 		return this.http.post<ApiResource<AgreementDto>>(
-			`${environment.apiBaseUrl}/agreements/${id}/renew`, payload
+			`${environment.apiBaseUrl}/agreements/${id}/renew`,
+			payload
 		);
 	}
 	
 	terminateAgreement(id: number, payload: TerminateAgreementPayload) {
 		return this.http.post<ApiResource<AgreementDto>>(
-			`${environment.apiBaseUrl}/agreements/${id}/terminate`, payload
+			`${environment.apiBaseUrl}/agreements/${id}/terminate`,
+			payload
 		);
 	}
 	
-	linkProjectToAgreement(agreementId: number, payload: AgreementProjectLinkPayload) {
-		return this.http.post<{ ok: boolean; link_id: number; agreement_id: number; project_id: number; }>(
-			`${environment.apiBaseUrl}/agreements/${agreementId}/project-links`, payload
+	linkProjectToAgreement(
+		agreementId: number,
+		payload: AgreementProjectLinkPayload
+		) {
+		return this.http.post<{
+			ok: boolean;
+			link_id: number;
+			agreement_id: number;
+			project_id: number;
+			}>(
+			`${environment.apiBaseUrl}/agreements/${agreementId}/project-links`,
+			payload
 		);
 	}
 	
 	unlinkProjectFromAgreement(agreementId: number, linkId: number) {
-		return this.http.delete<{ ok: boolean; }>(
+		return this.http.delete<{ ok: boolean }>(
 			`${environment.apiBaseUrl}/agreements/${agreementId}/project-links/${linkId}`
 		);
 	}
@@ -1654,27 +1911,31 @@ export class ApiService {
 		let httpParams = new HttpParams();
 		
 		if (params.search) {
-			httpParams = httpParams.set('search', params.search);
+			httpParams = httpParams.set("search", params.search);
 		}
 		
 		if (params.is_active !== undefined) {
-			httpParams = httpParams.set('is_active', params.is_active ? '1' : '0');
+			httpParams = httpParams.set("is_active", params.is_active ? "1" : "0");
 		}
 		
 		if (params.ocr_eligible !== undefined) {
-			httpParams = httpParams.set('ocr_eligible', params.ocr_eligible ? '1' : '0');
+			httpParams = httpParams.set(
+				"ocr_eligible",
+				params.ocr_eligible ? "1" : "0"
+			);
 		}
 		
 		if (params.page) {
-			httpParams = httpParams.set('page', String(params.page));
+			httpParams = httpParams.set("page", String(params.page));
 		}
 		
 		if (params.per_page) {
-			httpParams = httpParams.set('per_page', String(params.per_page));
+			httpParams = httpParams.set("per_page", String(params.per_page));
 		}
 		
 		return this.http.get<ApiCollection<AgreementDocumentTypeDto>>(
-			`${environment.apiBaseUrl}/agreement-document-types`,{ params: httpParams, }
+			`${environment.apiBaseUrl}/agreement-document-types`,
+			{ params: httpParams }
 		);
 	}
 	
@@ -1686,18 +1947,20 @@ export class ApiService {
 	
 	createAgreementDocumentType(payload: AgreementDocumentTypeUpsertPayload) {
 		return this.http.post<ApiResource<AgreementDocumentTypeDto>>(
-			`${environment.apiBaseUrl}/agreement-document-types`, payload
+			`${environment.apiBaseUrl}/agreement-document-types`,
+			payload
 		);
 	}
 	
 	updateAgreementDocumentType(id: number, payload: AgreementDocumentTypeUpsertPayload) {
 		return this.http.put<ApiResource<AgreementDocumentTypeDto>>(
-			`${environment.apiBaseUrl}/agreement-document-types/${id}`, payload
+			`${environment.apiBaseUrl}/agreement-document-types/${id}`,
+			payload
 		);
 	}
 	
 	deactivateAgreementDocumentType(id: number) {
-		return this.http.delete<{ ok: boolean; mode: 'SOFT'; message?: string; }>(
+		return this.http.delete<{ ok: boolean; mode: "SOFT"; message?: string }>(
 			`${environment.apiBaseUrl}/agreement-document-types/${id}`
 		);
 	}
@@ -1710,87 +1973,105 @@ export class ApiService {
 		let httpParams = new HttpParams();
 		
 		if (params.document_type_id != null) {
-			httpParams = httpParams.set('document_type_id', String(params.document_type_id));
+			httpParams = httpParams.set(
+				"document_type_id",
+				String(params.document_type_id)
+			);
 		}
 		
 		if (params.is_current !== undefined) {
-			httpParams = httpParams.set('is_current', params.is_current ? '1' : '0');
+			httpParams = httpParams.set("is_current", params.is_current ? "1" : "0");
 		}
 		
 		if (params.is_executed_copy !== undefined) {
-			httpParams = httpParams.set('is_executed_copy', params.is_executed_copy ? '1' : '0');
+			httpParams = httpParams.set(
+				"is_executed_copy",
+				params.is_executed_copy ? "1" : "0"
+			);
 		}
 		
 		if (params.ocr_status) {
-			httpParams = httpParams.set('ocr_status', params.ocr_status);
+			httpParams = httpParams.set("ocr_status", params.ocr_status);
 		}
 		
 		if (params.page) {
-			httpParams = httpParams.set('page', String(params.page));
+			httpParams = httpParams.set("page", String(params.page));
 		}
 		
 		if (params.per_page) {
-			httpParams = httpParams.set('per_page', String(params.per_page));
+			httpParams = httpParams.set("per_page", String(params.per_page));
 		}
 		
 		return this.http.get<ApiCollection<AgreementDocumentDto>>(
-			`${environment.apiBaseUrl}/agreements/${agreementId}/documents`, { params: httpParams, }
+			`${environment.apiBaseUrl}/agreements/${agreementId}/documents`,
+			{ params: httpParams }
 		);
 	}
 	
 	uploadAgreementDocument(agreementId: number, payload: AgreementDocumentUploadPayload) {
 		const formData = new FormData();
 		
-		formData.append('file', payload.file);
+		formData.append("file", payload.file);
 		
-		formData.append('document_type_id', String(payload.document_type_id));
+		formData.append("document_type_id", String(payload.document_type_id));
 		
 		if (payload.document_version) {
-			formData.append('document_version', payload.document_version);
+			formData.append("document_version", payload.document_version);
 		}
 		
 		if (payload.document_date) {
-			formData.append('document_date', payload.document_date);
+			formData.append("document_date", payload.document_date);
 		}
 		
-		formData.append('is_current', payload.is_current ? '1' : '0');
+		formData.append("is_current", payload.is_current ? "1" : "0");
 		
-		formData.append('is_executed_copy', payload.is_executed_copy ? '1' : '0');
+		formData.append("is_executed_copy", payload.is_executed_copy ? "1" : "0");
 		
 		if (payload.supersedes_agreement_file_id != null) {
-			formData.append('supersedes_agreement_file_id', String(payload.supersedes_agreement_file_id));
+			formData.append(
+				"supersedes_agreement_file_id",
+				String(payload.supersedes_agreement_file_id)
+			);
 		}
 		
 		if (payload.notes) {
-			formData.append('notes', payload.notes);
+			formData.append("notes", payload.notes);
 		}
 		
 		return this.http.post<ApiResource<AgreementDocumentDto>>(
-			`${environment.apiBaseUrl}/agreements/${agreementId}/documents`, formData
+			`${environment.apiBaseUrl}/agreements/${agreementId}/documents`,
+			formData
 		);
 	}
 	
-	updateAgreementDocument(agreementId: number, documentId: number, payload: AgreementDocumentUpdatePayload) {
+	updateAgreementDocument(
+		agreementId: number,
+		documentId: number,
+		payload: AgreementDocumentUpdatePayload
+		) {
 		return this.http.put<ApiResource<AgreementDocumentDto>>(
-			`${environment.apiBaseUrl}/agreements/${agreementId}/documents/${documentId}`, payload
+			`${environment.apiBaseUrl}/agreements/${agreementId}/documents/${documentId}`,
+			payload
 		);
 	}
 	
 	removeAgreementDocument(agreementId: number, documentId: number) {
-		return this.http.delete<{ ok: boolean; physical_deleted: boolean; }>(
+		return this.http.delete<{ ok: boolean; physical_deleted: boolean }>(
 			`${environment.apiBaseUrl}/agreements/${agreementId}/documents/${documentId}`
 		);
 	}
 	
 	downloadAgreementDocument(agreementId: number, documentId: number) {
 		return this.http.get(
-			`${environment.apiBaseUrl}/agreements/${agreementId}/documents/${documentId}/download`, { responseType: 'blob', }
+			`${environment.apiBaseUrl}/agreements/${agreementId}/documents/${documentId}/download`,
+			{ responseType: "blob" }
 		);
 	}
 	
 	requestAgreementDocumentOcr(agreementId: number, documentId: number) {
 		return this.http.post<ApiResource<AgreementDocumentDto>>(
-			`${environment.apiBaseUrl}/agreements/${agreementId}/documents/${documentId}/ocr/request`, {}
+			`${environment.apiBaseUrl}/agreements/${agreementId}/documents/${documentId}/ocr/request`,
+			{}
 		);
 	}
 	
@@ -1800,6 +2081,33 @@ export class ApiService {
 		);
 	}
 	
+	agreementDashboardOverview(params: AgreementDashboardQueryParams = {}) {
+		let httpParams = new HttpParams();
+		
+		if (params.timeline_months !== undefined) {
+			httpParams = httpParams.set("timeline_months", String(params.timeline_months));
+		}
+		
+		if (params.timeline_all !== undefined) {
+			httpParams = httpParams.set("timeline_all", params.timeline_all ? "1" : "0");
+		}
+		
+		if (params.include_no_expiry !== undefined) {
+			httpParams = httpParams.set("include_no_expiry", params.include_no_expiry ? "1" : "0");
+		}
+		
+		if (params.timeline_limit !== undefined) {
+			httpParams = httpParams.set("timeline_limit", String(params.timeline_limit));
+		}
+		
+		if (params.recent_limit !== undefined) {
+			httpParams = httpParams.set("recent_limit", String(params.recent_limit));
+		}
+		
+		return this.http.get<AgreementDashboardOverviewResponse>(
+			`${environment.apiBaseUrl}/agreements/dashboard/overview`, { params: httpParams, }
+		);
+	}
 }
 
 export interface LaravelPaginated<T> {
@@ -1973,7 +2281,7 @@ export interface ExternalSourceDto {
 	code: string;
 	name: string;
 	base_url: string | null; // allow null just in case
-	is_active: boolean;      // backend may send 0/1
+	is_active: boolean; // backend may send 0/1
 	created_at?: string;
 	updated_at?: string;
 }
@@ -2117,11 +2425,7 @@ export type ExternalRiskIssueUpsertPayload = {
 	source_updated_at?: string | null;
 	last_synced_at?: string | null;
 	
-	raw_payload?:
-	| string
-	| Record<string, unknown>
-	| unknown[]
-	| null;
+	raw_payload?: string | Record<string, unknown> | unknown[] | null;
 };
 
 export type ExternalRiskIssueLinkPayload = {
@@ -2222,7 +2526,7 @@ export type ProjectUpsertPayload = {
 	budget_updated_at?: string | null;
 };
 
-export type ProjectBudgetLineType = 'COST' | 'FUND';
+export type ProjectBudgetLineType = "COST" | "FUND";
 
 export type ExternalRiskIssueListParams = {
 	search?: string;
@@ -2589,7 +2893,7 @@ export interface ExternalPermitQueryParams {
 	date_to?: string;
 	project_id?: number;
 	task_id?: number;
-	is_linked?: boolean | '';
+	is_linked?: boolean | "";
 	include_deleted?: boolean;
 	page?: number;
 	per_page?: number;
@@ -2644,7 +2948,7 @@ export interface IntegrationSyncRunQueryParams {
 	per_page?: number;
 }
 
-export type EptwSyncMode = 'FULL' | 'INCREMENTAL' | 'MANUAL';
+export type EptwSyncMode = "FULL" | "INCREMENTAL" | "MANUAL";
 
 export interface EptwSyncPayload {
 	mode: EptwSyncMode;
@@ -2669,7 +2973,7 @@ export interface ApiCollectionResource<T> {
 }
 
 export interface ImportEptwPermitsPayload {
-	sync_type?: 'FULL' | 'INCREMENTAL' | 'MANUAL';
+	sync_type?: "FULL" | "INCREMENTAL" | "MANUAL";
 	cursor_from?: string | null;
 	cursor_to?: string | null;
 	permits: any[];
@@ -2757,11 +3061,11 @@ export type AgreementStatusUpsertPayload = {
 };
 
 export type CounterpartyType =
-| 'COMPANY'
-| 'VENDOR'
-| 'GOVERNMENT_AGENCY'
-| 'INDIVIDUAL'
-| 'OTHER';
+| "COMPANY"
+| "VENDOR"
+| "GOVERNMENT_AGENCY"
+| "INDIVIDUAL"
+| "OTHER";
 
 export interface CounterpartyDto {
 	id: number;
@@ -2910,17 +3214,14 @@ export interface AgreementTypeUpsertPayload {
 	is_active?: boolean;
 }
 
-export type AgreementLifecycleType =
-| 'ORIGINAL'
-| 'AMENDMENT'
-| 'RENEWAL';
+export type AgreementLifecycleType = "ORIGINAL" | "AMENDMENT" | "RENEWAL";
 
 export type AgreementOcrStatus =
-| 'NOT_REQUESTED'
-| 'PENDING'
-| 'PROCESSING'
-| 'COMPLETED'
-| 'FAILED';
+| "NOT_REQUESTED"
+| "PENDING"
+| "PROCESSING"
+| "COMPLETED"
+| "FAILED";
 
 export interface AgreementMiniLookupDto {
 	id: number;
@@ -3150,12 +3451,13 @@ export interface AgreementQueryParams {
 	agreement_status_id?: number;
 	
 	status_code?: string;
-	lifecycle_type?: AgreementLifecycleType | '';
+	lifecycle_type?: AgreementLifecycleType | "";
 	
 	effective_from?: string;
 	effective_to?: string;
 	expiry_from?: string;
 	expiry_to?: string;
+	dashboard_filter?: AgreementDashboardDrilldownFilter;
 	
 	is_current_version?: boolean;
 	include_archived?: boolean;
@@ -3247,7 +3549,7 @@ export interface AgreementDocumentQueryParams {
 	document_type_id?: number;
 	is_current?: boolean;
 	is_executed_copy?: boolean;
-	ocr_status?: AgreementOcrStatus | '';
+	ocr_status?: AgreementOcrStatus | "";
 	page?: number;
 	per_page?: number;
 }
@@ -3291,8 +3593,7 @@ export interface LookupMiniDto {
 	name: string;
 }
 
-export interface LookupSortMiniDto
-extends LookupMiniDto {
+export interface LookupSortMiniDto extends LookupMiniDto {
 	sort_order: number;
 }
 
@@ -3344,3 +3645,159 @@ export interface LookupAgreementDocumentTypeDto {
 	ocr_eligible: boolean;
 }
 
+export interface AgreementDashboardSummary {
+	current_total: number;
+	ongoing: number;
+	expiring_soon: number;
+	expired: number;
+	pending_approval: number;
+	auto_renewal: number;
+	no_expiry_date: number;
+}
+
+export interface AgreementDashboardExpiryBuckets {
+	expired: number;
+	days_0_30: number;
+	days_31_60: number;
+	days_61_90: number;
+	days_91_180: number;
+	days_181_365: number;
+	over_365: number;
+	no_expiry: number;
+}
+
+export interface AgreementDashboardMiniLookup {
+	id: number;
+	code: string;
+	name: string;
+}
+
+export interface AgreementDashboardUser {
+	id: number;
+	name: string;
+	email?: string | null;
+}
+
+export interface AgreementDashboardCounterparty {
+	id: number;
+	code?: string | null;
+	legal_name: string;
+	trading_name?: string | null;
+}
+
+export interface AgreementDashboardAgreement {
+	id: number;
+	agreement_no: string;
+	title: string;
+	status?: AgreementDashboardMiniLookup | null;
+	department?: AgreementDashboardMiniLookup | null;
+	owner?: AgreementDashboardUser | null;
+	counterparty?: AgreementDashboardCounterparty | null;
+	category?: AgreementDashboardMiniLookup | null;
+	type?: AgreementDashboardMiniLookup | null;
+	effective_date?: string | null;
+	/*
+		* The backend recommends this as the
+		* beginning of the remaining-life bar.
+	*/
+	timeline_start_date?: string | null;
+	expiry_date?: string | null;
+	days_to_expiry?: number | null;
+	expiry_band?: string | null;
+	contract_value?: number | string | null;
+	currency_code?: string | null;
+	auto_renewal: boolean;
+	lifecycle_type?: string | null;
+	revision_no: number;
+	renewal_sequence: number;
+}
+
+export interface AgreementDashboardMonthlyExpiry {
+	month: string;
+	label: string;
+	count: number;
+}
+
+export interface AgreementDashboardDistribution {
+	id: number;
+	code: string;
+	name: string;
+	count: number;
+}
+
+export interface AgreementDashboardLifecycleActivity {
+	id: number;
+	agreement?: {
+		id: number;
+		agreement_no: string;
+		title: string;
+	} | null;
+	event_type: string;
+	from_status?: AgreementDashboardMiniLookup | null;
+	to_status?: AgreementDashboardMiniLookup | null;
+	related_agreement?: {
+		id: number;
+		agreement_no: string;
+		title: string;
+	} | null;
+	performed_by?: AgreementDashboardUser | null;
+	reason?: string | null;
+	event_at?: string | null;
+}
+
+export interface AgreementDashboardOverview {
+	generated_at: string;
+	scope: {
+		as_of_date: string;
+		timeline_start: string;
+		timeline_end: string;
+		timeline_months: number;
+		timeline_limit: number;
+	};
+	summary: {
+		total_current: number;
+		ongoing: number;
+		pending_approval: number;
+		approved_not_started: number;
+		expiring_within_30_days: number;
+		expiring_within_60_days: number;
+		expiring_within_90_days: number;
+		overdue_unclosed: number;
+		terminated: number;
+		auto_renewal: number;
+		without_expiry_date: number;
+	};
+	
+	contract_value_by_currency: Array<{ currency_code: string; amount: string }>;
+	status_distribution: AgreementDashboardDistribution[];
+	category_distribution: AgreementDashboardDistribution[];
+	expiry_timeline: {
+		monthly: AgreementDashboardMonthlyExpiry[];
+		agreements: AgreementDashboardAgreement[];
+	};
+	recent_lifecycle_activity: AgreementDashboardLifecycleActivity[];
+}
+
+export interface AgreementDashboardOverviewResponse {
+	data: AgreementDashboardOverview;
+}
+
+export type AgreementDashboardDrilldownFilter =
+| "current"
+| "ongoing"
+| "expiring_soon"
+| "expired"
+| "pending_approval"
+| "auto_renewal";
+
+export interface AgreementDashboardQueryParams {
+	timeline_months?: number;
+	/*
+		* Backend addition.
+	*/
+	timeline_all?: boolean;
+	include_no_expiry?: boolean;
+	
+	timeline_limit?: number;
+	recent_limit?: number;
+}

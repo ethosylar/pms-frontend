@@ -525,6 +525,13 @@ export const routes: Routes = [
 				title: 'Agreement Category & Types Management',
 			},
 			{
+				path: 'agreements/dashboard',
+				loadComponent: () =>
+				import('./features/agreements/agreement-dashboard/agreement-dashboard')
+				.then(m => m.AgreementDashboardComponent),
+				title: 'Agreement Dashboard',
+			},
+			{
 				path: 'agreements',
 				canActivate: [agreementViewGuard,],
 				loadComponent: () =>

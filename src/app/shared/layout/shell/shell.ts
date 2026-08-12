@@ -67,6 +67,17 @@ export class ShellComponent {
 	
 	agreementItems: SidebarItem[] = [
 		{
+			label: 'Agreement Overview',
+			route: '/agreements/dashboard',
+			icon: 'bi-speedometer2',
+			permissions: [
+				'system.all',
+				'agreements.view.own',
+				'agreements.view.department',
+				'agreements.view.all',
+			],
+		},
+		{
 			label: 'Agreements',
 			route: '/agreements',
 			icon: 'bi-file-earmark-text',

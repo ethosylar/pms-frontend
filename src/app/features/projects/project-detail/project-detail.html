@@ -1580,7 +1580,7 @@
 									{{ agreement.category?.name || '—' }}
 								</div>
 								<div *ngIf="agreement.type" class="small text-muted">
-									{{ agreement.type?.name }}
+									{{ agreement.type.name }}
 								</div>
 							</td>
 							<!-- Status -->
@@ -1588,7 +1588,7 @@
 								<span class="badge" [ngClass]="agreementStatusBadgeClass(agreement)">
 									{{ agreement.status?.name || '—' }}
 								</span>
-								<div *ngIf="agreement.lifecycle?.is_current_version" class="mt-1">
+								<div *ngIf="agreement.lifecycle.is_current_version" class="mt-1">
 									<span class="badge bg-success">
 										Current
 									</span>
