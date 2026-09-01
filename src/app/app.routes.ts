@@ -361,7 +361,7 @@ export const routes: Routes = [
 						title: 'Project Categories Management',
 					},
 					{
-						path: 'project-categories/:id',
+						path: 'project-categories/:id/edit',
 						canActivate: [permissionGuard(['masterdata.manage'])],
 						loadComponent: () =>
 						import('./features/admin/project-categories/project-categories-form/project-categories-form')
