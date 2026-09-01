@@ -169,6 +169,12 @@ export class ShellComponent {
 			permissions: ['masterdata.manage'],
 		},
 		{
+			label: 'Project Categories',
+			route: '/admin/project-categories',
+			icon: 'bi-tags',
+			permissions: ['masterdata.manage',],
+		},
+		{
 			label: 'Project Status',
 			route: '/admin/project-statuses',
 			icon: 'bi-flag',

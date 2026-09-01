@@ -1,0 +1,111 @@
+<div class="position-relative project-category-form-wrap">
+    <!-- =============================================================== Loading =============================================================== -->
+    <div *ngIf="loading" class="loading-overlay">
+        <div class="text-center">
+            <div class="spinner-border"></div>
+            <div class="mt-2 fw-semibold">
+                {{ isCreate ? 'Preparing project category…' : 'Loading project category…' }}
+            </div>
+        </div>
+    </div>
+    <!-- =============================================================== Header =============================================================== -->
+    <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
+        <div>
+            <h1 class="h4 mb-1">
+                {{ isCreate ? 'Create Project Category' : 'Edit Project Category' }}
+            </h1>
+            <div class="text-muted small">
+                {{ isCreate ? 'Create a category that can be assigned to HPMS projects.' : 'Update the selected project category.' }}
+            </div>
+        </div>
+        <button type="button" class="btn btn-outline-secondary" [disabled]="saving" (click)="cancel()"> <i class="bi bi-arrow-left me-1"></i> Back </button>
+    </div>
+    <!-- =============================================================== Error =============================================================== -->
+    <div *ngIf="error" class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle me-2"></i> {{ error }}
+    </div>
+    <!-- =============================================================== Form =============================================================== -->
+    <form [formGroup]="form" (ngSubmit)="save()">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white">
+                <div class="fw-semibold">Project Category Information</div>
+                <div class="text-muted small">
+                    Fields marked with <span class="text-danger">*</span> are required.
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- =================================================== Code =================================================== -->
+                    <div class="col-12 col-md-6">
+                        <label class="form-label"> Code <span class="text-danger"> * </span> </label> <input type="text" class="form-control" formControlName="code" maxlength="50" [class.is-invalid]="
+								isInvalid(
+									'code'
+								)
+							" (blur)="normaliseCode()" placeholder="e.g. REFURBISHMENT">
+                        <div class="invalid-feedback">{{ fieldError( 'code', 'Code' ) }}</div>
+                        <div class="form-text">
+                            Use a short unique code. Spaces are automatically converted to underscores.
+                        </div>
+                    </div>
+                    <!-- =================================================== Name =================================================== -->
+                    <div class="col-12 col-md-6">
+                        <label class="form-label"> Name <span class="text-danger"> * </span> </label> <input type="text" class="form-control" formControlName="name" maxlength="150" [class.is-invalid]="
+								isInvalid(
+									'name'
+								)
+							" placeholder="e.g. Refurbishment">
+                        <div class="invalid-feedback">{{ fieldError( 'name', 'Name' ) }}</div>
+                    </div>
+                    <!-- =================================================== Group =================================================== -->
+                    <div class="col-12 col-md-6">
+                        <label class="form-label"> Group </label> <input type="text" class="form-control" formControlName="group" maxlength="20" [class.is-invalid]="
+								isInvalid(
+									'group'
+								)
+							" placeholder="Optional">
+                        <div class="invalid-feedback">{{ fieldError( 'group', 'Group' ) }}</div>
+                        <div class="form-text">
+                            Optional grouping value. Leave blank when the category does not belong to a broader group.
+                        </div>
+                    </div>
+                    <!-- =================================================== Year =================================================== -->
+                    <div class="col-12 col-md-3">
+                        <label class="form-label"> Year </label> <input type="number" class="form-control" formControlName="year" min="2000" max="2100" step="1" [class.is-invalid]="
+								isInvalid(
+									'year'
+								)
+							" placeholder="Optional">
+                        <div class="invalid-feedback">{{ fieldError( 'year', 'Year' ) }}</div>
+                    </div>
+                    <!-- =================================================== Sort Order =================================================== -->
+                    <div class="col-12 col-md-3">
+                        <label class="form-label"> Sort Order </label> <input type="number" class="form-control" formControlName="sort_order" min="0" step="1" [class.is-invalid]="
+								isInvalid(
+									'sort_order'
+								)
+							">
+                        <div class="invalid-feedback">
+                            {{ fieldError( 'sort_order', 'Sort Order' ) }}
+                        </div>
+                        <div class="form-text">Lower numbers appear first.</div>
+                    </div>
+                    <!-- =================================================== Active =================================================== -->
+                    <div class="col-12">
+                        <div class="form-check form-switch mt-2">
+                            <input id="project-category-active" type="checkbox" class="form-check-input" formControlName="is_active"> <label for="project-category-active" class="form-check-label"> Active </label>
+                        </div>
+                        <div class="form-text">
+                            Inactive categories remain available for historical records but should not be selectable for new projects.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- =========================================================== Footer =========================================================== -->
+            <div class="card-footer bg-white">
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-outline-secondary" [disabled]="saving" (click)="cancel()"> Cancel </button> <button type="submit" class="btn btn-primary" [disabled]="saving"> <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"> </span> <i *ngIf="!saving" class="bi bi-check-lg me-1"> </i> {{ saving ? 'Saving…' : ( isCreate ? 'Create Category' : 'Save Changes' ) }} </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

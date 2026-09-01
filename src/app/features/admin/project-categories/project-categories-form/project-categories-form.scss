@@ -1,0 +1,63 @@
+.project-category-form-wrap {
+	position: relative;
+	min-height: 380px;
+}
+
+
+/* ========================================================================
+	Loading
+======================================================================== */
+
+.loading-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 20;
+	
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	
+	min-height: 320px;
+	
+	background:
+	rgba(
+	255,
+	255,
+	255,
+	0.82
+	);
+	
+	backdrop-filter:
+	blur(1px);
+}
+
+
+/* ========================================================================
+	Form
+======================================================================== */
+
+.form-label {
+	font-weight: 500;
+}
+
+.form-check-input {
+	cursor: pointer;
+}
+
+.form-check-label {
+	cursor: pointer;
+}
+
+
+/* ========================================================================
+	Responsive
+======================================================================== */
+
+@media (
+max-width: 767.98px
+) {
+	.card-body {
+		padding:
+		1rem;
+	}
+}

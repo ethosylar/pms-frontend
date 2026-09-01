@@ -1,0 +1,65 @@
+.project-categories-wrap {
+	position: relative;
+	min-height: 320px;
+}
+
+
+/* ========================================================================
+	Loading
+======================================================================== */
+
+.loading-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 20;
+	
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	
+	min-height: 280px;
+	
+	background:
+	rgba(
+	255,
+	255,
+	255,
+	0.78
+	);
+	
+	backdrop-filter:
+	blur(1px);
+}
+
+
+/* ========================================================================
+	Table
+======================================================================== */
+
+.table th {
+	white-space: nowrap;
+}
+
+.category-code {
+	font-family:
+	Consolas,
+	"Courier New",
+	monospace;
+	
+	font-size: 0.86rem;
+	font-weight: 600;
+}
+
+
+/* ========================================================================
+	Mobile
+======================================================================== */
+
+@media (
+max-width: 767.98px
+) {
+	.card-body {
+		padding:
+		0.9rem;
+	}
+}
