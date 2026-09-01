@@ -343,6 +343,34 @@ export const routes: Routes = [
 						title: 'Priorities Management',
 					},
 					
+					// Project Categories
+					{
+						path: 'project-categories',
+						canActivate: [permissionGuard(['masterdata.manage'])],
+						loadComponent: () =>
+						import('./features/admin/project-categories/project-categories/project-categories')
+						.then(m => m.ProjectCategoriesComponent),
+						title: 'Project Categories Management',
+					},
+					{
+						path: 'project-categories/new',
+						canActivate: [permissionGuard(['masterdata.manage'])],
+						loadComponent: () =>
+						import('./features/admin/project-categories/project-categories-form/project-categories-form')
+						.then(m => m.ProjectCategoriesFormComponent),
+						title: 'Project Categories Management',
+					},
+					{
+						path: 'project-categories/:id',
+						canActivate: [permissionGuard(['masterdata.manage'])],
+						loadComponent: () =>
+						import('./features/admin/project-categories/project-categories-form/project-categories-form')
+						.then(m => m.ProjectCategoriesFormComponent),
+						title: 'Project Categories Management',
+					},
+					
+					
+					
 					// Risk Issue Types
 					{
 						path: 'risk-issue-types',

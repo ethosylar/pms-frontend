@@ -1358,25 +1358,53 @@ export class ApiService {
 		);
 	}
 	
-	getProjectCategories(params?: {
-		search?: string;
-		is_active?: number;
-		page?: number;
-		per_page?: number;
-	}) {
-    let httpParams = new HttpParams();
+	// ******************************************************************************************************************************
+	// Project Categories
+	// ******************************************************************************************************************************
 	
-    if (params?.search) httpParams = httpParams.set("search", params.search);
-    if (params?.is_active !== undefined)
-	httpParams = httpParams.set("is_active", String(params.is_active));
-    if (params?.page) httpParams = httpParams.set("page", String(params.page));
-    if (params?.per_page)
-	httpParams = httpParams.set("per_page", String(params.per_page));
+	getProjectCategories(params: ProjectCategoryQueryParams = {}) {
+		let httpParams = new HttpParams();
+		if (params.search) {
+			httpParams = httpParams.set('search', params.search);
+		}
+		if (params.is_active !== undefined) {
+			httpParams = httpParams.set('is_active', String(params.is_active));
+		}
+		
+		if (params.page) {
+			httpParams = httpParams.set('page', String(params.page));
+		}
+		
+		if (params.per_page) {
+			httpParams = httpParams.set('per_page', String(params.per_page));
+		}
+		return this.http.get<ApiCollection<ProjectCategoryDto>>(
+			`${environment.apiBaseUrl}/project-categories`, { params: httpParams, }
+		);
+	}
 	
-    return this.http.get<ApiCollection<ProjectCategoryDto>>(
-		`${environment.apiBaseUrl}/project-categories`,
-		{ params: httpParams }
-	);
+	getProjectCategory(id: number) {
+		return this.http.get<ApiResource<ProjectCategoryDto>>(
+			`${environment.apiBaseUrl}/project-categories/${id}`
+		);
+	}
+	
+	createProjectCategory(payload: ProjectCategoryUpsertPayload) {
+		return this.http.post<ApiResource<ProjectCategoryDto>>(
+			`${environment.apiBaseUrl}/project-categories`, payload
+		);
+	}
+	
+	updateProjectCategory(id: number, payload: ProjectCategoryUpsertPayload) {
+		return this.http.put<ApiResource<ProjectCategoryDto> | { ok: boolean; message?: string; }>(
+			`${environment.apiBaseUrl}/project-categories/${id}`, payload
+		);
+	}
+	
+	deleteProjectCategory(id: number) {
+		return this.http.delete<{ ok: boolean; mode: 'SOFT' | 'HARD'; }>(
+			`${environment.apiBaseUrl}/project-categories/${id}`
+		);
 	}
 	
 	// ******************************************************************************************************************************
@@ -2737,6 +2765,22 @@ export interface ProjectCategoryDto {
 	created_at?: string | null;
 	updated_at?: string | null;
 }
+
+export interface ProjectCategoryQueryParams {
+	search?: string;
+	is_active?: number;
+	page?: number;
+	per_page?: number;
+}
+
+export type ProjectCategoryUpsertPayload = {
+	code?: string;
+	name?: string;
+	group?: string | null;
+	year?: number | null;
+	sort_order?: number;
+	is_active?: boolean;
+};
 
 export interface ProjectBudgetAllocationDto {
 	id: number;
