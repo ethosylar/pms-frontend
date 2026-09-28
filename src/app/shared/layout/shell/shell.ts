@@ -1,7 +1,6 @@
-import { OnInit, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/auth/auth';
 import { AuthUser } from '../../../core/auth/auth.models';
@@ -10,6 +9,14 @@ import { finalize } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
 import { SiteContextService } from '../../../core/site/site-context.service';
 import { SiteSummary } from '../../../core/site/site.models';
+import {
+  NavigationCancel,
+  NavigationEnd,
+  NavigationError,
+  NavigationStart,
+  Router,
+  RouterModule,
+} from '@angular/router';
 
 type SidebarItem = {
   label: string;
@@ -26,13 +33,17 @@ type SidebarItem = {
   templateUrl: './shell.html',
   styleUrls: ['./shell.scss'],
 })
-export class ShellComponent implements OnInit {
+export class ShellComponent implements OnInit, OnDestroy {
   user$: Observable<AuthUser | null>;
   sidebarCollapsed = false;
   sites: SiteSummary[] = [];
   siteLoading = false;
   siteError: string | null = null;
   selectedSiteValue = '';
+  navigationLoading = false;
+  siteSwitching = sessionStorage.getItem('pms_site_switching') === '1';
+  switchingSiteName = '';
+  private routerEventsSubscription: Subscription | null = null;
 
   mainItems: SidebarItem[] = [
     {
@@ -201,87 +212,78 @@ export class ShellComponent implements OnInit {
     private api: ApiService,
     private siteContext: SiteContextService,
     private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {
     this.user$ = this.auth.user$;
   }
 
   ngOnInit(): void {
+    this.bindNavigationLoading();
     this.loadSiteContext();
+  }
+
+  ngOnDestroy(): void {
+    this.routerEventsSubscription?.unsubscribe();
   }
 
   private loadSiteContext(): void {
     this.siteLoading = true;
-
     this.siteError = null;
-
     const primarySite = this.auth.getPrimarySite();
-
     const fallbackSites = this.auth.getSiteAccesses().map((access) => ({
       ...access.site,
-
       is_active: true,
     }));
 
-    /*
-     * Standard HPMS roles currently receive
-     * sites.view.
-     *
-     * Keep /me site_accesses as a fallback for
-     * custom roles.
-     */
-    if (!this.auth.hasAnyPermission(['sites.view'])) {
+    if (fallbackSites.length > 0) {
       this.sites = fallbackSites;
-
       this.siteContext.configure(this.sites, primarySite);
-
       this.syncSiteSelector();
+      this.cdr.detectChanges();
+    }
 
-      this.siteLoading = false;
-
+    if (!this.auth.hasAnyPermission(['sites.view'])) {
+      this.finishSiteLoading();
       return;
     }
 
     this.api
       .getSites({
         is_active: true,
-
         per_page: 100,
       })
       .pipe(
         finalize(() => {
-          this.siteLoading = false;
+          this.finishSiteLoading();
         }),
       )
       .subscribe({
         next: (response) => {
-          this.sites = response.data ?? [];
+          const apiSites = response.data ?? [];
+          if (apiSites.length > 0) {
+            this.sites = apiSites;
+          } else if (!this.sites.length) {
+            this.sites = fallbackSites;
+          }
+          this.siteContext.configure(this.sites, primarySite);
+          this.syncSiteSelector();
+          this.cdr.detectChanges();
+        },
 
+        error: (err: any) => {
+          console.error(err);
           if (!this.sites.length) {
             this.sites = fallbackSites;
           }
 
           this.siteContext.configure(this.sites, primarySite);
-
-          this.syncSiteSelector();
-        },
-
-        error: (err: any) => {
-          console.error(err);
-
-          /*
-           * /me already contains the user's
-           * assigned sites, so the selector
-           * can still operate if /sites fails.
-           */
-          this.sites = fallbackSites;
-
-          this.siteContext.configure(this.sites, primarySite);
-
           this.syncSiteSelector();
 
           if (!this.sites.length) {
             this.siteError = 'Site information could not be loaded.';
           }
+
+          this.cdr.detectChanges();
         },
       });
   }
@@ -291,13 +293,20 @@ export class ShellComponent implements OnInit {
   }
 
   onSiteSelectionChange(value: string): void {
-    if (!value) {
+    if (!value || this.siteSwitching) {
       return;
     }
 
-    const currentValue = this.selectedSiteValue;
+    const currentContextValue =
+      this.siteContext.selectedSiteId !== null
+        ? String(this.siteContext.selectedSiteId)
+        : this.sites.length > 1
+          ? 'ALL'
+          : '';
 
-    if (value === currentValue) {
+    if (value === currentContextValue) {
+      this.syncSiteSelector();
+
       return;
     }
 
@@ -318,17 +327,19 @@ export class ShellComponent implements OnInit {
     }
 
     this.syncSiteSelector();
+    const selectedSite = this.siteContext.selectedSite;
+    this.switchingSiteName = selectedSite
+      ? selectedSite.short_name || selectedSite.name
+      : 'All Accessible Sites';
 
-    /*
-     * Phase 2A reloads the current screen so all
-     * API reads are recreated using the new
-     * Site Context.
-     *
-     * Later we can replace this with reactive
-     * component refreshes as each module becomes
-     * fully site-aware.
-     */
-    window.location.reload();
+    this.siteSwitching = true;
+    sessionStorage.setItem('pms_site_switching', '1');
+    this.cdr.detectChanges();
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        window.location.reload();
+      }, 120);
+    });
   }
 
   private syncSiteSelector(): void {
@@ -424,5 +435,55 @@ export class ShellComponent implements OnInit {
       .sort((a, b) => b.route.length - a.route.length)[0];
 
     return bestMatch?.route === item.route;
+  }
+
+  private finishSiteLoading(): void {
+    this.siteLoading = false;
+    if (sessionStorage.getItem('pms_site_switching') === '1') {
+      sessionStorage.removeItem('pms_site_switching');
+      this.siteSwitching = false;
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  private bindNavigationLoading(): void {
+    this.routerEventsSubscription = this.router.events.subscribe((event) => {
+      if (event instanceof NavigationStart) {
+        this.navigationLoading = true;
+        this.cdr.detectChanges();
+        return;
+      }
+
+      if (
+        event instanceof NavigationEnd ||
+        event instanceof NavigationCancel ||
+        event instanceof NavigationError
+      ) {
+        setTimeout(() => {
+          this.navigationLoading = false;
+          this.cdr.detectChanges();
+        }, 100);
+      }
+    });
+  }
+
+  showGlobalLoading(): boolean {
+    return (
+      this.siteSwitching || this.navigationLoading || (this.siteLoading && this.sites.length === 0)
+    );
+  }
+
+  globalLoadingText(): string {
+    if (this.siteSwitching) {
+      return this.switchingSiteName
+        ? `Switching to ${this.switchingSiteName}…`
+        : 'Loading selected Site…';
+    }
+
+    if (this.navigationLoading) {
+      return 'Loading page…';
+    }
+    return 'Loading Site context…';
   }
 }

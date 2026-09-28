@@ -85,8 +85,16 @@ export class SiteContextService {
         return false;
       }
 
+      if (this.selectedSite === null) {
+        return false;
+      }
+
       this.commitSelection(null);
       return true;
+    }
+
+    if (this.selectedSite?.id === siteId) {
+      return false;
     }
 
     const site = this.sites.find((item) => item.id === siteId);
